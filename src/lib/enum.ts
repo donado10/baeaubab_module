@@ -1,0 +1,17 @@
+export enum EPermission {
+  READ = "READ",
+  VALIDATE = "VALIDATE",
+  BLOCK = "BLOCK",
+  INVALIDATE = "INVALIDATE",
+  UPDATE = "UPDATE",
+  DELETE = "DELETE",
+}
+
+export enum EPeriod {
+  TODAY,
+  SEVEN_DAYS,
+  THIRTY_DAYS,
+  NINETY_DAYS,
+  CUSTOM_DAYS,
+  START_YEAR,
+}
