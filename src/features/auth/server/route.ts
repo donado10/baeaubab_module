@@ -18,7 +18,7 @@ const app = new Hono()
 
 		const { account } = await createAdminClient();
 
-		const email = `${username.toLowerCase()}@amd.sn`;
+		const email = `${username.toLowerCase()}@baeaubab.sn`;
 		const password_ = `${password}123456789`;
 
 		const session = await account.createEmailPasswordSession(email, password_);
@@ -49,7 +49,7 @@ const app = new Hono()
 
 		const { account } = await createAdminClient();
 
-		const email = `${username.toLowerCase()}@amd.sn`;
+		const email = `${username.toLowerCase()}@baeaubab.sn`;
 		const password_ = `${password}123456789`;
 
 		await account.create(ID.unique(), email, password_, username);

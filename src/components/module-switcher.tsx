@@ -18,20 +18,68 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
+import {
+    AudioWaveform,
+    GalleryVerticalEnd,
+} from "lucide-react"
+
+import {
+    Command,
+} from "lucide-react";
+import useGetModules from "@/features/modules/api/use-get-modules"
+
+
+export const ModuleSwitcherContainer = () => {
+    const { data: modulesData, isPending: modulesIsPending } = useGetModules()
+
+    if (modulesIsPending) {
+        return null
+    }
+
+
+    if (!modulesData || modulesData.length <= 0) {
+        return null
+    }
+
+    console.log(modulesData)
+    const modules = [
+        {
+            name: "Acme Inc",
+            logo: GalleryVerticalEnd,
+            plan: "Enterprise",
+        },
+        {
+            name: "Acme Corp.",
+            logo: AudioWaveform,
+            plan: "Startup",
+        },
+        {
+            name: "Evil Corp.",
+            logo: Command,
+            plan: "Free",
+        },
+    ]
+    return <><ModuleSwitcher modules={modulesData.map((m) => ({ name: m.Mod_No, logo: GalleryVerticalEnd, plan: m.Mod_Description }))} /></>
+    /*     
+    return <><ModuleSwitcher modules={modules} /></>
+    */
+}
 
 export function ModuleSwitcher({
-    teams,
+    modules,
 }: {
-    teams: {
+    modules: {
         name: string
         logo: React.ElementType
         plan: string
     }[]
 }) {
     const { isMobile } = useSidebar()
-    const [activeTeam, setActiveTeam] = React.useState(teams[0])
+    const [activeModule, setActiveModule] = React.useState(modules[0])
 
-    if (!activeTeam) {
+    console.log(modules[0])
+    if (!activeModule) {
+
         return null
     }
 
@@ -45,11 +93,11 @@ export function ModuleSwitcher({
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
                             <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                                <activeTeam.logo className="size-4" />
+                                <activeModule.logo className="size-4" />
                             </div>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-medium">{activeTeam.name}</span>
-                                <span className="truncate text-xs">{activeTeam.plan}</span>
+                                <span className="truncate font-medium">{activeModule.name}</span>
+                                <span className="truncate text-xs">{activeModule.plan}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto" />
                         </SidebarMenuButton>
@@ -61,28 +109,21 @@ export function ModuleSwitcher({
                         sideOffset={4}
                     >
                         <DropdownMenuLabel className="text-muted-foreground text-xs">
-                            Teams
+                            Modules
                         </DropdownMenuLabel>
-                        {teams.map((team, index) => (
+                        {modules.map((module, index) => (
                             <DropdownMenuItem
-                                key={team.name}
-                                onClick={() => setActiveTeam(team)}
+                                key={module.name}
+                                onClick={() => setActiveModule(module)}
                                 className="gap-2 p-2"
                             >
                                 <div className="flex size-6 items-center justify-center rounded-md border">
-                                    <team.logo className="size-3.5 shrink-0" />
+                                    <module.logo className="size-3.5 shrink-0" />
                                 </div>
-                                {team.name}
+                                {module.name}
                                 <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
                             </DropdownMenuItem>
                         ))}
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="gap-2 p-2">
-                            <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                                <Plus className="size-4" />
-                            </div>
-                            <div className="text-muted-foreground font-medium">Add team</div>
-                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>

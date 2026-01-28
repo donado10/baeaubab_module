@@ -29,30 +29,11 @@ import {
 } from "@/components/ui/sidebar";
 import Image from "next/image";
 import Logo from "@/assets/images/logo.png";
-import { ModuleSwitcher } from "./module-switcher";
-import {
-  AudioWaveform,
-  GalleryVerticalEnd,
-} from "lucide-react"
+import { ModuleSwitcher, ModuleSwitcherContainer } from "./module-switcher";
+
 
 const data = {
-  teams: [
-    {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
+
   user: {
     name: "shadcn",
     email: "m@example.com",
@@ -118,7 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
-        <ModuleSwitcher teams={data.teams} />
+        <ModuleSwitcherContainer />
 
 
       </SidebarHeader>
