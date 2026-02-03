@@ -49,7 +49,7 @@ const data = {
       items: [
         {
           title: "Factures Digitales",
-          url: "/gestion/integrations/factures-digitales",
+          url: "/m1/gestion/integrations/factures-digitales",
         },
       ],
     },
@@ -88,7 +88,7 @@ const data = {
       items: [
         {
           title: "Reporting",
-          url: "/dashboard/analyse/reporting",
+          url: "/m1/dashboard/analyse/reporting",
         },
       ],
     },

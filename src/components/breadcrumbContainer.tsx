@@ -41,7 +41,7 @@ const BreadcrumbContainer = () => {
           return (
             <React.Fragment key={path}>
               <BreadcrumbItem className=" md:block">
-                <BreadcrumbLink href={"/" + href_}>
+                <BreadcrumbLink href={"/m1/" + href_}>
                   {breadMap.get(path) ?? path}
                 </BreadcrumbLink>
               </BreadcrumbItem>

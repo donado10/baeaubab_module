@@ -6,7 +6,7 @@ import { ID } from "node-appwrite";
 import { setCookie } from "hono/cookie";
 import { sessionMiddleware } from "@/lib/session-middleware";
 import { AUTH_COOKIE } from "@/lib/constants";
-import { client } from "@/lib/db-pgsql";
+import { client } from "@/lib/db-mysql";
 import {
 	missionActionSchema,
 	missionAffectationShema,
