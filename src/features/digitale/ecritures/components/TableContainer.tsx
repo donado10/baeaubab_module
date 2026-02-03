@@ -6,25 +6,23 @@ import { DataTable } from "./Table/table";
 import { Input } from "@/components/ui/input";
 import Search from "@/features/missions/components/Search";
 import { Card } from "@/components/ui/card";
+import { useEcritureEnteteLigneStore } from "../store/store";
 
 
 const TableEcritureDigitalContainer = () => {
 
-
-
-  useEffect(() => {
+  const EcritureStore = useEcritureEnteteLigneStore()
 
 
 
-  }, [])
-
+  console.log(EcritureStore.items.map((val) => val.entete))
 
   return (
     <div className="flex flex-col gap-8">
 
       <DataTable
         data={
-          []
+          EcritureStore.items.map((val) => val.entete)
         }
       />
     </div>

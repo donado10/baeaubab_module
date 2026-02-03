@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import { IEcritureDigital } from "./interface";
+import { IEcritureEntete, IEcritureEnteteLigne } from "../../interface";
 import { cn, MStatus } from "@/lib/utils";
 import DotsIcon from "@/assets/dots.svg";
 import TrierIcon from "@/assets/trier.svg";
@@ -30,7 +30,7 @@ const StatusDisplay = ({ value }: { value: string }) => {
   );
 };
 
-export const columns: ColumnDef<IEcritureDigital>[] = [
+export const columns: ColumnDef<IEcritureEntete>[] = [
   {
     id: "select",
     header: ({ table }) => {
@@ -164,7 +164,7 @@ export const columns: ColumnDef<IEcritureDigital>[] = [
     },
     cell: ({ row }) => (
       <>
-        <StatusDisplay value={row.getValue("EC_Montant")} />
+        <div className="capitalize">{row.getValue("EC_Montant")}</div>
       </>
     ),
   },
@@ -187,7 +187,7 @@ export const columns: ColumnDef<IEcritureDigital>[] = [
     },
     cell: ({ row }) => (
       <>
-        <StatusDisplay value={row.getValue("Status")} />
+        <div className="capitalize">{row.getValue("Status")}</div>
       </>
     ),
   },

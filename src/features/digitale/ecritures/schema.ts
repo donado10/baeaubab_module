@@ -1,7 +1,7 @@
 import { EPermission } from "@/lib/enum";
 import { z } from "zod";
 
-export const ecritureDigitalSchema = z.object({
+export const ecritureLigneDigitalSchema = z.object({
 	id: z.number(),
 	JO_Num: z.string(),
 	EC_No: z.number(),
@@ -18,3 +18,19 @@ export const ecritureDigitalSchema = z.object({
 	EC_Montant: z.number(),
 	Status: z.number(),
 });
+
+export const ecritureEnteteDigitalSchema = z.object({
+	JO_Num: z.string(),
+	JM_Date: z.string(),
+	EC_RefPiece: z.string(),
+	CT_Num: z.string(),
+	EC_Montant: z.number(),
+	Status: z.number(),
+});
+
+export const ecritureEnteteLigneSchema = z.array(
+	z.object({
+		entete: ecritureEnteteDigitalSchema,
+		ligne: z.array(ecritureLigneDigitalSchema),
+	})
+);

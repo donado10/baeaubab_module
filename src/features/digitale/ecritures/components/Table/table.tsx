@@ -26,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
 import { columns } from "./columns";
-import { IDriveTableInfo } from "./interface";
+import { IDriveTableInfo } from "../../interface";
 import { Card } from "@/components/ui/card";
 
 export function DataTable({ data }: { data: IDriveTableInfo[] }) {

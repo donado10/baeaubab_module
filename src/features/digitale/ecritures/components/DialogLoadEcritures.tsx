@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
 import useLoadEcritures from "../api/use-load-ecritures"
+import { useEcritureEnteteLigneStore } from "../store/store"
 
 
 const months = [
@@ -80,15 +81,24 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
     const [month, setMonth] = useState('1')
     const [withChecking, setWithChecking] = useState(false)
 
+    const [close, setClose] = useState<boolean | undefined>(undefined)
+
+    const store = useEcritureEnteteLigneStore()
+
     const { mutate } = useLoadEcritures()
 
     const submitHandler = () => {
-        console.log(year, month, withChecking)
-        mutate({ json: { year, month, check: withChecking } })
+        setClose(false)
+        mutate({ json: { year, month, check: withChecking } }, {
+            onSuccess: (results) => {
+                store.clear()
+                store.setItems(results.results)
+            }
+        })
     }
 
     return (
-        <Dialog>
+        <Dialog open={close} onOpenChange={(val) => setClose(undefined)}>
             <form >
                 <DialogTrigger asChild>
                     {children}

@@ -23,10 +23,23 @@ const app = new Hono().post(
 	async (c) => {
 		const { year, month } = c.req.valid("json");
 
-		const [rows] = await pool.query("select * from ecritures ", [year, month]);
+		const [rows_refpiece] = await pool.query(
+			"select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,Status from ecritures where year(date_facture)=? and month(date_facture)=? and ec_sens=0",
+			[year, month]
+		);
 
-		console.log(rows);
-		return c.json({});
+		const [rows_ecritures] = await pool.query(
+			"select * from ecritures where year(date_facture)=? and month(date_facture)=? ",
+			[year, month]
+		);
+
+		const ecritures_formated = Array.from(rows_refpiece).map((ref) => ({
+			entete: ref,
+			ligne: rows_ecritures.filter((ec) => ec.EC_RefPiece === ref.ec_refpiece),
+		}));
+
+		//console.log(ecritures_formated);
+		return c.json({ results: ecritures_formated });
 	}
 );
 export default app;
