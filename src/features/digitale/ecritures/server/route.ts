@@ -48,18 +48,18 @@ const app = new Hono().post(
 		const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
 		const channel = await conn.createChannel();
 
-		await channel.assertQueue("jobs");
+		await channel.assertQueue("check_digital_ec_jobs");
 
 		const jobId = ID.unique();
 
 		channel.sendToQueue(
-			"jobs",
+			"check_digital_ec_jobs",
 			Buffer.from(
 				JSON.stringify({ jobId: jobId, year: year, month: month, check: check })
 			)
 		);
 
-		return c.json({ results: jobId });
+		return c.json({ results: [], jobId: jobId });
 	}
 );
 export default app;

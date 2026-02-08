@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ReactNode, useState } from "react"
 import useLoadEcritures from "../api/use-load-ecritures"
 import { useEcritureEnteteLigneStore } from "../store/store"
+import JobWatcher from "./JobWatcher"
 
 
 const months = [
@@ -93,6 +94,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
             onSuccess: (results) => {
                 store.clear()
                 store.setItems(results.results)
+                store.setEvent(results.jobId)
             }
         })
     }

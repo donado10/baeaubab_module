@@ -1,6 +1,7 @@
 import pika
 import json
 import time
+import requests
 
 
 def connect_with_retry(host="rabbitmq", tries=30, delay=2):
@@ -12,18 +13,37 @@ def connect_with_retry(host="rabbitmq", tries=30, delay=2):
             time.sleep(delay)
     raise RuntimeError("Could not connect to RabbitMQ")
 
+
 connection = connect_with_retry()
 
 channel = connection.channel()
 
-channel.queue_declare(queue="jobs", durable=True)
+channel.queue_declare(queue="check_digital_ec_jobs", durable=True)
+
 
 def handle(ch, method, properties, body):
     data = json.loads(body)
     print("Received:", data, flush=True)
 
+    requests.post(
+        "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+        json={
+            "jobId": data["jobId"],
+            "status": "pending"
+        }
+    )
+    time.sleep(3)
+    requests.post(
+        "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+        json={
+            "jobId": data["jobId"],
+            "status": "done"
+        }
+    )
+
+
 channel.basic_consume(
-    queue="jobs",
+    queue="check_digital_ec_jobs",
     on_message_callback=handle,
     auto_ack=True
 )

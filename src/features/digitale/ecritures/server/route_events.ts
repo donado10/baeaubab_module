@@ -12,7 +12,7 @@ type JobUpdatePayload = {
 };
 
 type Client = {
-	write: (chunk: string) => Promise<StreamingApi>;
+	write: (chunk: string) => Promise<void> | void;
 	close: () => void;
 };
 
@@ -31,7 +31,8 @@ function sendToJob(jobId: string, eventName: string, data: unknown): void {
 
 const app = new Hono()
 	.get("/:jobId", async (c) => {
-		const jobId = c.req.query("jobId");
+		const jobId = c.req.param("jobId");
+		console.log(jobId);
 		if (!jobId) return c.text("Missing jobId", 400);
 
 		return stream(c, async (s) => {
@@ -56,10 +57,11 @@ const app = new Hono()
 			// Keepalive ping
 			const ping = setInterval(() => {
 				s.write(`event: ping\ndata: {}\n\n`);
-			}, 15000);
+			}, 3000);
 
 			// Cleanup when connection closes
 			s.onAbort(() => {
+				console.log("SSE aborted for jobId:", jobId);
 				clearInterval(ping);
 				const set = clientsByJobId.get(jobId);
 				if (set) {
@@ -76,6 +78,8 @@ const app = new Hono()
 	.post("/job-finished", async (c) => {
 		const body = (await c.req.json()) as Partial<JobUpdatePayload>;
 		const { jobId, status, result, error } = body;
+
+		console.log(jobId, status);
 
 		if (!jobId || !status) {
 			return c.json({ error: "Missing jobId/status" }, 400);
@@ -95,3 +99,5 @@ const app = new Hono()
 
 		return c.json({ ok: true });
 	});
+
+export default app;
