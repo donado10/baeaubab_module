@@ -7,6 +7,7 @@ import { Hono } from "hono";
 import amqp from "amqplib";
 import { pool } from "@/lib/db-mysql";
 import z from "zod";
+import { ID } from "node-appwrite";
 
 const app = new Hono().post(
 	"",
@@ -48,12 +49,17 @@ const app = new Hono().post(
 		const channel = await conn.createChannel();
 
 		await channel.assertQueue("jobs");
+
+		const jobId = ID.unique();
+
 		channel.sendToQueue(
 			"jobs",
-			Buffer.from(JSON.stringify({ year: year, month: month, check: check }))
+			Buffer.from(
+				JSON.stringify({ jobId: jobId, year: year, month: month, check: check })
+			)
 		);
 
-		return c.json({ results: [] });
+		return c.json({ results: jobId });
 	}
 );
 export default app;
