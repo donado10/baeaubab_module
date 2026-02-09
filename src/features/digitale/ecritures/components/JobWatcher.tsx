@@ -20,6 +20,7 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
             if (msg.status === "done") {
                 console.log("RESULT:", msg.jobId);
                 es.close();
+                console.log("readyState after close:", es?.readyState);
             }
             if (msg.status === "failed") {
                 console.error("ERROR:", msg.error);
@@ -29,6 +30,7 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
         es.onerror = (e) => {
             setStatus("SSE error / disconnected");
             es.close();
+            console.log("readyState after close:", es?.readyState);
         };
 
         return () => es.close();
