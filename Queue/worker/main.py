@@ -1,4 +1,5 @@
-from mssql_baeaubab.database import execute_select_all
+import re
+from mssql_baeaubab.database import execute_select_all, execute_select_one
 from utils import get_log_timestamp, ini_settings, write_to_file
 from mssql_baeaubab.database import database_objects as dbo_mssql
 from mysql_digital.database import database_objects as dbo_mysql
@@ -64,30 +65,136 @@ def JO_Num_check(values: list):
     return True
 
 
+def EC_Jour_check(values: list):
+    for value in values:
+        if type(value[3]).__name__ != 'int':
+            return False
+
+        if value[3] <= 0 or value[3] > 31:
+            return False
+        continue
+    return True
+
+
+def EC_RefPiece_check(values: list):
+    for value in values:
+        if type(value[6]).__name__ != 'str':
+            return False
+
+        if len(value[6]) > 17:
+            return False
+        continue
+    return True
+
+
+def CG_Num_check(values: list):
+    debit = [x for x in values if x[11] == 0]
+    credit = [x for x in values if x[11] == 1]
+
+    for ec_deb in debit:
+        sql = f"""
+            Select 1 from gbaeaubab23.dbo.f_compteG where cg_num={ec_deb[7]}
+            """
+        result = execute_select_one(sql)
+        if not result[0]:
+            return False
+
+    for ec_cred in debit:
+        sql = f"""
+            Select 1 from gbaeaubab23.dbo.f_compteG where cg_num={ec_cred[7]}
+            """
+        result = execute_select_one(sql)
+        if not result[0]:
+            return False
+
+    return True
+
+
+def CT_Num_check(values: list):
+    debit = [x for x in values if x[11] == 0]
+
+    for ec_deb in debit:
+        sql = f"""
+            Select 1 from gbaeaubab23.dbo.f_comptet where ct_num='{ec_deb[8]}'
+            """
+
+        result = execute_select_one(sql)
+        if not result:
+            return False
+    return True
+
+
+def EC_Intitule_check(values: list):
+    for value in values:
+        if type(value[9]).__name__ != 'str':
+            return False
+
+        if len(value[9]) > 69:
+            return False
+    return True
+
+
+def EC_Montant_check(values: list):
+    for value in values:
+        if type(value[12]).__name__ != 'int' and type(value[12]).__name__ != 'float':
+            return False
+    return True
+
+
+def EC_Sens_check(values: list):
+    debit = [x for x in values if x[11] == 0]
+
+    for ec_deb in debit:
+        pattern = r"411"
+        if not re.search(pattern, ec_deb[7]):
+            return False
+
+    for value in values:
+        if type(value[7]).__name__ != 'int':
+            return False
+
+        if value[7] < 0 or value[7] > 1:
+            return False
+
+    return True
+
+
 def process_data(value: list, row: str):
 
     checked_data = {
         "refpiece": row,
         "balanced": False,
-        "JO_Num": False
+        "JO_Num": False,
+        "EC_Jour": False,
+        "EC_RefPiece": False,
+        "CG_Num": False,
+        "CT_Num": False,
+        "EC_Sens": False,
+        "EC_Montant": False,
     }
     checked_data['balanced'] = is_balanced(value)
     checked_data['JO_Num'] = JO_Num_check(value)
+    checked_data['EC_Jour'] = EC_Jour_check(value)
+    checked_data['EC_RefPiece'] = EC_RefPiece_check(value)
+    checked_data['CG_Num'] = CG_Num_check(value)
+    checked_data['CT_Num'] = CT_Num_check(value)
+    checked_data['EC_Intitule'] = EC_Intitule_check(value)
+    checked_data['EC_Montant'] = EC_Montant_check(value)
+    checked_data['EC_Sens'] = EC_Sens_check(value)
 
     return checked_data
 
 
-rowsByBill = getBills('2025', '09')
+rowsByBill = getBills('2025', '10')
 
-rowsByEC = getData('2025', '09')
+rowsByEC = getData('2025', '10')
 
+print(len(rowsByBill))
 
 for row in rowsByBill:
     filteredRows = [x for x in rowsByEC if x[6] == row[0]]
 
     checked_data = process_data(filteredRows, row[0])
-
-    print(checked_data)
 
 
 """ for row in rows:

@@ -15,7 +15,7 @@ def configure(app_config_location):
 
 def ini_settings():
     app_config = configure(
-        "/home/igf/transit_client/configuration/settings.ini")
+        "/home/igf/baeaubab_module/Queue/worker/configuration/settings.ini")
 
     config = ConfigParser()
     config.read(app_config)
