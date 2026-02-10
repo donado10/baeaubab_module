@@ -4,11 +4,9 @@ from utils import get_log_timestamp, ini_settings, write_to_file
 from mssql_baeaubab.database import database_objects as dbo_mssql
 from mysql_digital.database import database_objects as dbo_mysql
 
-conn_mssql, cursor_mssql = dbo_mssql()
-conn_mysql, cursor_mysql = dbo_mysql()
-
 
 def getBills(year, month):
+    conn_mysql, cursor_mysql = dbo_mysql()
     query = """
         Select distinct EC_RefPiece from ecritures
         where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1)
@@ -22,6 +20,7 @@ def getBills(year, month):
 
 
 def getData(year, month):
+    conn_mysql, cursor_mysql = dbo_mysql()
     query = """
         Select JO_Num,EC_No,JM_Date,EC_Jour,EC_Date,EC_Piece,EC_RefPiece,CG_Num,CT_Num,EC_Intitule,
         EC_Echeance,EC_Sens,EC_Montant from ecritures
@@ -88,6 +87,7 @@ def EC_RefPiece_check(values: list):
 
 
 def CG_Num_check(values: list):
+
     debit = [x for x in values if x[11] == 0]
     credit = [x for x in values if x[11] == 1]
 
@@ -96,15 +96,16 @@ def CG_Num_check(values: list):
             Select 1 from gbaeaubab23.dbo.f_compteG where cg_num={ec_deb[7]}
             """
         result = execute_select_one(sql)
-        if not result[0]:
+        if not result:
             return False
 
-    for ec_cred in debit:
+    for ec_cred in credit:
         sql = f"""
             Select 1 from gbaeaubab23.dbo.f_compteG where cg_num={ec_cred[7]}
             """
         result = execute_select_one(sql)
-        if not result[0]:
+
+        if not result:
             return False
 
     return True
@@ -185,18 +186,19 @@ def process_data(value: list, row: str):
     return checked_data
 
 
-rowsByBill = getBills('2025', '10')
+def main_process():
 
-rowsByEC = getData('2025', '10')
+    rowsByBill = getBills('2025', '09')
 
-print(len(rowsByBill))
+    rowsByEC = getData('2025', '09')
 
-for row in rowsByBill:
-    filteredRows = [x for x in rowsByEC if x[6] == row[0]]
+    for row in rowsByBill:
+        filteredRows = [x for x in rowsByEC if x[6] == row[0]]
 
-    checked_data = process_data(filteredRows, row[0])
+        checked_data = process_data(filteredRows, row[0])
 
 
+main_process()
 """ for row in rows:
     value = {"JO_Num": row[0], "EC_No": row[1], "JM_Date": f'{row[2]}',
              "EC_Jour": row[3], "EC_Date": f'{row[4]}', "EC_Piece": row[5], "EC_RefPiece": row[6],
