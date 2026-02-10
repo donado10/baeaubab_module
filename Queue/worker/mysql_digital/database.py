@@ -30,8 +30,9 @@ def set_connexion():
 def database_objects():
 
     if len(database_object):
+        print(database_object[0])
         return database_object[0]
 
     conn, cursor = set_connexion()
-    add_database_object(conn)
+    add_database_object([conn, cursor])
     return [conn, cursor]

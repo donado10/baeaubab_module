@@ -196,6 +196,7 @@ def main_process():
         filteredRows = [x for x in rowsByEC if x[6] == row[0]]
 
         checked_data = process_data(filteredRows, row[0])
+        print(checked_data)
 
 
 main_process()
