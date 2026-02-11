@@ -137,7 +137,7 @@ def EC_Intitule_check(values: list):
 
 def EC_Montant_check(values: list):
     for value in values:
-        if type(value[12]).__name__ != 'int' and type(value[12]).__name__ != 'float':
+        if type(int(value[12])).__name__ != 'int' or type(float(value[12])).__name__ != 'float':
             return False
     return True
 
@@ -151,10 +151,10 @@ def EC_Sens_check(values: list):
             return False
 
     for value in values:
-        if type(value[7]).__name__ != 'int':
+        if type(int(value[7])).__name__ != 'int':
             return False
 
-        if value[7] < 0 or value[7] > 1:
+        if int(value[11]) < 0 or int(value[11]) > 1:
             return False
 
     return True
@@ -172,6 +172,7 @@ def process_data(value: list, row: str):
         "CT_Num": False,
         "EC_Sens": False,
         "EC_Montant": False,
+        "Status": 0
     }
     checked_data['balanced'] = is_balanced(value)
     checked_data['JO_Num'] = JO_Num_check(value)
@@ -183,26 +184,37 @@ def process_data(value: list, row: str):
     checked_data['EC_Montant'] = EC_Montant_check(value)
     checked_data['EC_Sens'] = EC_Sens_check(value)
 
+    if checked_data['balanced'] and checked_data['JO_Num'] and checked_data['EC_Jour'] and checked_data['EC_RefPiece'] and checked_data['CG_Num'] and checked_data['CT_Num'] and checked_data['EC_Intitule'] and checked_data['EC_Montant'] and checked_data['EC_Sens']:
+        checked_data['Status'] = 1
+    else:
+        checked_data['Status'] = 0
     return checked_data
 
 
-def main_process():
+def set_in_invalid_table():
+    pass
 
-    rowsByBill = getBills('2025', '09')
 
-    rowsByEC = getData('2025', '09')
+def set_in_valid_table():
+    pass
+
+
+def main_process(year, month):
+
+    rowsByBill = getBills(year, month)
+
+    rowsByEC = getData(year, month)
 
     for row in rowsByBill:
         filteredRows = [x for x in rowsByEC if x[6] == row[0]]
 
         checked_data = process_data(filteredRows, row[0])
-        print(checked_data)
+        if checked_data["Status"] == 0:
+            print(checked_data)
+            set_in_invalid_table(checked_data)
+        if checked_data["Status"] == 1:
+            print(checked_data)
+            set_in_valid_table(filteredRows)
 
 
-main_process()
-""" for row in rows:
-    value = {"JO_Num": row[0], "EC_No": row[1], "JM_Date": f'{row[2]}',
-             "EC_Jour": row[3], "EC_Date": f'{row[4]}', "EC_Piece": row[5], "EC_RefPiece": row[6],
-             "CG_Num": row[7], "CT_Num": row[8], "EC_Intitule": row[9], "EC_Echeance": f'{row[10]}',
-             "EC_Sens": row[11], "EC_Montant": f'{row[12]}'}
-    process_data(value) """
+main_process('2025', '09')
