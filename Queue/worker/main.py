@@ -1,3 +1,4 @@
+import hashlib
 import re
 from mssql_baeaubab.database import execute_select_all, execute_select_one
 from utils import get_log_timestamp, ini_settings, write_to_file
@@ -172,6 +173,10 @@ def process_data(value: list, row: str):
         "CT_Num": False,
         "EC_Sens": False,
         "EC_Montant": False,
+        "EC_No": True,
+        "JM_Date": True,
+        "EC_Date": True,
+        "EC_Piece": True,
         "Status": 0
     }
     checked_data['balanced'] = is_balanced(value)
@@ -191,12 +196,93 @@ def process_data(value: list, row: str):
     return checked_data
 
 
-def set_in_invalid_table():
-    pass
+def set_in_invalid_table_sage(invalid_rows):
+    invalid_rows_query_sage = f"""
+        insert into transit.dbo.f_ecriturec_invalid(
+            [Balanced]
+           ,[JO_Num]
+           ,[EC_No]
+           ,[JM_Date]
+           ,[EC_Jour]
+           ,[EC_Date]
+           ,[EC_Piece]
+           ,[EC_RefPiece]
+           ,[CG_Num]
+           ,[CT_Num]
+           ,[EC_Intitule]
+           ,[EC_Sens]
+           ,[EC_Montant])
+        Values
+          {",".join(invalid_rows)}
+    """
+    conn_mssql, cursor_mssql = dbo_mssql()
+
+    cursor_mssql.execute(invalid_rows_query_sage)
+    conn_mssql.commit()
 
 
-def set_in_valid_table():
-    pass
+def set_in_invalid_table_digital(invalid_rows_ref):
+    invalid_rows_query = f"""
+        update ecritures
+        set status = 1
+        where ec_refpiece in ({','.join(invalid_rows_ref)})
+    """
+    conn_mysql, cursor_mysql = dbo_mysql()
+
+    cursor_mysql.execute(invalid_rows_query)
+    conn_mysql.commit()
+
+
+def set_in_valid_table_sage(valid_rows):
+    valid_rows_query_sage = f"""
+        insert into transit.dbo.f_ecriturec_valid(
+        [JO_Num]
+      ,[EC_No]
+      ,[JM_Date]
+      ,[EC_Jour]
+      ,[EC_Date]
+      ,[EC_Piece]
+      ,[EC_RefPiece]
+      ,[CG_Num]
+      ,[CT_Num]
+      ,[EC_Intitule]
+      ,[EC_Sens]
+      ,[EC_Montant]
+      ,[row_status]
+      ,[hash_row])
+      Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """
+    conn_mssql, cursor_mssql = dbo_mssql()
+
+    print(valid_rows)
+
+    cursor_mssql.executemany(valid_rows_query_sage, valid_rows)
+    conn_mssql.commit()
+
+
+def set_in_valid_table_digital(valid_rows_ref):
+    valid_rows_query_digital = f"""
+        update ecritures
+        set status = 2
+        where ec_refpiece in ({','.join(valid_rows_ref)})
+    """
+    conn_mysql, cursor_mysql = dbo_mysql()
+
+    cursor_mysql.execute(valid_rows_query_digital)
+    conn_mysql.commit()
+
+
+def hash256_string(text: str) -> str:
+    # Convert string to bytes
+    data = text.encode('utf-8')
+
+    # First SHA256
+    first_hash = hashlib.sha256(data).digest()
+
+    # Second SHA256
+    second_hash = hashlib.sha256(first_hash).hexdigest()
+
+    return str(second_hash)
 
 
 def main_process(year, month):
@@ -205,16 +291,36 @@ def main_process(year, month):
 
     rowsByEC = getData(year, month)
 
+    invalid_rows = []
+    invalid_rows_ref = []
+    valid_rows = []
+    valid_rows_ref = []
+
     for row in rowsByBill:
         filteredRows = [x for x in rowsByEC if x[6] == row[0]]
 
         checked_data = process_data(filteredRows, row[0])
         if checked_data["Status"] == 0:
-            print(checked_data)
-            set_in_invalid_table(checked_data)
+            invalid_rows.append(f"({1 if checked_data["balanced"] else 0},{1 if checked_data["JO_Num"] else 0},{1 if checked_data["EC_No"] else 0},{1 if checked_data["JM_Date"] else 0},{1 if checked_data["EC_Jour"] else 0},{1 if checked_data["EC_Date"] else 0},{1 if checked_data["EC_Piece"] else 0},'{checked_data["refpiece"]}',{1 if checked_data["CG_Num"] else 0},{1 if checked_data["CT_Num"] else 0},{1 if checked_data["EC_Intitule"] else 0},{1 if checked_data["EC_Sens"] else 0},{1 if checked_data["EC_Montant"] else 0})")
+            invalid_rows_ref.append(f"'{row[0]}'")
         if checked_data["Status"] == 1:
-            print(checked_data)
-            set_in_valid_table(filteredRows)
+            for fr in filteredRows:
+                print(
+                    f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]}")
+                hash = hash256_string(
+                    f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]}")
+                valid_rows.append(
+                    (fr[0], fr[1], fr[2], fr[3], fr[4], fr[5], fr[6], fr[7], fr[8], fr[9],  fr[11], fr[12], 2, f'0x{hash}'))
+            valid_rows_ref.append(f"'{row[0]}'")
+            # set_in_valid_table(filteredRows)
+
+    set_in_invalid_table_sage(invalid_rows)
+
+    set_in_invalid_table_digital(invalid_rows_ref)
+
+    set_in_valid_table_sage(valid_rows)
+
+    set_in_valid_table_digital(valid_rows_ref)
 
 
-main_process('2025', '09')
+main_process('2025', '08')
