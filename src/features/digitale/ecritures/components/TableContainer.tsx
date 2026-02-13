@@ -14,9 +14,6 @@ const TableEcritureDigitalContainer = () => {
   const EcritureStore = useEcritureEnteteLigneStore()
 
 
-
-  console.log(EcritureStore.items.map((val) => val.entete))
-
   return (
     <div className="flex flex-col gap-8">
 

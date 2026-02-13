@@ -7,6 +7,8 @@ type JobStatus = "done" | "failed" | "pending";
 type JobUpdatePayload = {
 	jobId: string;
 	status: JobStatus;
+	ec_total: string;
+	ec_count: string;
 	result?: unknown;
 	error?: string;
 };
@@ -77,7 +79,7 @@ const app = new Hono()
 	})
 	.post("/job-finished", async (c) => {
 		const body = (await c.req.json()) as Partial<JobUpdatePayload>;
-		const { jobId, status, result, error } = body;
+		const { jobId, status, ec_total, ec_count, result, error } = body;
 
 		console.log(jobId, status);
 
@@ -86,7 +88,14 @@ const app = new Hono()
 		}
 
 		// Send update to all SSE clients for that jobId
-		sendToJob(jobId, "job_update", { jobId, status, result, error });
+		sendToJob(jobId, "job_update", {
+			jobId,
+			status,
+			ec_total,
+			ec_count,
+			result,
+			error,
+		});
 
 		// Optional: close streams when final
 		if (status === "done" || status === "failed") {

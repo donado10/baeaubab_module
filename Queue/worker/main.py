@@ -1,5 +1,7 @@
 import hashlib
 import re
+
+import requests
 from mssql_baeaubab.database import execute_select_all, execute_select_one
 from utils import get_log_timestamp, ini_settings, write_to_file
 from mssql_baeaubab.database import database_objects as dbo_mssql
@@ -94,7 +96,7 @@ def CG_Num_check(values: list):
 
     for ec_deb in debit:
         sql = f"""
-            Select 1 from gbaeaubab23.dbo.f_compteG where cg_num={ec_deb[7]}
+            Select 1 from gbaeaubab23.dbo.f_compteG where cg_num='{ec_deb[7]}'
             """
         result = execute_select_one(sql)
         if not result:
@@ -102,7 +104,7 @@ def CG_Num_check(values: list):
 
     for ec_cred in credit:
         sql = f"""
-            Select 1 from gbaeaubab23.dbo.f_compteG where cg_num={ec_cred[7]}
+            Select 1 from gbaeaubab23.dbo.f_compteG where cg_num='{ec_cred[7]}'
             """
         result = execute_select_one(sql)
 
@@ -197,6 +199,8 @@ def process_data(value: list, row: str):
 
 
 def set_in_invalid_table_sage(invalid_rows):
+    if not len(invalid_rows):
+        return
     invalid_rows_query_sage = f"""
         insert into transit.dbo.f_ecriturec_invalid(
             [Balanced]
@@ -213,15 +217,16 @@ def set_in_invalid_table_sage(invalid_rows):
            ,[EC_Sens]
            ,[EC_Montant])
         Values
-          {",".join(invalid_rows)}
+          (?,?,?,?,?,?,?,?,?,?,?,?,?)
     """
     conn_mssql, cursor_mssql = dbo_mssql()
 
-    cursor_mssql.execute(invalid_rows_query_sage)
-    conn_mssql.commit()
+    cursor_mssql.executemany(invalid_rows_query_sage, invalid_rows)
 
 
 def set_in_invalid_table_digital(invalid_rows_ref):
+    if not len(invalid_rows_ref):
+        return
     invalid_rows_query = f"""
         update ecritures
         set status = 1
@@ -230,10 +235,11 @@ def set_in_invalid_table_digital(invalid_rows_ref):
     conn_mysql, cursor_mysql = dbo_mysql()
 
     cursor_mysql.execute(invalid_rows_query)
-    conn_mysql.commit()
 
 
 def set_in_valid_table_sage(valid_rows):
+    if not len(valid_rows):
+        return
     valid_rows_query_sage = f"""
         insert into transit.dbo.f_ecriturec_valid(
         [JO_Num]
@@ -254,13 +260,12 @@ def set_in_valid_table_sage(valid_rows):
     """
     conn_mssql, cursor_mssql = dbo_mssql()
 
-    print(valid_rows)
-
     cursor_mssql.executemany(valid_rows_query_sage, valid_rows)
-    conn_mssql.commit()
 
 
 def set_in_valid_table_digital(valid_rows_ref):
+    if not len(valid_rows_ref):
+        return
     valid_rows_query_digital = f"""
         update ecritures
         set status = 2
@@ -269,7 +274,6 @@ def set_in_valid_table_digital(valid_rows_ref):
     conn_mysql, cursor_mysql = dbo_mysql()
 
     cursor_mysql.execute(valid_rows_query_digital)
-    conn_mysql.commit()
 
 
 def hash256_string(text: str) -> str:
@@ -285,7 +289,10 @@ def hash256_string(text: str) -> str:
     return str(second_hash)
 
 
-def main_process(year, month):
+def main_process(jobId, year, month):
+
+    conn_mssql, _ = dbo_mssql()
+    conn_mysql, _ = dbo_mysql()
 
     rowsByBill = getBills(year, month)
 
@@ -296,23 +303,33 @@ def main_process(year, month):
     valid_rows = []
     valid_rows_ref = []
 
+    row_count = 0
+
     for row in rowsByBill:
         filteredRows = [x for x in rowsByEC if x[6] == row[0]]
 
         checked_data = process_data(filteredRows, row[0])
         if checked_data["Status"] == 0:
-            invalid_rows.append(f"({1 if checked_data["balanced"] else 0},{1 if checked_data["JO_Num"] else 0},{1 if checked_data["EC_No"] else 0},{1 if checked_data["JM_Date"] else 0},{1 if checked_data["EC_Jour"] else 0},{1 if checked_data["EC_Date"] else 0},{1 if checked_data["EC_Piece"] else 0},'{checked_data["refpiece"]}',{1 if checked_data["CG_Num"] else 0},{1 if checked_data["CT_Num"] else 0},{1 if checked_data["EC_Intitule"] else 0},{1 if checked_data["EC_Sens"] else 0},{1 if checked_data["EC_Montant"] else 0})")
+            invalid_rows.append((1 if checked_data["balanced"] else 0, 1 if checked_data["JO_Num"] else 0, 1 if checked_data["EC_No"] else 0, 1 if checked_data["JM_Date"] else 0, 1 if checked_data["EC_Jour"] else 0, 1 if checked_data["EC_Date"] else 0,
+                                1 if checked_data["EC_Piece"] else 0, checked_data["refpiece"], 1 if checked_data["CG_Num"] else 0, 1 if checked_data["CT_Num"] else 0, 1 if checked_data["EC_Intitule"] else 0, 1 if checked_data["EC_Sens"] else 0, 1 if checked_data["EC_Montant"] else 0))
             invalid_rows_ref.append(f"'{row[0]}'")
         if checked_data["Status"] == 1:
             for fr in filteredRows:
-                print(
-                    f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]}")
                 hash = hash256_string(
                     f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]}")
                 valid_rows.append(
-                    (fr[0], fr[1], fr[2], fr[3], fr[4], fr[5], fr[6], fr[7], fr[8], fr[9],  fr[11], fr[12], 2, f'0x{hash}'))
+                    (fr[0], fr[1], fr[2], fr[3], fr[4], fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], 2, f'0x{hash}'))
             valid_rows_ref.append(f"'{row[0]}'")
-            # set_in_valid_table(filteredRows)
+        row_count = row_count + 1
+        requests.post(
+            "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+            json={
+                "jobId": jobId,
+                "status": "pending",
+                "ec_total": len(rowsByBill),
+                "ec_count": row_count
+            }
+        )
 
     set_in_invalid_table_sage(invalid_rows)
 
@@ -321,6 +338,5 @@ def main_process(year, month):
     set_in_valid_table_sage(valid_rows)
 
     set_in_valid_table_digital(valid_rows_ref)
-
-
-main_process('2025', '08')
+    conn_mssql.commit()
+    conn_mysql.commit()

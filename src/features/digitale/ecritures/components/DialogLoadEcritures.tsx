@@ -94,7 +94,8 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
             onSuccess: (results) => {
                 store.clear()
                 store.setItems(results.results)
-                store.setEvent(results.jobId)
+                console.log(results)
+                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending" })
             }
         })
     }

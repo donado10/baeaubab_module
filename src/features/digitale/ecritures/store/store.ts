@@ -1,11 +1,18 @@
 import { create } from "zustand";
 import { IEcritureEnteteLigne } from "../interface";
 
+interface IEvent {
+	jobId: string;
+	status: string;
+	ec_count: string;
+	ec_total: string;
+}
+
 interface IEcritureEnteteLigneState {
 	items: IEcritureEnteteLigne[];
-	event: string;
+	event: IEvent | null;
 	setItems: (items: IEcritureEnteteLigne[]) => void;
-	setEvent: (event: string) => void;
+	setEvent: (event: IEvent) => void;
 
 	clear: () => void;
 }
@@ -13,13 +20,14 @@ interface IEcritureEnteteLigneState {
 export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 	(set) => ({
 		items: [],
-		event: "",
+		event: null,
 		setItems: (items: IEcritureEnteteLigne[]) => set({ items: [...items] }),
-		setEvent: (event: string) => set({ event: event }),
+		setEvent: (event: IEvent) => set({ event: event }),
 
 		clear: () =>
 			set({
 				items: [],
+				event: null,
 			}),
 	})
 );

@@ -1,7 +1,6 @@
 from configparser import ConfigParser
 from datetime import datetime
 import os
-import re
 import sys
 
 
@@ -15,7 +14,7 @@ def configure(app_config_location):
 
 def ini_settings():
     app_config = configure(
-        "/home/igf/baeaubab_module/Queue/worker/configuration/settings.ini")
+        "./configuration/settings.ini")
 
     config = ConfigParser()
     config.read(app_config)
@@ -31,11 +30,6 @@ def write_to_file(file_path, content):
 
 def get_log_timestamp():
     return f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}]"
-
-
-def process_ecritures(data):
-    print(data)
-    pass
 
 
 """ process_ecritures({'jobId': '6989cbff001c72f2c576',

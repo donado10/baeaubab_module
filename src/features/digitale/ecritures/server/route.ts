@@ -8,23 +8,23 @@ import amqp from "amqplib";
 import { pool } from "@/lib/db-mysql";
 import z from "zod";
 import { ID } from "node-appwrite";
+import { get } from "http";
 
-const app = new Hono().post(
-	"",
-	sessionMiddleware,
-	adminActionMiddleware,
-	zValidator(
-		"json",
-		z.object({
-			year: z.string(),
-			month: z.string(),
-			check: z.boolean(),
-		})
-	),
-	async (c) => {
-		const { year, month, check } = c.req.valid("json");
+const app = new Hono()
+	.get(
+		"",
+		sessionMiddleware,
+		adminActionMiddleware,
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month } = c.req.valid("json");
 
-		if (!check) {
 			const [rows_refpiece] = await pool.query(
 				"select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,Status from ecritures where year(date_facture)=? and month(date_facture)=? and ec_sens=0",
 				[year, month]
@@ -45,21 +45,44 @@ const app = new Hono().post(
 			//console.log(ecritures_formated);
 			return c.json({ results: ecritures_formated });
 		}
-		const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
-		const channel = await conn.createChannel();
+	)
+	.post(
+		"",
+		sessionMiddleware,
+		adminActionMiddleware,
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+				check: z.boolean(),
+			})
+		),
+		async (c) => {
+			const { year, month, check } = c.req.valid("json");
 
-		await channel.assertQueue("check_digital_ec_jobs");
+			if (!check) {
+			}
+			const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
+			const channel = await conn.createChannel();
 
-		const jobId = ID.unique();
+			await channel.assertQueue("check_digital_ec_jobs");
 
-		channel.sendToQueue(
-			"check_digital_ec_jobs",
-			Buffer.from(
-				JSON.stringify({ jobId: jobId, year: year, month: month, check: check })
-			)
-		);
+			const jobId = ID.unique();
 
-		return c.json({ results: [], jobId: jobId });
-	}
-);
+			channel.sendToQueue(
+				"check_digital_ec_jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						check: check,
+					})
+				)
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		}
+	);
 export default app;

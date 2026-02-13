@@ -16,6 +16,7 @@ const EcritureDigitaleSection = (props: Props) => {
 
     const store = useEcritureEnteteLigneStore()
 
+
     return (
         <section className='p-4'>
             <main className='p-4'>
@@ -29,7 +30,7 @@ const EcritureDigitaleSection = (props: Props) => {
                     </DialogLoadEcritures>
                 </div>
                 <div>
-                    {store.event && <JobWatcher jobId={store.event} />}
+                    {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
                 </div>
                 <div className='border-b-2 border-gray-200 flex items-center gap-8'>
                     <Button variant={"ghost"} className={cn(classNameButton)}>Tout</Button>

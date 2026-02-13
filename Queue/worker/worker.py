@@ -3,7 +3,7 @@ import json
 import time
 import requests
 
-from Queue.worker.utils import process_ecritures
+from main import main_process
 
 
 def connect_with_retry(host="rabbitmq", tries=30, delay=2):
@@ -31,17 +31,21 @@ def handle(ch, method, properties, body):
         "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
         json={
             "jobId": data["jobId"],
-            "status": "pending"
+            "status": "pending",
+            "ec_total": "",
+            "ec_count": ""
         }
     )
 
-    process_ecritures(data)
+    main_process(data["jobId"], data["year"], data["month"])
 
     requests.post(
         "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
         json={
             "jobId": data["jobId"],
-            "status": "done"
+            "status": "done",
+            "ec_total": "",
+            "ec_count": ""
         }
     )
 
