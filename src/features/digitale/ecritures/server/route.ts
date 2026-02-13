@@ -11,7 +11,7 @@ import { ID } from "node-appwrite";
 import { get } from "http";
 
 const app = new Hono()
-	.get(
+	.post(
 		"",
 		sessionMiddleware,
 		adminActionMiddleware,
@@ -47,7 +47,7 @@ const app = new Hono()
 		}
 	)
 	.post(
-		"",
+		"/withCheck",
 		sessionMiddleware,
 		adminActionMiddleware,
 		zValidator(
@@ -85,4 +85,5 @@ const app = new Hono()
 			return c.json({ results: [], jobId: jobId });
 		}
 	);
+
 export default app;

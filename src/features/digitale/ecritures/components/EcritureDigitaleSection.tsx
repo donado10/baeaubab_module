@@ -1,24 +1,33 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import TableEcritureDigitalContainer from './TableContainer'
 import { DialogLoadEcritures } from './DialogLoadEcritures'
 import { useEcritureEnteteLigneStore } from '../store/store'
 import JobWatcher from './JobWatcher'
+import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 
 type Props = {}
 
 const EcritureDigitaleSection = (props: Props) => {
 
     const classNameButton = 'p-0 hover:bg-transparent hover:text-blue-600  rounded-none'
+    const [dialogEcWithCheck, setDialogEcWithCheck] = useState(false)
 
     const store = useEcritureEnteteLigneStore()
+
+    useEffect(() => {
+        if (store.event?.status === 'done') {
+            setDialogEcWithCheck(true)
+        }
+    }, [store.event?.status])
 
 
     return (
         <section className='p-4'>
+            {store.event?.status === 'done' && <DialogLoadEcrituresWithCheck open={dialogEcWithCheck} onOpen={setDialogEcWithCheck} />}
             <main className='p-4'>
 
 

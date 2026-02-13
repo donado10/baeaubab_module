@@ -19,6 +19,7 @@ import { ReactNode, useState } from "react"
 import useLoadEcritures from "../api/use-load-ecritures"
 import { useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
+import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 
 
 const months = [
@@ -87,17 +88,28 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
     const store = useEcritureEnteteLigneStore()
 
     const { mutate } = useLoadEcritures()
+    const { mutate: mutateWithCheck } = useLoadEcrituresWithCheck()
 
     const submitHandler = () => {
         setClose(false)
-        mutate({ json: { year, month, check: withChecking } }, {
-            onSuccess: (results) => {
-                store.clear()
-                store.setItems(results.results)
-                console.log(results)
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending" })
-            }
-        })
+        store.setPeriode(year, month)
+        if (withChecking) {
+
+            mutateWithCheck({ json: { year, month, check: withChecking } }, {
+                onSuccess: (results) => {
+                    store.clear()
+                    store.setItems(results.results)
+                    store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending" })
+                }
+            })
+        } else {
+            mutate({ json: { year, month } }, {
+                onSuccess: (results) => {
+                    store.clear()
+                    store.setItems(results.results)
+                }
+            })
+        }
     }
 
     return (

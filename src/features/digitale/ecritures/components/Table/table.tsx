@@ -153,7 +153,7 @@ export function DataTable({ data }: { data: IDriveTableInfo[] }) {
       <div className="flex items-center justify-end space-x-2 py-4">
         <div className="flex-1 text-sm">
           <span className="text-xs font-semibold text-black">
-            Total des chauffeurs: {table.getFilteredRowModel().rows.length}
+            Total factures: {table.getFilteredRowModel().rows.length}
           </span>
         </div>
         <div className="space-x-2">

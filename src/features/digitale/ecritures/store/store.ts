@@ -10,9 +10,11 @@ interface IEvent {
 
 interface IEcritureEnteteLigneState {
 	items: IEcritureEnteteLigne[];
+	periode: string[];
 	event: IEvent | null;
 	setItems: (items: IEcritureEnteteLigne[]) => void;
 	setEvent: (event: IEvent) => void;
+	setPeriode: (year: string, month: string) => void;
 
 	clear: () => void;
 }
@@ -20,9 +22,12 @@ interface IEcritureEnteteLigneState {
 export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 	(set) => ({
 		items: [],
+		periode: [],
 		event: null,
 		setItems: (items: IEcritureEnteteLigne[]) => set({ items: [...items] }),
 		setEvent: (event: IEvent) => set({ event: event }),
+		setPeriode: (year: string, month: string) =>
+			set({ periode: [year, month] }),
 
 		clear: () =>
 			set({
