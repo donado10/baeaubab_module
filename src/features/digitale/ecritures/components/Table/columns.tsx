@@ -66,7 +66,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
       return (
         <Button
           variant="ghost"
-          className="p-0 flex items-center justify-between w-full"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
@@ -88,7 +88,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
       return (
         <Button
           variant="ghost"
-          className="p-0 flex items-center justify-between w-full"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
@@ -109,7 +109,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
       return (
         <Button
           variant="ghost"
-          className="p-0 flex items-center justify-between w-full"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
@@ -130,7 +130,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
       return (
         <Button
           variant="ghost"
-          className="p-0 flex items-center justify-between w-full"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
@@ -151,7 +151,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
       return (
         <Button
           variant="ghost"
-          className="p-0 flex items-center justify-between w-full"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
@@ -174,7 +174,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
       return (
         <Button
           variant="ghost"
-          className="p-0 flex items-center justify-between w-full"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>

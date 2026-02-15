@@ -59,7 +59,7 @@ export function DataTable({ data }: { data: IDriveTableInfo[] }) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex items-center">
         {/* <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -88,16 +88,16 @@ export function DataTable({ data }: { data: IDriveTableInfo[] }) {
         </DropdownMenu> */}
       </div>
       <div className="overflow-hidden rounded-md  ">
-        <Card className="bg-secondary border-none p-6 ">
-          <Table className=" w-full space-y-2 border-separate border-spacing-y-2 ">
-            <TableHeader>
+        <Card className=" border-none ">
+          <Table className=" w-full  ">
+            <TableHeader className="bg-gray-200 ">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
                       <TableHead
                         key={header.id}
-                        className="border-none text-gray-600 py-4 px-8"
+                        className=" "
                       >
                         {header.isPlaceholder
                           ? null
@@ -117,16 +117,12 @@ export function DataTable({ data }: { data: IDriveTableInfo[] }) {
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className="bg-[#EDEEFC]  "
+                    className="  "
                   >
                     {row.getVisibleCells().map((cell, i, arr) => (
                       <TableCell
                         key={cell.id}
-                        className={cn(
-                          "py-4 px-8",
-                          i === 0 ? "rounded-l-xl" : "",
-                          i === arr.length - 1 ? "rounded-r-xl" : ""
-                        )}
+                        className={""}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -142,7 +138,7 @@ export function DataTable({ data }: { data: IDriveTableInfo[] }) {
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    Aucun résultats.
                   </TableCell>
                 </TableRow>
               )}

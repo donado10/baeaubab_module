@@ -30,6 +30,7 @@ import {
 import Image from "next/image";
 import Logo from "@/assets/images/logo.png";
 import { ModuleSwitcher, ModuleSwitcherContainer } from "./module-switcher";
+import { usePathname } from "next/navigation";
 
 
 const data = {
@@ -42,18 +43,42 @@ const data = {
   NavDashboard: [
 
     {
-      title: "Reporting",
-      url: "/m1/dashboard/analyse/reporting",
-      isActive: true,
+      title: "Analyse",
+      endpoint: "reporting",
+      url: "/m1/dashboard/reporting",
+      isActive: false,
     },
     {
-      title: "Factures Digitales",
-      url: "/m1/gestion/integrations/factures-digitales",
+      title: "Ecritures Digitales",
+      endpoint: 'ecritures-digitales',
+      url: "/m1/dashboard/ecritures-digitales",
       isActive: false,
     },]
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname()
+
+  const [navigation, setNavigation] = React.useState<{
+    title: string;
+    endpoint: string;
+    url: string;
+    isActive: boolean;
+  }[]>(data.NavDashboard)
+
+  React.useEffect(() => {
+
+    const newNavigation = navigation.map((nav) => {
+      if (pathname.split('/')[3] === nav.endpoint) {
+        nav.isActive = true;
+        return nav
+      }
+      nav.isActive = false
+      return nav
+    })
+    setNavigation(newNavigation)
+  }, [pathname])
+
   return (
     <Sidebar variant="inset" {...props} className=" p-2">
       <SidebarHeader >
@@ -62,7 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.NavDashboard} />
+        <NavMain items={navigation} />
         {/* <NavMain section="Paramètres" items={data.NavSettings} /> */}
       </SidebarContent>
       <SidebarFooter><NavUser user={data.user} /></SidebarFooter>

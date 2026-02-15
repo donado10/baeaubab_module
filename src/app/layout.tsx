@@ -4,8 +4,9 @@ import Providers from "@/components/queryProviders";
 import { Toaster } from "@/components/ui/sonner";
 import ProgressBar from "@/components/progressBar";
 import NextTopLoader from 'nextjs-toploader';
+import { Montserrat, Roboto } from "@next/font/google"
 
-
+const montserrat = Montserrat()
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`flex min-h-screen w-full items-center justify-center antialiased bg-[#101010] `}
+        className={`flex min-h-screen w-full ${montserrat.className} items-center justify-center antialiased bg-[#101010] `}
       >
         <NextTopLoader speed={5000} />
         <Providers>{children}</Providers>
