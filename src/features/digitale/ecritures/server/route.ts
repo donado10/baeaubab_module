@@ -8,7 +8,6 @@ import amqp from "amqplib";
 import { pool } from "@/lib/db-mysql";
 import z from "zod";
 import { ID } from "node-appwrite";
-import { get } from "http";
 
 const app = new Hono()
 	.post(
@@ -61,8 +60,6 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, check } = c.req.valid("json");
 
-			if (!check) {
-			}
 			const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
 			const channel = await conn.createChannel();
 

@@ -20,7 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`flex min-h-screen w-full items-center justify-center antialiased `}
+        className={`flex min-h-screen w-full items-center justify-center antialiased bg-[#101010] `}
       >
         <NextTopLoader speed={5000} />
         <Providers>{children}</Providers>

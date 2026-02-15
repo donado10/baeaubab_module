@@ -39,73 +39,30 @@ const data = {
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  NavGestion: [
+  NavDashboard: [
 
     {
-      title: "Intégrations",
-      url: "#",
-      icon: Bot,
+      title: "Reporting",
+      url: "/m1/dashboard/analyse/reporting",
       isActive: true,
-      items: [
-        {
-          title: "Factures Digitales",
-          url: "/m1/gestion/integrations/factures-digitales",
-        },
-      ],
     },
-  ],
-  NavSettings: [
     {
-      title: "Paramètres",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  NavDashboard: [
-    {
-      title: "Analyse",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "Reporting",
-          url: "/m1/dashboard/analyse/reporting",
-        },
-      ],
-    },
-  ],
+      title: "Factures Digitales",
+      url: "/m1/gestion/integrations/factures-digitales",
+      isActive: false,
+    },]
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
-    <Sidebar variant="inset" {...props}>
-      <SidebarHeader>
+    <Sidebar variant="inset" {...props} className=" p-2">
+      <SidebarHeader >
         <ModuleSwitcherContainer />
 
 
       </SidebarHeader>
       <SidebarContent>
-        <NavMain section="Tableau de bord" items={data.NavDashboard} />
-        <NavMain section="Gestion" items={data.NavGestion} />
+        <NavMain items={data.NavDashboard} />
         {/* <NavMain section="Paramètres" items={data.NavSettings} /> */}
       </SidebarContent>
       <SidebarFooter><NavUser user={data.user} /></SidebarFooter>

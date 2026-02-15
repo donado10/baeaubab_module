@@ -93,6 +93,8 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
     const submitHandler = () => {
         setClose(false)
         store.setPeriode(year, month)
+
+        console.log(withChecking)
         if (withChecking) {
 
             mutateWithCheck({ json: { year, month, check: withChecking } }, {
@@ -124,7 +126,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                     </DialogHeader>
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-4">
-                            <Checkbox id="terms-checkbox" name="terms-checkbox" className="hover:cursor-pointer" onCheckedChange={(value: boolean) => setWithChecking(value)} />
+                            <Checkbox id="terms-checkbox" name="terms-checkbox" className="hover:cursor-pointer" checked={withChecking} onCheckedChange={(value: boolean) => setWithChecking(value)} />
                             <Label htmlFor="terms-checkbox">Vérification</Label>
                         </div>
 

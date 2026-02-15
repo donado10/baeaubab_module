@@ -90,7 +90,7 @@ export function ModuleSwitcher({
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                            className="data-[state=open]:bg-sidebar-accent/20 "
                         >
                             <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                                 <activeModule.logo className="size-4" />
@@ -105,7 +105,7 @@ export function ModuleSwitcher({
                     <DropdownMenuContent
                         className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
                         align="start"
-                        side={isMobile ? "bottom" : "right"}
+                        side={isMobile ? "bottom" : "bottom"}
                         sideOffset={4}
                     >
                         <DropdownMenuLabel className="text-muted-foreground text-xs">

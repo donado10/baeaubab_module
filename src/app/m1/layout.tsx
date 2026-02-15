@@ -18,9 +18,9 @@ import { ReactNode } from "react";
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider className="">
       <AppSidebar />
-      <SidebarInset className="h-[95vh]">
+      <SidebarInset className="h-[95vh] ">
         <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-500-900">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
