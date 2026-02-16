@@ -25,7 +25,7 @@ export default function RootLayout({
       >
         <NextTopLoader speed={5000} />
         <Providers>{children}</Providers>
-        <Toaster duration={3000} position="bottom-right" expand={true} />
+        <Toaster duration={3000} position="top-right" expand={true} />
       </body>
     </html>
   );

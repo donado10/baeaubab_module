@@ -20,6 +20,7 @@ import useLoadEcritures from "../api/use-load-ecritures"
 import { useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
+import { toast } from "sonner"
 
 
 const months = [
@@ -97,13 +98,32 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
         console.log(withChecking)
         if (withChecking) {
 
+            const id_toast = toast(() => {
+                const store = useEcritureEnteteLigneStore()
+
+                return (
+                    <div className="text-white">
+                        <h1 >En cours</h1>
+                        {store.event && <JobWatcher jobId={store.event.jobId} />}
+                    </div >
+                )
+            },
+                {
+                    duration: Infinity,
+                    style: {
+                        background: 'green'
+                    }
+                });
+
             mutateWithCheck({ json: { year, month, check: withChecking } }, {
                 onSuccess: (results) => {
                     store.clear()
                     store.setItems(results.results)
-                    store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending" })
+                    store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
                 }
             })
+
+
         } else {
             mutate({ json: { year, month } }, {
                 onSuccess: (results) => {
@@ -111,6 +131,19 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                     store.setItems(results.results)
                 }
             })
+
+            toast(() => (
+                <div className="text-white">
+                    <h1 >En cours</h1>
+                    {store.event && <JobWatcher jobId={store.event.jobId} />}
+                </div >
+            ),
+                {
+                    duration: Infinity,
+                    style: {
+                        background: 'gray'
+                    }
+                });
         }
     }
 

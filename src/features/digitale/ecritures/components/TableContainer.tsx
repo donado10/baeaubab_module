@@ -6,12 +6,31 @@ import { DataTable } from "./Table/table";
 import { Input } from "@/components/ui/input";
 import Search from "@/features/missions/components/Search";
 import { Card } from "@/components/ui/card";
-import { useEcritureEnteteLigneStore } from "../store/store";
+import { EStatus, useEcritureEnteteLigneStore } from "../store/store";
 
 
 const TableEcritureDigitalContainer = () => {
 
   const EcritureStore = useEcritureEnteteLigneStore()
+  const EcMapByStatus = new Map<number, EStatus>([[0, EStatus.ATTENTE], [1, EStatus.INVALIDE], [2, EStatus.VALIDE], [3, EStatus.INTEGRE]])
+  const [ecritures, setEcritures] = useState(EcritureStore.items)
+
+  useEffect(() => {
+
+    if (EcritureStore.filter.status !== EStatus.ALL) {
+
+      const filterByStatus = EcritureStore.items.filter((ec) => {
+        if (EcMapByStatus.get(ec.entete.Status) === EcritureStore.filter.status) {
+          return ec
+        }
+      })
+      setEcritures(filterByStatus)
+      return
+    }
+
+    setEcritures(EcritureStore.items)
+
+  }, [EcritureStore.filter])
 
 
   return (
@@ -19,7 +38,7 @@ const TableEcritureDigitalContainer = () => {
 
       <DataTable
         data={
-          EcritureStore.items.map((val) => val.entete)
+          ecritures.map((val) => val.entete)
         }
       />
     </div>

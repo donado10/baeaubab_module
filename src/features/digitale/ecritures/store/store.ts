@@ -6,14 +6,28 @@ interface IEvent {
 	status: string;
 	ec_count: string;
 	ec_total: string;
+	id_toast_job: string;
+}
+
+export enum EStatus {
+	ALL = "Tout",
+	INTEGRE = "Intégré",
+	VALIDE = "Valide",
+	INVALIDE = "Invalide",
+	ATTENTE = "Attente",
+}
+interface IFilter {
+	status: EStatus;
 }
 
 interface IEcritureEnteteLigneState {
-	items: IEcritureEnteteLigne[];
+	items: IEcritureEnteteLigne;
 	periode: string[];
 	event: IEvent | null;
-	setItems: (items: IEcritureEnteteLigne[]) => void;
+	filter: IFilter;
+	setItems: (items: IEcritureEnteteLigne) => void;
 	setEvent: (event: IEvent) => void;
+	setFilter: (filter: IFilter) => void;
 	setPeriode: (year: string, month: string) => void;
 
 	clear: () => void;
@@ -24,8 +38,10 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		items: [],
 		periode: [],
 		event: null,
-		setItems: (items: IEcritureEnteteLigne[]) => set({ items: [...items] }),
+		filter: { status: EStatus.ALL },
+		setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
 		setEvent: (event: IEvent) => set({ event: event }),
+		setFilter: (filter: IFilter) => set({ filter: filter }),
 		setPeriode: (year: string, month: string) =>
 			set({ periode: [year, month] }),
 

@@ -5,16 +5,43 @@ import React, { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import TableEcritureDigitalContainer from './TableContainer'
 import { DialogLoadEcritures } from './DialogLoadEcritures'
-import { useEcritureEnteteLigneStore } from '../store/store'
+import { EStatus, useEcritureEnteteLigneStore } from '../store/store'
 import JobWatcher from './JobWatcher'
 import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 import { Card } from '@/components/ui/card'
 
-type Props = {}
 
-const EcritureDigitaleSection = (props: Props) => {
 
+const ResumeCard = ({ title, count }: { title: string, count: number }) => {
+    return <Card className='shadow-none p-4 gap-4'>
+        <h1 className='text-base font-normal text-gray-700'>{title}</h1>
+        <h2 className='font-bold text-3xl italic '>{count}</h2>
+    </Card>
+}
+
+const FilterSection = () => {
+    const [filter, setFilter] = useState(EStatus.ALL)
+    const store = useEcritureEnteteLigneStore()
     const classNameButton = 'p-0 hover:bg-transparent hover:text-blue-600  rounded-none'
+
+    useEffect(() => {
+        store.setFilter({ ...store.filter, status: filter })
+
+    }, [filter])
+
+
+
+    return <div className='border-b border-gray-200 flex items-center gap-8'>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.ALL ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.ALL)}>Tout</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.INTEGRE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.INTEGRE)}>Intégré</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.VALIDE ? 'text-blue-600 font-semibold ' : '')} onClick={() => setFilter(EStatus.VALIDE)}>Valide</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.INVALIDE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.INVALIDE)}>Invalide</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.ATTENTE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.ATTENTE)}>En attente</Button>
+    </div>
+}
+
+const EcritureDigitaleSection = () => {
+
     const [dialogEcWithCheck, setDialogEcWithCheck] = useState(false)
 
     const store = useEcritureEnteteLigneStore()
@@ -38,41 +65,18 @@ const EcritureDigitaleSection = (props: Props) => {
                 </DialogLoadEcritures>
             </div>
             <div>
-                {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
-            </div>
+                {/*                 {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
+ */}            </div>
             <div className='h-32 mb-4 shadow-none grid grid-cols-5 gap-4 '>
-                <Card className='shadow-none p-4 gap-4'>
-                    <h1 className='text-base font-normal text-gray-700'>Total factures</h1>
-                    <h2 className='font-bold text-3xl italic '>3000</h2>
-                </Card>
-                <Card className='shadow-none p-4 gap-4'>
-                    <h1 className='text-base font-normal text-gray-700'>Factures Intégrées</h1>
-                    <h2 className='font-bold text-3xl italic'>2000</h2>
-                </Card>
-                <Card className='shadow-none p-4 gap-4'>
-                    <h1 className='text-base font-normal text-gray-700'>Factures Valides</h1>
-                    <h2 className='font-bold text-3xl italic'>2000</h2>
-                </Card>
-                <Card className='shadow-none p-4 gap-4'>
-                    <h1 className='text-base font-normal text-gray-700'>Factures Invalides</h1>
-                    <h2 className='font-bold text-3xl italic'>5</h2>
-                </Card>
-                <Card className='shadow-none p-4 gap-4'>
-                    <h1 className='text-base font-normal text-gray-700'>Factures en attente</h1>
-                    <h2 className='font-bold text-3xl italic'>0</h2>
-                </Card>
+                <ResumeCard title='Total Factures' count={store.items.length} />
+                <ResumeCard title='Factures Intégrées' count={store.items.filter((item) => item.entete.Status === 3).length} />
+                <ResumeCard title='Factures Valides' count={store.items.filter((item) => item.entete.Status === 2).length} />
+                <ResumeCard title='Factures Invalides' count={store.items.filter((item) => item.entete.Status === 1).length} />
+                <ResumeCard title='Factures en attente' count={store.items.filter((item) => item.entete.Status === 0).length} />
+
             </div>
             <Card className='p-4 shadow-none'>
-
-
-
-                <div className='border-b border-gray-200 flex items-center gap-8'>
-                    <Button variant={"ghost"} className={cn(classNameButton)}>Tout</Button>
-                    <Button variant={"ghost"} className={cn(classNameButton)}>Intégré</Button>
-                    <Button variant={"ghost"} className={cn(classNameButton)}>Valide</Button>
-                    <Button variant={"ghost"} className={cn(classNameButton)}>Invalide</Button>
-                    <Button variant={"ghost"} className={cn(classNameButton)}>En attente</Button>
-                </div>
+                <FilterSection />
                 <div>
                     <TableEcritureDigitalContainer />
                 </div>
