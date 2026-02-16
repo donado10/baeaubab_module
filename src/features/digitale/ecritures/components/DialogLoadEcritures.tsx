@@ -132,18 +132,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 }
             })
 
-            toast(() => (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            ),
-                {
-                    duration: Infinity,
-                    style: {
-                        background: 'gray'
-                    }
-                });
+
         }
     }
 

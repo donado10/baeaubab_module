@@ -56,5 +56,28 @@ export function getCurrentTime() {
 	return `${hours}:${minutes}`;
 }
 
+export function getFrenchMonthName(month: number): string {
+	const monthsInFrench: Map<number, string> = new Map([
+		[1, "Janvier"],
+		[2, "Février"],
+		[3, "Mars"],
+		[4, "Avril"],
+		[5, "Mai"],
+		[6, "Juin"],
+		[7, "Juillet"],
+		[8, "Août"],
+		[9, "Septembre"],
+		[10, "Octobre"],
+		[11, "Novembre"],
+		[12, "Décembre"],
+	]);
+
+	if (!monthsInFrench.has(month)) {
+		throw new Error("Invalid month. Please provide a number between 1 and 12.");
+	}
+
+	return monthsInFrench.get(month)!;
+}
+
 // Example:
 //console.log(formatDate("2025-12-10T00:00:00.000Z")); // "10/12/2025"

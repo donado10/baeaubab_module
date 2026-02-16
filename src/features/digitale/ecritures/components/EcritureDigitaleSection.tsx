@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
-import { cn } from '@/lib/utils'
+import { cn, getFrenchMonthName } from '@/lib/utils'
 import TableEcritureDigitalContainer from './TableContainer'
 import { DialogLoadEcritures } from './DialogLoadEcritures'
 import { EStatus, useEcritureEnteteLigneStore } from '../store/store'
@@ -32,11 +32,11 @@ const FilterSection = () => {
 
 
     return <div className='border-b border-gray-200 flex items-center gap-8'>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.ALL ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.ALL)}>Tout</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.INTEGRE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.INTEGRE)}>Intégré</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.VALIDE ? 'text-blue-600 font-semibold ' : '')} onClick={() => setFilter(EStatus.VALIDE)}>Valide</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.INVALIDE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.INVALIDE)}>Invalide</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.ATTENTE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.ATTENTE)}>En attente</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.ALL ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.ALL)} disabled={store.items.length <= 0}>Tout</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.INTEGRE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.INTEGRE)} disabled={store.items.length <= 0}>Intégré</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.VALIDE ? 'text-blue-600 font-semibold ' : '')} onClick={() => setFilter(EStatus.VALIDE)} disabled={store.items.length <= 0}>Valide</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.INVALIDE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.INVALIDE)} disabled={store.items.length <= 0}>Invalide</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.ATTENTE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.ATTENTE)} disabled={store.items.length <= 0}>En attente</Button>
     </div>
 }
 
@@ -58,11 +58,22 @@ const EcritureDigitaleSection = () => {
             {store.event?.status === 'done' && <DialogLoadEcrituresWithCheck open={dialogEcWithCheck} onOpen={setDialogEcWithCheck} />}
 
             <div className='flex items-center justify-between mb-8 '>
-                <h1 className='text-2xl text-[#101010] font-bold'>Ecritures Digitales</h1>
-                <DialogLoadEcritures>
+                <div>
 
-                    <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Charger Ecritures</Button>
-                </DialogLoadEcritures>
+                    <h1 className='text-2xl text-[#101010] font-bold'>Ecritures Digitales</h1>
+                    {store.periode.length > 0 && <h2 className='text-xs'>{getFrenchMonthName(Number(store.periode[1]))} {store.periode[0]}</h2>}
+                </div>
+                <div className='flex items-center gap-4'>
+
+                    {store.filter.status === EStatus.ATTENTE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Vérifier Ecritures</Button>}
+                    {store.filter.status === EStatus.INVALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Revérifier Ecritures</Button>}
+                    {store.filter.status === EStatus.VALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>}
+                    {store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
+                    <DialogLoadEcritures>
+
+                        <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Charger Ecritures</Button>
+                    </DialogLoadEcritures>
+                </div>
             </div>
             <div>
                 {/*                 {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
