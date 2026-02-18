@@ -16,11 +16,12 @@ const TableEcritureDigitalContainer = () => {
   const [ecritures, setEcritures] = useState(EcritureStore.items)
 
   useEffect(() => {
+    console.log(EcritureStore.items)
 
-    if (EcritureStore.filter.status !== EStatus.ALL) {
+    if (EcritureStore.filter?.status !== EStatus.ALL) {
 
       const filterByStatus = EcritureStore.items.filter((ec) => {
-        if (EcMapByStatus.get(ec.entete.Status) === EcritureStore.filter.status) {
+        if (EcMapByStatus.get(ec.entete.Status) === EcritureStore.filter?.status) {
           return ec
         }
       })
@@ -28,9 +29,10 @@ const TableEcritureDigitalContainer = () => {
       return
     }
 
+    console.log(EcritureStore.items)
     setEcritures(EcritureStore.items)
 
-  }, [EcritureStore.filter])
+  }, [JSON.stringify(EcritureStore.filter), JSON.stringify(EcritureStore.items)])
 
 
   return (

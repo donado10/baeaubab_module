@@ -9,6 +9,7 @@ import { EStatus, useEcritureEnteteLigneStore } from '../store/store'
 import JobWatcher from './JobWatcher'
 import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 import { Card } from '@/components/ui/card'
+import { EFeatureStatus } from '@/features/features/interface'
 
 
 
@@ -20,23 +21,19 @@ const ResumeCard = ({ title, count }: { title: string, count: number }) => {
 }
 
 const FilterSection = () => {
-    const [filter, setFilter] = useState(EStatus.ALL)
     const store = useEcritureEnteteLigneStore()
     const classNameButton = 'p-0 hover:bg-transparent hover:text-blue-600  rounded-none'
 
-    useEffect(() => {
-        store.setFilter({ ...store.filter, status: filter })
 
-    }, [filter])
-
+    console.log(store.filter?.status)
 
 
     return <div className='border-b border-gray-200 flex items-center gap-8'>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.ALL ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.ALL)} disabled={store.items.length <= 0}>Tout</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.INTEGRE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.INTEGRE)} disabled={store.items.length <= 0}>Intégré</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.VALIDE ? 'text-blue-600 font-semibold ' : '')} onClick={() => setFilter(EStatus.VALIDE)} disabled={store.items.length <= 0}>Valide</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.INVALIDE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.INVALIDE)} disabled={store.items.length <= 0}>Invalide</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, filter === EStatus.ATTENTE ? 'text-blue-600 font-semibold' : '')} onClick={() => setFilter(EStatus.ATTENTE)} disabled={store.items.length <= 0}>En attente</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-blue-600 font-semibold' : '')} onClick={() => store.setFilter({ status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-blue-600 font-semibold' : '')} onClick={() => store.setFilter({ status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-blue-600 font-semibold ' : '')} onClick={() => store.setFilter({ status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-blue-600 font-semibold' : '')} onClick={() => store.setFilter({ status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-blue-600 font-semibold' : '')} onClick={() => store.setFilter({ status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
     </div>
 }
 
@@ -65,10 +62,10 @@ const EcritureDigitaleSection = () => {
                 </div>
                 <div className='flex items-center gap-4'>
 
-                    {store.filter.status === EStatus.ATTENTE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Vérifier Ecritures</Button>}
-                    {store.filter.status === EStatus.INVALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Revérifier Ecritures</Button>}
-                    {store.filter.status === EStatus.VALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>}
-                    {store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
+                    {store.filter && store.filter.status === EStatus.ATTENTE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Vérifier Ecritures</Button>}
+                    {store.filter && store.filter.status === EStatus.INVALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Revérifier Ecritures</Button>}
+                    {store.filter && store.filter.status === EStatus.VALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>}
+                    {store.filter && store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
                     <DialogLoadEcritures>
 
                         <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Charger Ecritures</Button>

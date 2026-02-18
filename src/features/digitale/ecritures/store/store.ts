@@ -24,7 +24,7 @@ interface IEcritureEnteteLigneState {
 	items: IEcritureEnteteLigne;
 	periode: string[];
 	event: IEvent | null;
-	filter: IFilter;
+	filter: IFilter | null;
 	setItems: (items: IEcritureEnteteLigne) => void;
 	setEvent: (event: IEvent) => void;
 	setFilter: (filter: IFilter) => void;
@@ -47,6 +47,7 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 
 		clear: () =>
 			set({
+				filter: null,
 				items: [],
 				event: null,
 			}),

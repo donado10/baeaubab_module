@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
 import useLoadEcritures from "../api/use-load-ecritures"
-import { useEcritureEnteteLigneStore } from "../store/store"
+import { EStatus, useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 import { toast } from "sonner"
@@ -119,6 +119,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 onSuccess: (results) => {
                     store.clear()
                     store.setItems(results.results)
+                    store.setFilter({ status: EStatus.ALL })
                     store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
                 }
             })
@@ -129,6 +130,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 onSuccess: (results) => {
                     store.clear()
                     store.setItems(results.results)
+                    store.setFilter({ status: EStatus.ALL })
                 }
             })
 

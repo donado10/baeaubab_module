@@ -6,12 +6,14 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useEcritureEnteteLigneStore } from "../store/store";
 
 type RequestType = InferRequestType<(typeof client.api.digitale.ecritures)["$post"]>;
 type ResponseType = InferResponseType<(typeof client.api.digitale.ecritures)["$post"]>;
 
 const useLoadEcritures = () => {
     const router = useRouter();
+    const store = useEcritureEnteteLigneStore();
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["load_ecritures_digitales"],
         mutationFn: async ({ json }) => {
@@ -36,6 +38,7 @@ const useLoadEcritures = () => {
                     description: () => <button>This is a button element!</button>,
                     duration: Infinity
                 }); */
+            store.clear()
             router.refresh();
         },
     });
