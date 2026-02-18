@@ -29,11 +29,11 @@ const FilterSection = () => {
 
 
     return <div className='border-b border-gray-200 flex items-center gap-8'>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-blue-600 font-semibold' : '')} onClick={() => store.setFilter({ status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-blue-600 font-semibold' : '')} onClick={() => store.setFilter({ status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-blue-600 font-semibold ' : '')} onClick={() => store.setFilter({ status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-blue-600 font-semibold' : '')} onClick={() => store.setFilter({ status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-blue-600 font-semibold' : '')} onClick={() => store.setFilter({ status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-blue-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
+        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
     </div>
 }
 

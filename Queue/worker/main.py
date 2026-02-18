@@ -22,6 +22,20 @@ def getBills(year, month):
     return cursor_mysql.fetchall()
 
 
+def getBillsByRef(year, month, bills):
+    conn_mysql, cursor_mysql = dbo_mysql()
+    query = f"""
+        Select distinct EC_RefPiece from ecritures
+        where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1) and EC_RefPiece in ({','.join(bills)})
+        """
+
+    data = (year, month)
+
+    cursor_mysql.execute(query, data)
+
+    return cursor_mysql.fetchall()
+
+
 def getData(year, month):
     conn_mysql, cursor_mysql = dbo_mysql()
     query = """
@@ -36,10 +50,20 @@ def getData(year, month):
 
     return cursor_mysql.fetchall()
 
-    """ return {"JO_Num": rows[0], "EC_No": rows[1], "JM_Date": f'{rows[2]}',
-            "EC_Jour": rows[3], "EC_Date": f'{rows[4]}', "EC_Piece": rows[5], "EC_RefPiece": rows[6],
-            "CG_Num": rows[7], "CT_Num": rows[8], "EC_Intitule": rows[9], "EC_Echeance": f'{rows[10]}',
-            "EC_Sens": rows[11], "EC_Montant": f'{rows[12]}'} """
+
+def getDataByRef(year, month, bills):
+    conn_mysql, cursor_mysql = dbo_mysql()
+    query = f"""
+        Select JO_Num,EC_No,JM_Date,EC_Jour,EC_Date,EC_Piece,EC_RefPiece,CG_Num,CT_Num,EC_Intitule,
+        EC_Echeance,EC_Sens,EC_Montant from ecritures
+        where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1) and EC_RefPiece in ({','.join(bills)})
+        """
+
+    data = (year, month)
+
+    cursor_mysql.execute(query, data)
+
+    return cursor_mysql.fetchall()
 
 
 def is_balanced(values: list):
@@ -289,7 +313,7 @@ def hash256_string(text: str) -> str:
     return str(second_hash)
 
 
-def main_process(jobId, year, month):
+def main_process_all(jobId, year, month):
 
     conn_mssql, _ = dbo_mssql()
     conn_mysql, _ = dbo_mysql()
@@ -297,6 +321,61 @@ def main_process(jobId, year, month):
     rowsByBill = getBills(year, month)
 
     rowsByEC = getData(year, month)
+
+    invalid_rows = []
+    invalid_rows_ref = []
+    valid_rows = []
+    valid_rows_ref = []
+
+    row_count = 0
+
+    for row in rowsByBill:
+        filteredRows = [x for x in rowsByEC if x[6] == row[0]]
+
+        checked_data = process_data(filteredRows, row[0])
+        if checked_data["Status"] == 0:
+            invalid_rows.append((1 if checked_data["balanced"] else 0, 1 if checked_data["JO_Num"] else 0, 1 if checked_data["EC_No"] else 0, 1 if checked_data["JM_Date"] else 0, 1 if checked_data["EC_Jour"] else 0, 1 if checked_data["EC_Date"] else 0,
+                                1 if checked_data["EC_Piece"] else 0, checked_data["refpiece"], 1 if checked_data["CG_Num"] else 0, 1 if checked_data["CT_Num"] else 0, 1 if checked_data["EC_Intitule"] else 0, 1 if checked_data["EC_Sens"] else 0, 1 if checked_data["EC_Montant"] else 0))
+            invalid_rows_ref.append(f"'{row[0]}'")
+        if checked_data["Status"] == 1:
+            for fr in filteredRows:
+                hash = hash256_string(
+                    f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]}")
+                valid_rows.append(
+                    (fr[0], fr[1], fr[2], fr[3], fr[4], fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], 2, f'0x{hash}'))
+            valid_rows_ref.append(f"'{row[0]}'")
+        row_count = row_count + 1
+        requests.post(
+            "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+            json={
+                "jobId": jobId,
+                "status": "pending",
+                "ec_total": len(rowsByBill),
+                "ec_count": row_count
+            }
+        )
+
+    set_in_invalid_table_sage(invalid_rows)
+
+    set_in_invalid_table_digital(invalid_rows_ref)
+
+    set_in_valid_table_sage(valid_rows)
+
+    set_in_valid_table_digital(valid_rows_ref)
+    conn_mssql.commit()
+    conn_mysql.commit()
+
+
+def main_process_some(jobId, year, month, bills):
+
+    conn_mssql, _ = dbo_mssql()
+    conn_mysql, _ = dbo_mysql()
+
+    bills = [f"'{bill}'" for bill in bills]
+
+    rowsByBill = getBillsByRef(year, month, bills)
+
+    rowsByEC = getDataByRef(year, month, bills)
 
     invalid_rows = []
     invalid_rows_ref = []

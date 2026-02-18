@@ -3,7 +3,7 @@ import json
 import time
 import requests
 
-from main import main_process
+from main import main_process_all, main_process_some
 
 
 def connect_with_retry(host="rabbitmq", tries=30, delay=2):
@@ -36,8 +36,12 @@ def handle(ch, method, properties, body):
             "ec_count": ""
         }
     )
+    if data["type"] == 'all':
+        main_process_all(data["jobId"], data["year"], data["month"])
 
-    main_process(data["jobId"], data["year"], data["month"])
+    if data["type"] == 'some':
+        main_process_some(data["jobId"], data["year"],
+                          data["month"], data["bills"])
 
     requests.post(
         "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
