@@ -27,6 +27,8 @@ def handle(ch, method, properties, body):
     data = json.loads(body)
     print("Received:", data, flush=True)
 
+    time.sleep(2)
+
     requests.post(
         "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
         json={

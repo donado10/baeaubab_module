@@ -38,7 +38,6 @@ const useLoadEcritures = () => {
                     description: () => <button>This is a button element!</button>,
                     duration: Infinity
                 }); */
-            store.clear()
             router.refresh();
         },
     });

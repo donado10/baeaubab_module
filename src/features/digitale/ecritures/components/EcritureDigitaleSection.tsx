@@ -10,8 +10,27 @@ import JobWatcher from './JobWatcher'
 import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 import { Card } from '@/components/ui/card'
 import { EFeatureStatus } from '@/features/features/interface'
+import { DialogRecheckEcritures } from './DialogRecheckEcritures'
 
+const InvalideButtonContainer = () => {
+    const store = useEcritureEnteteLigneStore()
+    return <>
+        {store.billCart.length > 0 && <DialogRecheckEcritures>
+            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Revérifier Ecritures</Button>
+        </DialogRecheckEcritures>}
+    </>
+}
+const AttenteButtonContainer = () => {
+    const store = useEcritureEnteteLigneStore()
+    console.log(store.billCart
 
+    )
+    return <>
+        {store.billCart.length > 0 && <DialogRecheckEcritures>
+            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Vérifier Ecritures</Button>
+        </DialogRecheckEcritures>}
+    </>
+}
 
 const ResumeCard = ({ title, count }: { title: string, count: number }) => {
     return <Card className='shadow-none p-4 gap-4'>
@@ -24,8 +43,6 @@ const FilterSection = () => {
     const store = useEcritureEnteteLigneStore()
     const classNameButton = 'p-0 hover:bg-transparent hover:text-blue-600  rounded-none'
 
-
-    console.log(store.filter?.status)
 
 
     return <div className='border-b border-gray-200 flex items-center gap-8'>
@@ -62,8 +79,8 @@ const EcritureDigitaleSection = () => {
                 </div>
                 <div className='flex items-center gap-4'>
 
-                    {store.filter && store.filter.status === EStatus.ATTENTE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Vérifier Ecritures</Button>}
-                    {store.filter && store.filter.status === EStatus.INVALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Revérifier Ecritures</Button>}
+                    {store.filter && store.filter.status === EStatus.ATTENTE && <AttenteButtonContainer />}
+                    {store.filter && store.filter.status === EStatus.INVALIDE && <InvalideButtonContainer />}
                     {store.filter && store.filter.status === EStatus.VALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>}
                     {store.filter && store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
                     <DialogLoadEcritures>
@@ -81,7 +98,6 @@ const EcritureDigitaleSection = () => {
                 <ResumeCard title='Factures Valides' count={store.items.filter((item) => item.entete.Status === 2).length} />
                 <ResumeCard title='Factures Invalides' count={store.items.filter((item) => item.entete.Status === 1).length} />
                 <ResumeCard title='Factures en attente' count={store.items.filter((item) => item.entete.Status === 0).length} />
-
             </div>
             <Card className='p-4 shadow-none'>
                 <FilterSection />

@@ -41,7 +41,7 @@ const app = new Hono()
 				),
 			}));
 
-			//console.log(ecritures_formated);
+			console.log(ecritures_formated);
 			return c.json({ results: ecritures_formated });
 		}
 	)
@@ -112,7 +112,7 @@ const app = new Hono()
 						jobId: jobId,
 						year: year,
 						month: month,
-						check: bills,
+						bills: bills,
 						type: "some",
 					})
 				)

@@ -8,23 +8,50 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuTable } from "../DropdownMenuTable";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useEcritureEnteteLigneStore } from "../../store/store";
+import { useEffect } from "react";
+import { GoDotFill } from "react-icons/go";
+
 
 const StatusDisplay = ({ value }: { value: string }) => {
   const MStatusDisplay = new Map<string, string>([
-    ["disponible", "bg-green-600"],
-    ["non_conforme", "bg-red-600"],
-    ["indisponible", "bg-[#FF8D28]"],
+    ["0", "bg-gray-600/20 border-2 border-gray-600 "],
+    ["1", "bg-red-600/20 border-2 border-red-600 "],
+    ["2", "bg-green-600/20 border-2 border-green-600 "],
+    ["3", "bg-[#FF8D28]"],
+  ]);
+  const MStatusDisplayColor = new Map<string, string>([
+    ["0", "#4a5565 "],
+    ["1", "#e7000b"],
+    ["2", "#00a63e"],
+    ["3", "bg-[#FF8D28]"],
+  ]);
+  const MStatusDisplayTextColor = new Map<string, string>([
+    ["0", "text-gray-600"],
+    ["1", "text-red-600"],
+    ["2", "text-green-600"],
+    ["3", "bg-[#FF8D28]"],
+  ]);
+  const MStatusText = new Map<string, string>([
+    ["0", "Attente"],
+    ["1", "Invalide"],
+    ["2", "Valide"],
+    ["3", "Intégré"],
   ]);
 
   return (
     <>
       <div
         className={cn(
-          "capitalize rounded-4xl w-fit text-white font-semibold py-2 px-3",
-          MStatusDisplay.get(value)
+          "capitalize rounded-md w-3/4  font-semibold flex items-center gap-2 px-2 ",
+          MStatusDisplay.get(value.toString())
         )}
       >
-        {MStatus.get(value)}
+        <span><GoDotFill color={MStatusDisplayColor.get(value.toString())} /></span>
+        <h1 className={cn(MStatusDisplayTextColor.get(value.toString()))}>
+
+          {MStatusText.get(value.toString())}
+        </h1>
       </div>
     </>
   );
@@ -35,6 +62,13 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
     id: "select",
     header: ({ table }) => {
       // console.log(table.getRowModel().rows);
+      const store = useEcritureEnteteLigneStore()
+
+      useEffect(() => {
+        table.toggleAllRowsSelected(false)
+        store.setRemoveAllBillCart()
+      }, [JSON.stringify(store.filter?.status), JSON.stringify(store.items)])
+
       return (
         <Checkbox
           checked={
@@ -43,20 +77,34 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
           }
           onCheckedChange={(value) => {
             table.toggleAllRowsSelected(!!value);
+            if (!!value) {
+              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.EC_RefPiece))
+            } else {
+              store.setRemoveAllBillCart()
+            }
           }}
           aria-label="Select all"
         />
       );
     },
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => {
-          row.toggleSelected(!!value);
-        }}
-        aria-label="Select row"
-      />
-    ),
+    cell: ({ row }) => {
+      const store = useEcritureEnteteLigneStore()
+      return (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => {
+            row.toggleSelected(!!value);
+            if (!!value) {
+              store.setAddBillCart(row.original.EC_RefPiece)
+            } else {
+              store.setRemoveBillCart(row.original.EC_RefPiece)
+
+            }
+          }}
+          aria-label="Select row"
+        />
+      )
+    },
     enableSorting: false,
     enableHiding: false,
   },
@@ -187,7 +235,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
     },
     cell: ({ row }) => (
       <>
-        <div className="capitalize">{row.getValue("Status")}</div>
+        <div className="capitalize"><StatusDisplay value={row.getValue("Status")} /></div>
       </>
     ),
   },

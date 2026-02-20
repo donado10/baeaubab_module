@@ -95,7 +95,6 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
         setClose(false)
         store.setPeriode(year, month)
 
-        console.log(withChecking)
         if (withChecking) {
 
             const id_toast = toast(() => {
@@ -129,6 +128,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
             mutate({ json: { year, month } }, {
                 onSuccess: (results) => {
                     store.clear()
+                    console.log(results.results)
                     store.setItems(results.results)
                     store.setFilter({ status: EStatus.ALL })
                 }

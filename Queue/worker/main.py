@@ -320,6 +320,11 @@ def main_process_all(jobId, year, month):
 
     rowsByBill = getBills(year, month)
 
+    print(rowsByBill, flush=True)
+
+    if len(rowsByBill) == 0:
+        return
+
     rowsByEC = getData(year, month)
 
     invalid_rows = []
@@ -373,7 +378,12 @@ def main_process_some(jobId, year, month, bills):
 
     bills = [f"'{bill}'" for bill in bills]
 
+    if not len(bills):
+
+        return
+
     rowsByBill = getBillsByRef(year, month, bills)
+    print(rowsByBill, flush=True)
 
     rowsByEC = getDataByRef(year, month, bills)
 

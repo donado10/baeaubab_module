@@ -26,7 +26,10 @@ interface IEcritureEnteteLigneState {
 	event: IEvent | null;
 	filter: IFilter | null;
 	billCart: string[];
-	setBillCart: (bill: string) => void;
+	setAddBillCart: (bill: string) => void;
+	setRemoveBillCart: (bill: string) => void;
+	setAddAllBillCart: (bills: string[]) => void;
+	setRemoveAllBillCart: () => void;
 	setItems: (items: IEcritureEnteteLigne) => void;
 	setEvent: (event: IEvent) => void;
 	setFilter: (filter: IFilter) => void;
@@ -46,13 +49,19 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
 		setEvent: (event: IEvent) => set({ event: event }),
 		setFilter: (filter: IFilter) => set({ filter: filter }),
-		setBillCart: (bill: string) =>
+		setAddBillCart: (bill: string) =>
 			set((state) => ({ billCart: [...state.billCart, bill] })),
+		setAddAllBillCart: (bills: string[]) =>
+			set((state) => ({ billCart: [...bills] })),
+		setRemoveAllBillCart: () => set((state) => ({ billCart: [] })),
+		setRemoveBillCart: (bill: string) =>
+			set((state) => ({ billCart: state.billCart.filter((b) => b !== bill) })),
 		setPeriode: (year: string, month: string) =>
 			set({ periode: [year, month] }),
 
 		clear: () =>
 			set({
+				billCart: [],
 				filter: null,
 				items: [],
 				event: null,

@@ -26,8 +26,6 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
                 setStatus(`Job ${msg.jobId}: ${msg.status}`);
                 store.event && store.setEvent({ ...store.event, jobId: msg.jobId, status: msg.status })
                 toast.dismiss(store.event?.id_toast_job);
-
-
                 es.close();
                 console.log("readyState after close:", es?.readyState);
             }
