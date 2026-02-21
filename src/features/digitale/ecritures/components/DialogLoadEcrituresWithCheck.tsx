@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
-import useLoadEcritures from "../api/use-load-ecritures"
+import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 
@@ -27,16 +27,29 @@ export function DialogLoadEcrituresWithCheck({ open, onOpen }: { open: boolean, 
 
     const store = useEcritureEnteteLigneStore()
 
-    const { mutate } = useLoadEcritures()
+    const { mutate: mutateFromSage } = useLoadEcrituresFromSage()
+    const { mutate: mutateFromDigital } = useLoadEcrituresFromDigital()
 
     const submitHandler = () => {
 
+        if (store.sourceEc === 'sage') {
 
-        mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
-            onSuccess: (results) => {
-                store.setItems(results.results)
-            }
-        })
+
+            mutateFromSage({ json: { year: store.periode[0], month: store.periode[1] } }, {
+                onSuccess: (results) => {
+                    store.setItems(results.results)
+                }
+            })
+        }
+        if (store.sourceEc === 'digital') {
+
+
+            mutateFromDigital({ json: { year: store.periode[0], month: store.periode[1] } }, {
+                onSuccess: (results) => {
+                    store.setItems(results.results)
+                }
+            })
+        }
         onOpen(false)
 
     }

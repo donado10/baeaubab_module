@@ -22,6 +22,7 @@ interface IFilter {
 
 interface IEcritureEnteteLigneState {
 	items: IEcritureEnteteLigne;
+	sourceEc: "sage" | "digital";
 	periode: string[];
 	event: IEvent | null;
 	filter: IFilter | null;
@@ -33,6 +34,7 @@ interface IEcritureEnteteLigneState {
 	setItems: (items: IEcritureEnteteLigne) => void;
 	setEvent: (event: IEvent) => void;
 	setFilter: (filter: IFilter) => void;
+	setSourceEc: (source: "sage" | "digital") => void;
 	setPeriode: (year: string, month: string) => void;
 
 	clear: () => void;
@@ -44,10 +46,12 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		periode: [],
 		billCart: [],
 		event: null,
+		sourceEc: "sage",
 
 		filter: { status: EStatus.ALL },
 		setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
 		setEvent: (event: IEvent) => set({ event: event }),
+		setSourceEc: (source: "sage" | "digital") => set({ sourceEc: source }),
 		setFilter: (filter: IFilter) => set({ filter: filter }),
 		setAddBillCart: (bill: string) =>
 			set((state) => ({ billCart: [...state.billCart, bill] })),

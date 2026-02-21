@@ -11,8 +11,8 @@ import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 
 const app = new Hono()
-	/* .post(
-		"",
+	.post(
+		"/digital",
 		sessionMiddleware,
 		adminActionMiddleware,
 		zValidator(
@@ -24,8 +24,6 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
-
-			
 
 			const [rows_refpiece] = await pool.query(
 				"select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,Status from ecritures where year(date_facture)=? and month(date_facture)=? and ec_sens=0",
@@ -44,12 +42,11 @@ const app = new Hono()
 				),
 			}));
 
-			console.log(ecritures_formated);
 			return c.json({ results: ecritures_formated });
 		}
-	) */
+	)
 	.post(
-		"",
+		"/sage",
 		sessionMiddleware,
 		adminActionMiddleware,
 		zValidator(
@@ -81,7 +78,6 @@ const app = new Hono()
 				})
 			);
 
-			console.log(ecritures_formated);
 			return c.json({ results: ecritures_formated });
 		}
 	)

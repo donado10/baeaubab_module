@@ -16,11 +16,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
-import useLoadEcritures from "../api/use-load-ecritures"
+import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { EStatus, useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 import { toast } from "sonner"
+import { RadioGroupChoiceCard } from "./ChoiceCardLoadEcritures"
 
 
 const months = [
@@ -88,8 +89,10 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
 
     const store = useEcritureEnteteLigneStore()
 
-    const { mutate } = useLoadEcritures()
+    const { mutate: mutateFromSage } = useLoadEcrituresFromSage()
+    const { mutate: mutateFromDigital } = useLoadEcrituresFromDigital()
     const { mutate: mutateWithCheck } = useLoadEcrituresWithCheck()
+    const [sourceEc, setSourceEc] = useState<'sage' | 'digital'>('sage')
 
     const submitHandler = () => {
         setClose(false)
@@ -125,16 +128,31 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
 
 
         } else {
-            mutate({ json: { year, month } }, {
-                onSuccess: (results) => {
-                    store.clear()
-                    console.log(results.results)
-                    store.setItems(results.results)
-                    store.setFilter({ status: EStatus.ALL })
-                }
-            })
+            if (sourceEc === 'sage') {
+
+                mutateFromSage({ json: { year, month } }, {
+                    onSuccess: (results) => {
+                        store.clear()
+                        console.log(results.results)
+                        store.setItems(results.results)
+                        store.setFilter({ status: EStatus.ALL })
+                    }
+                })
 
 
+
+            }
+            if (sourceEc === 'digital') {
+
+                mutateFromDigital({ json: { year, month } }, {
+                    onSuccess: (results) => {
+                        store.clear()
+                        console.log(results.results)
+                        store.setItems(results.results)
+                        store.setFilter({ status: EStatus.ALL })
+                    }
+                })
+            }
         }
     }
 
@@ -152,6 +170,9 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                         <div className="flex items-center gap-4">
                             <Checkbox id="terms-checkbox" name="terms-checkbox" className="hover:cursor-pointer" checked={withChecking} onCheckedChange={(value: boolean) => setWithChecking(value)} />
                             <Label htmlFor="terms-checkbox">Vérification</Label>
+                        </div>
+                        <div>
+                            <RadioGroupChoiceCard onSelectSource={setSourceEc} />
                         </div>
 
                         <div className="flex items-center justify-between w-full ">
@@ -171,3 +192,4 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
         </Dialog>
     )
 }
+

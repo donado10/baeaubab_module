@@ -6,10 +6,8 @@ import { cn, getFrenchMonthName } from '@/lib/utils'
 import TableEcritureDigitalContainer from './TableContainer'
 import { DialogLoadEcritures } from './DialogLoadEcritures'
 import { EStatus, useEcritureEnteteLigneStore } from '../store/store'
-import JobWatcher from './JobWatcher'
 import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 import { Card } from '@/components/ui/card'
-import { EFeatureStatus } from '@/features/features/interface'
 import { DialogRecheckEcritures } from './DialogRecheckEcritures'
 
 const InvalideButtonContainer = () => {
@@ -83,7 +81,7 @@ const EcritureDigitaleSection = () => {
                     {store.filter && store.filter.status === EStatus.INVALIDE && <InvalideButtonContainer />}
                     {store.filter && store.filter.status === EStatus.VALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>}
                     {store.filter && store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
-                    <DialogLoadEcritures>
+                    <DialogLoadEcritures >
 
                         <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Charger Ecritures</Button>
                     </DialogLoadEcritures>
