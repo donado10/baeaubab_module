@@ -11,7 +11,7 @@ import { useEcritureEnteteLigneStore } from "../store/store";
 export function RadioGroupChoiceCard({ onSelectSource }: { onSelectSource: (value: 'sage' | 'digital') => void }) {
     const store = useEcritureEnteteLigneStore()
     return (
-        <RadioGroup defaultValue="plus" className="max-w-sm" onValueChange={(value) => { onSelectSource(value as 'sage' | 'digital'); store.setSourceEc(value as 'sage' | 'digital') }}>
+        <RadioGroup defaultValue="plus" className="max-w-sm" value={store.sourceEc} onValueChange={(value) => { onSelectSource(value as 'sage' | 'digital'); store.setSourceEc(value as 'sage' | 'digital') }}>
             <FieldLabel htmlFor="sage-ec">
                 <Field orientation="horizontal">
                     <FieldContent>

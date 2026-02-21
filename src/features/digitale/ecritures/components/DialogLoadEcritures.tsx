@@ -185,7 +185,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                         <DialogClose asChild>
                             <Button variant="outline">Annuler</Button>
                         </DialogClose>
-                        <Button onClick={submitHandler}>Confirmer</Button>
+                        <Button onClick={submitHandler} >Confirmer</Button>
                     </DialogFooter>
                 </DialogContent>
             </form>

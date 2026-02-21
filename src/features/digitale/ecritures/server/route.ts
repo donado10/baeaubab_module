@@ -73,11 +73,12 @@ const app = new Hono()
 				(ref) => ({
 					entete: ref,
 					ligne: result_ecritures.recordset.filter(
-						(ec) => ec.EC_RefPiece === ref.ec_refpiece
+						(ec) => ec.EC_RefPiece === ref.EC_RefPiece
 					),
 				})
 			);
 
+			console.log(ecritures_formated);
 			return c.json({ results: ecritures_formated });
 		}
 	)
