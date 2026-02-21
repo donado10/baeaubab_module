@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { IEcritureEntete, IEcritureEnteteLigne } from "../../interface";
-import { cn, MStatus } from "@/lib/utils";
+import { cn, convertDate, MStatus } from "@/lib/utils";
 import DotsIcon from "@/assets/dots.svg";
 import TrierIcon from "@/assets/trier.svg";
 import Image from "next/image";
@@ -12,9 +12,10 @@ import { useEcritureEnteteLigneStore } from "../../store/store";
 import { useEffect } from "react";
 import { GoDotFill } from "react-icons/go";
 import { DialogTableDetail } from "../DialogTableDetail";
+import { HoverCardError } from "../HoverCard";
 
 
-const StatusDisplay = ({ value }: { value: string }) => {
+const StatusDisplay = ({ value, refpiece }: { value: string, refpiece: string }) => {
   const MStatusDisplay = new Map<string, string>([
     ["0", "bg-gray-600/20 border-2 border-gray-600 "],
     ["1", "bg-red-600/20 border-2 border-red-600 "],
@@ -41,7 +42,7 @@ const StatusDisplay = ({ value }: { value: string }) => {
   ]);
 
   return (
-    <>
+    <HoverCardError status={value.toString()} refpiece={refpiece}>
       <div
         className={cn(
           "capitalize rounded-md w-3/4  font-semibold flex items-center gap-2 px-2 ",
@@ -54,7 +55,7 @@ const StatusDisplay = ({ value }: { value: string }) => {
           {MStatusText.get(value.toString())}
         </h1>
       </div>
-    </>
+    </HoverCardError>
   );
 };
 
@@ -149,7 +150,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
       )
     },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("JM_Date")}</div>
+      <div className="capitalize">{convertDate(row.getValue("JM_Date"))}</div>
     ),
   },
   {
@@ -236,7 +237,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
     },
     cell: ({ row }) => (
       <>
-        <div className="capitalize"><StatusDisplay value={row.getValue("Status")} /></div>
+        <div className="capitalize"><StatusDisplay value={row.getValue("Status")} refpiece={row.original.EC_RefPiece} /></div>
       </>
     ),
   },

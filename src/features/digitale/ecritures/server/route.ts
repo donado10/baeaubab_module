@@ -11,6 +11,17 @@ import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 
 const app = new Hono()
+	.get("/error/:refpiece", async (c) => {
+		const refpiece = c.req.param("refpiece");
+
+		const pool = await getConnection();
+
+		const query = `select * from transit.dbo.f_ecriturec_invalid where ec_refpiece='${refpiece}'`;
+
+		let result = await pool.request().query(query);
+
+		return c.json({ result: result.recordset[0] });
+	})
 	.post(
 		"/digital",
 		sessionMiddleware,

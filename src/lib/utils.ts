@@ -56,6 +56,15 @@ export function getCurrentTime() {
 	return `${hours}:${minutes}`;
 }
 
+export function convertDate(timestamp: string) {
+	const originalDate = new Date(timestamp);
+	const firstOfMonth = new Date(
+		Date.UTC(originalDate.getUTCFullYear(), originalDate.getUTCMonth(), 1)
+	);
+
+	return firstOfMonth.toISOString().split("T")[0];
+}
+
 export function getFrenchMonthName(month: number): string {
 	const monthsInFrench: Map<number, string> = new Map([
 		[1, "Janvier"],

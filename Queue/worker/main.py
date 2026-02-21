@@ -8,6 +8,16 @@ from mssql_baeaubab.database import database_objects as dbo_mssql
 from mysql_digital.database import database_objects as dbo_mysql
 
 
+from datetime import datetime
+
+
+def convertDate(value):
+    timestamp = value / 1000  # convert ms to seconds
+    date = datetime.utcfromtimestamp(timestamp)
+
+    return date.strftime('%Y-%m-01')
+
+
 def getBills(year, month):
     conn_mysql, cursor_mysql = dbo_mysql()
     query = """
@@ -163,9 +173,16 @@ def EC_Intitule_check(values: list):
 
 
 def EC_Montant_check(values: list):
+    debit = [x for x in values if x[11] == 0]
+
     for value in values:
         if type(int(value[12])).__name__ != 'int' or type(float(value[12])).__name__ != 'float':
             return False
+
+    for ec_deb in debit:
+        if int(ec_deb[12]) == 0:
+            return False
+
     return True
 
 
@@ -363,7 +380,7 @@ def main_process_all(jobId, year, month):
                 hash = hash256_string(
                     f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]},{fr[13]},{fr[14]},{jobId}")
                 temp_rows.append(
-                    (fr[0], fr[1], fr[2], fr[3], fr[4], fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 1, f'0x{hash}'))
+                    (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 1, f'0x{hash}'))
 
             invalid_rows.append((1 if checked_data["balanced"] else 0, 1 if checked_data["JO_Num"] else 0, 1 if checked_data["EC_No"] else 0, 1 if checked_data["JM_Date"] else 0, 1 if checked_data["EC_Jour"] else 0, 1 if checked_data["EC_Date"] else 0,
                                 1 if checked_data["EC_Piece"] else 0, checked_data["refpiece"], 1 if checked_data["CG_Num"] else 0, 1 if checked_data["CT_Num"] else 0, 1 if checked_data["EC_Intitule"] else 0, 1 if checked_data["EC_Sens"] else 0, 1 if checked_data["EC_Montant"] else 0, jobId))
@@ -373,7 +390,7 @@ def main_process_all(jobId, year, month):
                 hash = hash256_string(
                     f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]},{fr[13]},{fr[14]},{jobId}")
                 temp_rows.append(
-                    (fr[0], fr[1], fr[2], fr[3], fr[4], fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 2, f'0x{hash}'))
+                    (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 2, f'0x{hash}'))
             valid_rows_ref.append(f"'{row[0]}'")
         row_count = row_count + 1
         requests.post(
@@ -430,7 +447,7 @@ def main_process_some(jobId, year, month, bills):
                 hash = hash256_string(
                     f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]},{fr[13]},{fr[14]},{jobId}")
                 temp_rows.append(
-                    (fr[0], fr[1], fr[2], fr[3], fr[4], fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 1, f'0x{hash}'))
+                    (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 1, f'0x{hash}'))
 
             invalid_rows.append((1 if checked_data["balanced"] else 0, 1 if checked_data["JO_Num"] else 0, 1 if checked_data["EC_No"] else 0, 1 if checked_data["JM_Date"] else 0, 1 if checked_data["EC_Jour"] else 0, 1 if checked_data["EC_Date"] else 0,
                                 1 if checked_data["EC_Piece"] else 0, checked_data["refpiece"], 1 if checked_data["CG_Num"] else 0, 1 if checked_data["CT_Num"] else 0, 1 if checked_data["EC_Intitule"] else 0, 1 if checked_data["EC_Sens"] else 0, 1 if checked_data["EC_Montant"] else 0, jobId))
@@ -440,7 +457,7 @@ def main_process_some(jobId, year, month, bills):
                 hash = hash256_string(
                     f"{fr[0]},{fr[1]},{fr[2]},{fr[3]},{fr[4]},{fr[5]},{fr[6]},{fr[7]},{fr[8]},{fr[9]},{fr[11]},{fr[12]},{fr[13]},{fr[14]},{jobId}")
                 temp_rows.append(
-                    (fr[0], fr[1], fr[2], fr[3], fr[4], fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 2, f'0x{hash}'))
+                    (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 2, f'0x{hash}'))
             valid_rows_ref.append(f"'{row[0]}'")
         row_count = row_count + 1
         requests.post(
