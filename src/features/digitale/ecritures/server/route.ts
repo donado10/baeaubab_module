@@ -8,9 +8,10 @@ import amqp from "amqplib";
 import { pool } from "@/lib/db-mysql";
 import z from "zod";
 import { ID } from "node-appwrite";
+import { getConnection } from "@/lib/db-mssql";
 
 const app = new Hono()
-	.post(
+	/* .post(
 		"",
 		sessionMiddleware,
 		adminActionMiddleware,
@@ -23,6 +24,8 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
+
+			
 
 			const [rows_refpiece] = await pool.query(
 				"select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,Status from ecritures where year(date_facture)=? and month(date_facture)=? and ec_sens=0",
@@ -40,6 +43,43 @@ const app = new Hono()
 					(ec) => ec.EC_RefPiece === ref.ec_refpiece
 				),
 			}));
+
+			console.log(ecritures_formated);
+			return c.json({ results: ecritures_formated });
+		}
+	) */
+	.post(
+		"",
+		sessionMiddleware,
+		adminActionMiddleware,
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month } = c.req.valid("json");
+
+			const pool = await getConnection();
+
+			let query_refpiece = `select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,row_status as Status from transit.dbo.f_ecriturec_temp where year(date_facture)='${year}' and month(date_facture)='${month}' and ec_sens=0`;
+
+			let result_refpiece = await pool.request().query(query_refpiece);
+
+			let query_ecritures = `select * from transit.dbo.f_ecriturec_temp where year(date_facture)='${year}' and month(date_facture)='${month}' `;
+
+			let result_ecritures = await pool.request().query(query_ecritures);
+
+			const ecritures_formated = Array.from(result_refpiece.recordset).map(
+				(ref) => ({
+					entete: ref,
+					ligne: result_ecritures.recordset.filter(
+						(ec) => ec.EC_RefPiece === ref.ec_refpiece
+					),
+				})
+			);
 
 			console.log(ecritures_formated);
 			return c.json({ results: ecritures_formated });
