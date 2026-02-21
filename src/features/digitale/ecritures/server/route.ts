@@ -38,7 +38,7 @@ const app = new Hono()
 			const ecritures_formated = Array.from(rows_refpiece).map((ref) => ({
 				entete: ref,
 				ligne: rows_ecritures.filter(
-					(ec) => ec.EC_RefPiece === ref.ec_refpiece
+					(ec) => ec.EC_RefPiece === ref.EC_RefPiece
 				),
 			}));
 
@@ -78,7 +78,6 @@ const app = new Hono()
 				})
 			);
 
-			console.log(ecritures_formated);
 			return c.json({ results: ecritures_formated });
 		}
 	)

@@ -9,6 +9,10 @@ interface IEvent {
 	id_toast_job: string;
 }
 
+interface IDialogEcritures {
+	viewTable: [boolean, string];
+}
+
 export enum EStatus {
 	ALL = "Tout",
 	INTEGRE = "Intégré",
@@ -27,6 +31,8 @@ interface IEcritureEnteteLigneState {
 	event: IEvent | null;
 	filter: IFilter | null;
 	billCart: string[];
+	dialog: IDialogEcritures;
+	setDialogState: (dialogState: IDialogEcritures) => void;
 	setAddBillCart: (bill: string) => void;
 	setRemoveBillCart: (bill: string) => void;
 	setAddAllBillCart: (bills: string[]) => void;
@@ -47,9 +53,12 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		billCart: [],
 		event: null,
 		sourceEc: "sage",
+		dialog: { viewTable: [false, ""] },
 
-		filter: { status: EStatus.ALL },
+		setDialogState: (dialogState: IDialogEcritures) =>
+			set({ dialog: { ...dialogState } }),
 		setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
+		filter: { status: EStatus.ALL },
 		setEvent: (event: IEvent) => set({ event: event }),
 		setSourceEc: (source: "sage" | "digital") => set({ sourceEc: source }),
 		setFilter: (filter: IFilter) => set({ filter: filter }),

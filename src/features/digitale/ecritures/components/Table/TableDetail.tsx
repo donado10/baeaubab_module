@@ -7,6 +7,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { IEcritureLigne } from "../../interface";
 
 export interface IDetails {
     piece: string;
@@ -18,14 +19,14 @@ export interface IDetails {
     credit: number;
 }
 
-export function SheetEcrituresTable({ details }: { details: IDetails[] }) {
+export function EcrituresTableDetails({ details }: { details: IEcritureLigne[] }) {
+    console.log(details)
     return (
-        <Table>
+        <Table >
             <TableCaption>Détail écritures</TableCaption>
             <TableHeader>
-                <TableRow>
-                    <TableHead className="w-[200px]">Date journal</TableHead>
-                    <TableHead className="w-[100px]">Piece</TableHead>
+                <TableRow className="border-b border-[#101010]">
+                    <TableHead className="w-[100px]">Date journal</TableHead>
                     <TableHead>Compte Général</TableHead>
                     <TableHead>Tiers</TableHead>
                     <TableHead>Libellé</TableHead>
@@ -35,14 +36,13 @@ export function SheetEcrituresTable({ details }: { details: IDetails[] }) {
             </TableHeader>
             <TableBody>
                 {details.map((detail, index) => (
-                    <TableRow key={index}>
-                        <TableCell className="font-medium">{detail.jm_date}</TableCell>
-                        <TableCell className="font-medium">{detail.piece}</TableCell>
-                        <TableCell className="font-medium">{detail.cg_num}</TableCell>
-                        <TableCell className="font-medium">{detail.tiers}</TableCell>
-                        <TableCell>{detail.intitule}</TableCell>
-                        <TableCell>{detail.debit}</TableCell>
-                        <TableCell>{detail.credit}</TableCell>
+                    <TableRow key={index} className="text-xs border-b border-[#101010]">
+                        <TableCell className="font-medium ">{detail.JM_Date}</TableCell>
+                        <TableCell className="font-medium">{detail.CG_Num}</TableCell>
+                        <TableCell className="font-medium">{detail.CT_Num}</TableCell>
+                        <TableCell>{detail.EC_Intitule}</TableCell>
+                        <TableCell>{detail.EC_Sens === 0 ? detail.EC_Montant : 0}</TableCell>
+                        <TableCell>{detail.EC_Sens === 1 ? detail.EC_Montant : 0}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>

@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useEcritureEnteteLigneStore } from "../../store/store";
 import { useEffect } from "react";
 import { GoDotFill } from "react-icons/go";
+import { DialogTableDetail } from "../DialogTableDetail";
 
 
 const StatusDisplay = ({ value }: { value: string }) => {
@@ -242,7 +243,9 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
   {
     header: "Action",
     cell: ({ row }) => (
-      <DropdownMenuTable driver={''}>
+      <DropdownMenuTable refpiece={row.original.EC_RefPiece}>
+
+
         <Button variant={"ghost"} type="button">
           <Image src={DotsIcon} alt="" width={16} height={16} />{" "}
         </Button>

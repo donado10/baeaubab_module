@@ -8,34 +8,31 @@ import {
 import { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { DialogTableDetail } from "./DialogTableDetail";
+import { useEcritureEnteteLigneStore } from "../store/store";
 
 
 
 
 export function DropdownMenuTable({
-  driver,
+  refpiece,
   children,
 }: {
-  driver: string;
+  refpiece: string;
   children: ReactNode;
 }) {
-  const pathname = usePathname();
-  const [openDialogDelete, setOpenDialogDelete] = useState(false)
-  const [openDialogUpdate, setOpenDialogUpdate] = useState(false)
+  const store = useEcritureEnteteLigneStore()
 
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="start">
-          <DropdownMenuItem className="text-blue-600" asChild>
-            <Link
-              href={{
-                pathname: pathname + "/" + driver,
-              }}
+          <DropdownMenuItem className="text-blue-600" asChild onClick={() => store.setDialogState({ ...store.dialog, viewTable: [true, refpiece] })}>
+            <h1
             >
               Voir
-            </Link>
+            </h1>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

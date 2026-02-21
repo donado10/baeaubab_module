@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import Search from "@/features/missions/components/Search";
 import { Card } from "@/components/ui/card";
 import { EStatus, useEcritureEnteteLigneStore } from "../store/store";
+import { DialogTableDetail } from "./DialogTableDetail";
 
 
 const TableEcritureDigitalContainer = () => {
@@ -43,6 +44,8 @@ const TableEcritureDigitalContainer = () => {
           ecritures.map((val) => val.entete)
         }
       />
+      {<DialogTableDetail refpiece={EcritureStore.dialog.viewTable[1]} open={EcritureStore.dialog.viewTable[0]} setOpen={(value) => EcritureStore.setDialogState({ ...EcritureStore.dialog, viewTable: [value, ''] })} />}
+
     </div>
   );
 };

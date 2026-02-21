@@ -28,8 +28,10 @@ import { usePathname } from "next/navigation";
 import { columns } from "./columns";
 import { IDriveTableInfo } from "../../interface";
 import { Card } from "@/components/ui/card";
+import { DialogTableDetail } from "../DialogTableDetail";
 
 export function DataTable({ data }: { data: IDriveTableInfo[] }) {
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -144,6 +146,7 @@ export function DataTable({ data }: { data: IDriveTableInfo[] }) {
               )}
             </TableBody>
           </Table>
+
         </Card>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
