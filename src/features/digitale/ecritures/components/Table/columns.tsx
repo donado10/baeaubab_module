@@ -90,7 +90,9 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
       );
     },
     cell: ({ row }) => {
+
       const store = useEcritureEnteteLigneStore()
+
       return (
         <Checkbox
           checked={row.getIsSelected()}

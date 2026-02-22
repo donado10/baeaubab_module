@@ -12,7 +12,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
@@ -94,6 +93,8 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
     const { mutate: mutateWithCheck } = useLoadEcrituresWithCheck()
     const [sourceEc, setSourceEc] = useState<'sage' | 'digital'>('sage')
 
+
+
     const submitHandler = () => {
         setClose(false)
         store.setPeriode(year, month)
@@ -133,7 +134,6 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 mutateFromSage({ json: { year, month } }, {
                     onSuccess: (results) => {
                         store.clear()
-                        console.log(results.results)
                         store.setItems(results.results)
                         store.setFilter({ ...store.filter, status: EStatus.ALL })
                     }
@@ -147,7 +147,6 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 mutateFromDigital({ json: { year, month } }, {
                     onSuccess: (results) => {
                         store.clear()
-                        console.log(results.results)
                         store.setItems(results.results)
                         store.setFilter({ ...store.filter, status: EStatus.ALL })
                     }

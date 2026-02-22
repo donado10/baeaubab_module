@@ -24,6 +24,7 @@ import { RiErrorWarningLine } from "react-icons/ri";
 const EcrituresTableDetailContainer = ({ refpiece }: { refpiece: string }) => {
     const store = useEcritureEnteteLigneStore()
 
+
     const details = store.items.filter((item) => item.entete.EC_RefPiece === refpiece).map((val) => val.ligne)
 
 
@@ -31,19 +32,13 @@ const EcrituresTableDetailContainer = ({ refpiece }: { refpiece: string }) => {
 }
 
 export const ErrorEcrituresContainer = ({ refpiece }: { refpiece: string }) => {
-    const { data, isPending } = useGetErrorBill(refpiece)
 
-    if (isPending) {
-        return <></>
-    }
+    const store = useEcritureEnteteLigneStore()
 
-    if (!data) {
-        return <></>
-
-    }
+    const error = store.items.filter((item) => item.entete.EC_RefPiece === refpiece).map((item) => item.error)[0][0]
 
 
-    return <><ErrorEcritures list={data.result} /></>
+    return <><ErrorEcritures list={error} /></>
 }
 const ErrorText = ({ value }: { value: string }) => {
     return <li className="flex items-center gap-2"><RiErrorWarningLine width={16} height={16} color="red" />

@@ -11,6 +11,17 @@ import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 
 const app = new Hono()
+	.get("/errors", async (c) => {
+		const refpiece = c.req.param("refpiece");
+
+		const pool = await getConnection();
+
+		const query = `select * from transit.dbo.f_ecriturec_invalid`;
+
+		let result = await pool.request().query(query);
+
+		return c.json({ result: result.recordset });
+	})
 	.get("/error/:refpiece", async (c) => {
 		const refpiece = c.req.param("refpiece");
 
@@ -46,10 +57,18 @@ const app = new Hono()
 				[year, month]
 			);
 
+			const query_errors = `select * from transit.dbo.f_ecriturec_invalid`;
+
+			const pool_ = await getConnection();
+			let result_errors = await pool_.request().query(query_errors);
+
 			const ecritures_formated = Array.from(rows_refpiece).map((ref) => ({
 				entete: ref,
 				ligne: rows_ecritures.filter(
 					(ec) => ec.EC_RefPiece === ref.EC_RefPiece
+				),
+				error: result_errors.recordset.filter(
+					(err) => err.EC_RefPiece === ref.EC_RefPiece
 				),
 			}));
 
@@ -80,11 +99,18 @@ const app = new Hono()
 
 			let result_ecritures = await pool.request().query(query_ecritures);
 
+			const query_errors = `select * from transit.dbo.f_ecriturec_invalid`;
+
+			let result_errors = await pool.request().query(query_errors);
+
 			const ecritures_formated = Array.from(result_refpiece.recordset).map(
 				(ref) => ({
 					entete: ref,
 					ligne: result_ecritures.recordset.filter(
 						(ec) => ec.EC_RefPiece === ref.EC_RefPiece
+					),
+					error: result_errors.recordset.filter(
+						(err) => err.EC_RefPiece === ref.EC_RefPiece
 					),
 				})
 			);

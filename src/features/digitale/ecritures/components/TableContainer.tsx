@@ -3,12 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { DataTable } from "./Table/table";
 
-import { Input } from "@/components/ui/input";
-import Search from "@/features/missions/components/Search";
-import { Card } from "@/components/ui/card";
 import { EStatus, useEcritureEnteteLigneStore } from "../store/store";
 import { DialogTableDetail } from "./DialogTableDetail";
-import { IEcritureEnteteLigne } from "../interface";
 
 
 const TableEcritureDigitalContainer = () => {
@@ -18,17 +14,13 @@ const TableEcritureDigitalContainer = () => {
   const [ecritures, setEcritures] = useState(EcritureStore.items)
 
   useEffect(() => {
-
-
-
-
     const filterByStatus = EcritureStore.filter?.status !== EStatus.ALL ? EcritureStore.items.filter((ec) => {
       if (EcMapByStatus.get(ec.entete.Status) === EcritureStore.filter?.status) {
         return ec
       }
     }) : [...EcritureStore.items]
 
-    const filterBySearch = EcritureStore.filter.search.value ? filterByStatus.filter((value) => {
+    const filterBySearch = EcritureStore.filter.search?.value ? filterByStatus.filter((value) => {
       if (EcritureStore.filter.search.type === 'facture') {
 
         return value.entete.EC_RefPiece.toLowerCase().includes(EcritureStore.filter.search.value.toLowerCase())
