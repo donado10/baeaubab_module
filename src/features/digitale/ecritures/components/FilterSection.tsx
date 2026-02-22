@@ -30,7 +30,7 @@ const CheckboxFilter = ({ id, type, label }: { id: string, type: string, label: 
             setState(false)
 
         }} />
-        <Label htmlFor={id}>{label}</Label>
+        <Label htmlFor={id} className="font-light">{label}</Label>
     </div>
 }
 
@@ -38,7 +38,7 @@ const PopoverFilter = () => {
     const store = useEcritureEnteteLigneStore()
     return (
         <Collapsible>
-            <CollapsibleTrigger ><h1 className="text-blue-600"> Invalide</h1></CollapsibleTrigger>
+            <CollapsibleTrigger ><h1 className="text-blue-600 font-semibold"> Invalide</h1></CollapsibleTrigger>
             <CollapsibleContent className="mt-4 text-xs">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-4">

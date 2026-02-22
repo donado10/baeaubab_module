@@ -13,6 +13,10 @@ import { Input } from '@/components/ui/input'
 import { IoFilter } from "react-icons/io5";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PopoverFilterButton } from './FilterSection'
+import { MdCloudDownload } from "react-icons/md";
+import { IoDocumentTextOutline } from "react-icons/io5";
+
+
 
 
 const InvalideButtonContainer = () => {
@@ -35,10 +39,14 @@ const AttenteButtonContainer = () => {
     </>
 }
 
-const ResumeCard = ({ title, count }: { title: string, count: number }) => {
-    return <Card className='shadow-none p-4 gap-4'>
-        <h1 className='text-base font-normal text-gray-700'>{title}</h1>
-        <h2 className='font-bold text-3xl italic '>{count}</h2>
+const ResumeCard = ({ title, count, background, text = 'text-gray-700' }: { title: string, count: number, background: string, text?: string }) => {
+    return <Card className={cn('shadow-none p-4 gap-4 flex flex-row items-center justify-between', background)}>
+        <div className='flex flex-col gap-4'>
+
+            <h1 className={cn('text-base font-normal ', text)}>{title}</h1>
+            <h2 className='font-bold text-3xl italic '>{count}</h2>
+        </div>
+        <IoDocumentTextOutline width={1600} height={1600} size={40} />
     </Card>
 }
 
@@ -71,18 +79,18 @@ const Search = () => {
 
 const FilterSection = () => {
     const store = useEcritureEnteteLigneStore()
-    const classNameButton = 'p-0 hover:bg-transparent hover:text-blue-600  rounded-none'
+    const classNameButton = 'p-0 hover:bg-transparent hover:text-primary/30  rounded-none'
 
 
 
     return <div className='border-b border-gray-200 flex items-center justify-between  gap-8 p-2'>
 
         <div className=' border-gray-200 flex items-center gap-8'>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-blue-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-primary font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-yellow-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-green-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-red-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-gray-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
         </div>
         <div className='flex items-center gap-4'>
             <div className='border-r pr-2'>
@@ -91,7 +99,7 @@ const FilterSection = () => {
             <div>
                 <PopoverFilterButton>
 
-                    <Button>
+                    <Button className='bg-primary hover:bg-primary/60'>
                         <span><IoFilter />
                         </span>
                         Filtre</Button>
@@ -99,6 +107,23 @@ const FilterSection = () => {
             </div>
         </div>
     </div>
+}
+
+const FilterResumeCard = ({ value }: { value: string }) => {
+    return <span className='border-2 border-red-600 text-xs px-2 py-1 rounded-md text-red-600 font-semibold bg-red-600/20'>{value}</span>
+}
+
+const FilterResume = () => {
+    const store = useEcritureEnteteLigneStore()
+    if (store.filter.status !== EStatus.INVALIDE) {
+        return <></>
+    }
+    return <ul className='flex items-center gap-4'>
+        {
+
+            store.filter.invalide && store.filter.invalide.map((value) => <li key={value}><FilterResumeCard value={value} /></li>)
+        }
+    </ul>
 }
 
 const EcritureDigitaleSection = () => {
@@ -117,37 +142,43 @@ const EcritureDigitaleSection = () => {
     return (
         <section className='p-4 text-gray-700'>
             {store.event?.status === 'done' && <DialogLoadEcrituresWithCheck open={dialogEcWithCheck} onOpen={setDialogEcWithCheck} />}
+            <div className=''>
 
-            <div className='flex items-center justify-between mb-8 '>
+                <div className='flex items-center justify-between mb-8 '>
+                    <div>
+
+                        <h1 className='text-2xl text-[#101010] font-bold'>Ecritures Digitales</h1>
+                        {store.periode.length > 0 && <h2 className='text-xs'>{getFrenchMonthName(Number(store.periode[1]))} {store.periode[0]}</h2>}
+                    </div>
+                    <div className='flex items-center gap-4'>
+
+                        {store.filter && store.filter.status === EStatus.ATTENTE && <AttenteButtonContainer />}
+                        {store.filter && store.filter.status === EStatus.INVALIDE && <InvalideButtonContainer />}
+                        {store.filter && store.filter.status === EStatus.VALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>}
+                        {store.filter && store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
+                        <DialogLoadEcritures >
+
+                            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
+                                <span><MdCloudDownload />
+                                </span> <span> Charger Ecritures</span>
+                            </Button>
+                        </DialogLoadEcritures>
+                    </div>
+                </div>
                 <div>
-
-                    <h1 className='text-2xl text-[#101010] font-bold'>Ecritures Digitales</h1>
-                    {store.periode.length > 0 && <h2 className='text-xs'>{getFrenchMonthName(Number(store.periode[1]))} {store.periode[0]}</h2>}
-                </div>
-                <div className='flex items-center gap-4'>
-
-                    {store.filter && store.filter.status === EStatus.ATTENTE && <AttenteButtonContainer />}
-                    {store.filter && store.filter.status === EStatus.INVALIDE && <InvalideButtonContainer />}
-                    {store.filter && store.filter.status === EStatus.VALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>}
-                    {store.filter && store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
-                    <DialogLoadEcritures >
-
-                        <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Charger Ecritures</Button>
-                    </DialogLoadEcritures>
-                </div>
-            </div>
-            <div>
-                {/*                 {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
+                    {/*                 {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
  */}            </div>
-            <div className='h-32 mb-4 shadow-none grid grid-cols-5 gap-4 '>
-                <ResumeCard title='Total Factures' count={store.items.length} />
-                <ResumeCard title='Factures Intégrées' count={store.items.filter((item) => item.entete.Status === 3).length} />
-                <ResumeCard title='Factures Valides' count={store.items.filter((item) => item.entete.Status === 2).length} />
-                <ResumeCard title='Factures Invalides' count={store.items.filter((item) => item.entete.Status === 1).length} />
-                <ResumeCard title='Factures en attente' count={store.items.filter((item) => item.entete.Status === 0).length} />
+                <div className='h-32 mb-4 shadow-none  grid grid-cols-5 gap-4 '>
+                    <ResumeCard background='bg-primary text-white' text='text-white' title='Total Factures' count={store.items.length} />
+                    <ResumeCard background='bg-yellow-200' title='Factures Intégrées' count={store.items.filter((item) => item.entete.Status === 3).length} />
+                    <ResumeCard background='bg-green-200' title='Factures Valides' count={store.items.filter((item) => item.entete.Status === 2).length} />
+                    <ResumeCard background='bg-red-200' title='Factures Invalides' count={store.items.filter((item) => item.entete.Status === 1).length} />
+                    <ResumeCard background='bg-gray-200' title='Factures en attente' count={store.items.filter((item) => item.entete.Status === 0).length} />
+                </div>
             </div>
             <Card className='p-4 shadow-none'>
                 <FilterSection />
+                <FilterResume />
                 <div>
                     <TableEcritureDigitalContainer />
                 </div>

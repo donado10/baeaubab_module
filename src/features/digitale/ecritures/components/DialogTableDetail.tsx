@@ -35,10 +35,12 @@ export const ErrorEcrituresContainer = ({ refpiece }: { refpiece: string }) => {
 
     const store = useEcritureEnteteLigneStore()
 
-    const error = store.items.filter((item) => item.entete.EC_RefPiece === refpiece).map((item) => item.error)[0][0]
+    const error = store.items.filter((item) => item.entete.EC_RefPiece === refpiece).map((item) => item.error)[0]
 
 
-    return <><ErrorEcritures list={error} /></>
+
+
+    return <><ErrorEcritures list={error?.at(0) ?? undefined} /></>
 }
 const ErrorText = ({ value }: { value: string }) => {
     return <li className="flex items-center gap-2"><RiErrorWarningLine width={16} height={16} color="red" />

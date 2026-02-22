@@ -112,7 +112,9 @@ const TableEcritureDigitalContainer = () => {
         }
       }) : [...filterByStatus]
 
-      const filterByInvalide = filterInvalide(filterBySearch, store.filter.invalide)
+
+
+      const filterByInvalide = store.filter.status === EStatus.INVALIDE ? filterInvalide(filterBySearch, store.filter.invalide) : [...filterBySearch]
 
 
 

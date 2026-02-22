@@ -170,12 +170,15 @@ def Compliance_check(values: list):
         sql = f"""
             Select montant_a_payer from factures where id='{ec_deb[13]}'
             """
-        print(sql, flush=True)
 
         cursor_mysql.execute(sql)
 
         result = cursor_mysql.fetchall()
-        if not int(result[0][0]) != int(ec_deb[12]):
+        print(ec_deb[6], ec_deb[13], flush=True)
+        print('facture: ', int(result[0][0]), flush=True)
+        print('ecriture: ', int(ec_deb[12]), flush=True)
+        if int(result[0][0]) != int(ec_deb[12]):
+            print('it is false', flush=True)
             return False
 
     return True
@@ -253,7 +256,7 @@ def process_data(value: list, row: str):
     checked_data['EC_Sens'] = EC_Sens_check(value)
     checked_data['Compliance'] = Compliance_check(value)
 
-    if checked_data['balanced'] and checked_data['JO_Num'] and checked_data['EC_Jour'] and checked_data['EC_RefPiece'] and checked_data['CG_Num'] and checked_data['CT_Num'] and checked_data['EC_Intitule'] and checked_data['EC_Montant'] and checked_data['EC_Sens']:
+    if checked_data['balanced'] and checked_data['JO_Num'] and checked_data['EC_Jour'] and checked_data['EC_RefPiece'] and checked_data['CG_Num'] and checked_data['CT_Num'] and checked_data['EC_Intitule'] and checked_data['EC_Montant'] and checked_data['EC_Sens'] and checked_data['Compliance']:
         checked_data['Status'] = 1
     else:
         checked_data['Status'] = 0
