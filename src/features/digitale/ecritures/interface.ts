@@ -11,6 +11,7 @@ export type IEcritureLigne = z.infer<typeof ecritureLigneDigitalSchema>;
 
 export interface IEcritureError {
 	Balanced: string;
+	Compliance: string;
 	JO_Num: string;
 	JM_Date: string;
 	EC_Jour: string;

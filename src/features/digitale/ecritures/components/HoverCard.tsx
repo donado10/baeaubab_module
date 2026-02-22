@@ -14,7 +14,7 @@ export const HoverCardError = ({ children, status, refpiece }: { children: React
     }
     return <HoverCard >
         <HoverCardTrigger>{children}</HoverCardTrigger>
-        <HoverCardContent className="min-w-96!">
+        <HoverCardContent className="min-w-lg!" side="left">
             <ul className="flex flex-col gap-2">
 
                 <ErrorEcrituresContainer refpiece={refpiece} />

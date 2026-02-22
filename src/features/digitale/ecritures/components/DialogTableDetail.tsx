@@ -42,13 +42,12 @@ export const ErrorEcrituresContainer = ({ refpiece }: { refpiece: string }) => {
 
     }
 
-    console.log(data)
 
     return <><ErrorEcritures list={data.result} /></>
 }
 const ErrorText = ({ value }: { value: string }) => {
-    return <li className="flex items-center gap-2"><RiErrorWarningLine color="red" />
-        <h1 className="text-red-600 text-xs">{value}</h1></li>
+    return <li className="flex items-center gap-2"><RiErrorWarningLine width={16} height={16} color="red" />
+        <h1 className="text-red-600 text-xs font-bold">{value}</h1></li>
 }
 const ErrorEcritures = ({ list }: { list: IEcritureError | undefined }) => {
 
@@ -56,7 +55,8 @@ const ErrorEcritures = ({ list }: { list: IEcritureError | undefined }) => {
 
         return <></>
     }
-    return <ul className="flex flex-col gap-2">
+    return <ul className="flex flex-col gap-4">
+        {!list.Compliance && <ErrorText value="Le montant TTC de la facture ne correspond pas au TTC de l'écriture." />}
         {!list.Balanced && <ErrorText value="La facture n'est pas équilibrée." />}
         {!list.CG_Num && <ErrorText value="Le compte général est invalide pour l'une des écritures." />}
         {!list.EC_Montant && <ErrorText value="Le montant est invalide." />}
@@ -66,7 +66,7 @@ const ErrorEcritures = ({ list }: { list: IEcritureError | undefined }) => {
         {!list.EC_Jour && <ErrorText value="Le jour de l'écriture est invalide." />}
         {!list.EC_Piece && <ErrorText value="La piece est invalide." />}
         {!list.EC_Sens && <ErrorText value="Le sens de l'écriture est invalide. Vérifiez le compte général." />}
-        {!list.EC_Sens && <ErrorText value="La date du journal est invalide." />}
+        {!list.JM_Date && <ErrorText value="La date du journal est invalide." />}
     </ul>
 
 }

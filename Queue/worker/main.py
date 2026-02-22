@@ -162,6 +162,25 @@ def CT_Num_check(values: list):
     return True
 
 
+def Compliance_check(values: list):
+    debit = [x for x in values if x[11] == 0]
+    conn_mysql, cursor_mysql = dbo_mysql()
+
+    for ec_deb in debit:
+        sql = f"""
+            Select montant_a_payer from factures where id='{ec_deb[13]}'
+            """
+        print(sql, flush=True)
+
+        cursor_mysql.execute(sql)
+
+        result = cursor_mysql.fetchall()
+        if not int(result[0][0]) != int(ec_deb[12]):
+            return False
+
+    return True
+
+
 def EC_Intitule_check(values: list):
     for value in values:
         if type(value[9]).__name__ != 'str':
@@ -220,6 +239,7 @@ def process_data(value: list, row: str):
         "JM_Date": True,
         "EC_Date": True,
         "EC_Piece": True,
+        "Compliance": True,
         "Status": 0
     }
     checked_data['balanced'] = is_balanced(value)
@@ -231,6 +251,7 @@ def process_data(value: list, row: str):
     checked_data['EC_Intitule'] = EC_Intitule_check(value)
     checked_data['EC_Montant'] = EC_Montant_check(value)
     checked_data['EC_Sens'] = EC_Sens_check(value)
+    checked_data['Compliance'] = Compliance_check(value)
 
     if checked_data['balanced'] and checked_data['JO_Num'] and checked_data['EC_Jour'] and checked_data['EC_RefPiece'] and checked_data['CG_Num'] and checked_data['CT_Num'] and checked_data['EC_Intitule'] and checked_data['EC_Montant'] and checked_data['EC_Sens']:
         checked_data['Status'] = 1
@@ -244,6 +265,7 @@ def set_in_invalid_table_sage(invalid_rows):
         return
     invalid_rows_query_sage = f"""
         insert into transit.dbo.f_ecriturec_invalid(
+
             [Balanced]
            ,[JO_Num]
            ,[EC_No]
@@ -257,9 +279,10 @@ def set_in_invalid_table_sage(invalid_rows):
            ,[EC_Intitule]
            ,[EC_Sens]
            ,[EC_Montant]
+           ,[Compliance]
            ,[job_id])
         Values
-          (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+          (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     """
     conn_mssql, cursor_mssql = dbo_mssql()
 
@@ -383,7 +406,7 @@ def main_process_all(jobId, year, month):
                     (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 1, f'0x{hash}'))
 
             invalid_rows.append((1 if checked_data["balanced"] else 0, 1 if checked_data["JO_Num"] else 0, 1 if checked_data["EC_No"] else 0, 1 if checked_data["JM_Date"] else 0, 1 if checked_data["EC_Jour"] else 0, 1 if checked_data["EC_Date"] else 0,
-                                1 if checked_data["EC_Piece"] else 0, checked_data["refpiece"], 1 if checked_data["CG_Num"] else 0, 1 if checked_data["CT_Num"] else 0, 1 if checked_data["EC_Intitule"] else 0, 1 if checked_data["EC_Sens"] else 0, 1 if checked_data["EC_Montant"] else 0, jobId))
+                                1 if checked_data["EC_Piece"] else 0, checked_data["refpiece"], 1 if checked_data["CG_Num"] else 0, 1 if checked_data["CT_Num"] else 0, 1 if checked_data["EC_Intitule"] else 0, 1 if checked_data["EC_Sens"] else 0, 1 if checked_data["EC_Montant"] else 0, 1 if checked_data["Compliance"] else 0, jobId))
             invalid_rows_ref.append(f"'{row[0]}'")
         if checked_data["Status"] == 1:
             for fr in filteredRows:
@@ -450,7 +473,7 @@ def main_process_some(jobId, year, month, bills):
                     (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 1, f'0x{hash}'))
 
             invalid_rows.append((1 if checked_data["balanced"] else 0, 1 if checked_data["JO_Num"] else 0, 1 if checked_data["EC_No"] else 0, 1 if checked_data["JM_Date"] else 0, 1 if checked_data["EC_Jour"] else 0, 1 if checked_data["EC_Date"] else 0,
-                                1 if checked_data["EC_Piece"] else 0, checked_data["refpiece"], 1 if checked_data["CG_Num"] else 0, 1 if checked_data["CT_Num"] else 0, 1 if checked_data["EC_Intitule"] else 0, 1 if checked_data["EC_Sens"] else 0, 1 if checked_data["EC_Montant"] else 0, jobId))
+                                1 if checked_data["EC_Piece"] else 0, checked_data["refpiece"], 1 if checked_data["CG_Num"] else 0, 1 if checked_data["CT_Num"] else 0, 1 if checked_data["EC_Intitule"] else 0, 1 if checked_data["EC_Sens"] else 0, 1 if checked_data["EC_Montant"] else 0, 1 if checked_data["Compliance"] else 0, jobId))
             invalid_rows_ref.append(f"'{row[0]}'")
         if checked_data["Status"] == 1:
             for fr in filteredRows:
