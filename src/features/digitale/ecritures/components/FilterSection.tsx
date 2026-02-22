@@ -10,10 +10,29 @@ import {
     PopoverTitle,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { ReactNode } from "react"
+import { ReactNode, useState } from "react"
 import { useEcritureEnteteLigneStore } from "../store/store"
+import { boolean } from "zod"
 
+const CheckboxFilter = ({ id, type, label }: { id: string, type: string, label: string }) => {
+    const store = useEcritureEnteteLigneStore()
+    const [state, setState] = useState(store.filter.invalide.includes(type))
 
+    return <div className="flex items-center gap-3">
+        <Checkbox id={id} checked={state} onCheckedChange={(e) => {
+            if (e.valueOf() === true) {
+
+                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, type] })
+                setState(true)
+                return
+            }
+            store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== type)] })
+            setState(false)
+
+        }} />
+        <Label htmlFor={id}>{label}</Label>
+    </div>
+}
 
 const PopoverFilter = () => {
     const store = useEcritureEnteteLigneStore()
@@ -23,140 +42,22 @@ const PopoverFilter = () => {
             <CollapsibleContent className="mt-4 text-xs">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="er_equilibre" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
 
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "Balanced"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "Balanced")] })
-
-                            }} />
-                            <Label htmlFor="er_equilibre">Equilibre</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="er_compliance" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "Compliance"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "Compliance")] })
-                            }} />
-                            <Label htmlFor="er_compliance">Conforme</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_date_journal" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "JM_Date"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "JM_Date")] })
-                            }} />
-                            <Label htmlFor="err_date_journal">Date Journal</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_ec_jour" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "EC_Jour"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "EC_Jour")] })
-                            }} />
-                            <Label htmlFor="err_ec_jour">Jour</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_ec_date" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "EC_Date"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "EC_Date")] })
-                            }} />
-                            <Label htmlFor="err_ec_date">Date écriture</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_ec_piece" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "EC_Piece"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "EC_Piece")] })
-                            }} />
-                            <Label htmlFor="err_ec_piece">Piece</Label>
-                        </div></div>
+                        <CheckboxFilter id="er_equilibre" type="Balanced" label="Equilibre" />
+                        <CheckboxFilter id="er_compliance" type="Compliance" label="Conformité" />
+                        <CheckboxFilter id="er_date_journal" type="JM_Date" label="Date Journal" />
+                        <CheckboxFilter id="er_ec_jour" type="EC_Jour" label="Jour Ecriture" />
+                        <CheckboxFilter id="er_ec_date" type="EC_Date" label="Date Ecriture" />
+                        <CheckboxFilter id="er_ec_piece" type="EC_Piece" label="Piece" />
+                    </div>
                     <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_ec_refpiece" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "EC_Refpiece"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "EC_Refpiece")] })
-                            }} />
-                            <Label htmlFor="err_ec_refpiece">Référence écriture</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_cg_num" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "CG_Num"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "CG_Num")] })
-                            }} />
-                            <Label htmlFor="err_cg_num">Compte Général</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_ct_num" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "CT_Num"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "CT_Num")] })
-                            }} />
-                            <Label htmlFor="err_ct_num">Compte tiers</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_ec_intitule" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "EC_Intitule"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "EC_Intitule")] })
-                            }} />
-                            <Label htmlFor="err_ec_intitule">Intitulé écriture</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_ec_sens" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "EC_Sens"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "EC_Sens")] })
-                            }} />
-                            <Label htmlFor="err_ec_sens">Sens écriture</Label>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Checkbox id="err_ec_montant" onCheckedChange={(e) => {
-                                if (e.valueOf() === true) {
-
-                                    store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, "EC_Montant"] })
-                                    return
-                                }
-                                store.setFilter({ ...store.filter, invalide: [...store.filter.invalide.filter((f) => f !== "EC_Montant")] })
-                            }} />
-                            <Label htmlFor="err_ec_montant">Montant écriture</Label>
-                        </div></div>
+                        <CheckboxFilter id="er_ec_refpiece" type="EC_Refpiece" label="Référence Ecriture" />
+                        <CheckboxFilter id="er_cg_num" type="CG_Num" label="Compte Général" />
+                        <CheckboxFilter id="er_ct_num" type="CT_Num" label="Compte Tiers" />
+                        <CheckboxFilter id="er_ec_intitule" type="EC_Intitule" label="Intitulé Ecriture" />
+                        <CheckboxFilter id="er_ec_sens" type="EC_Sens" label="Sens Ecriture" />
+                        <CheckboxFilter id="er_ec_montant" type="EC_Montant" label="Montant Ecriture" />
+                    </div>
                 </div>
 
 
