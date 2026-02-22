@@ -22,6 +22,11 @@ export enum EStatus {
 }
 interface IFilter {
 	status: EStatus;
+	search: {
+		type: "tiers" | "facture";
+		value: string;
+	};
+	invalide: string[];
 }
 
 interface IEcritureEnteteLigneState {
@@ -29,7 +34,7 @@ interface IEcritureEnteteLigneState {
 	sourceEc: "sage" | "digital";
 	periode: string[];
 	event: IEvent | null;
-	filter: IFilter | null;
+	filter: IFilter;
 	billCart: string[];
 	dialog: IDialogEcritures;
 	setDialogState: (dialogState: IDialogEcritures) => void;
@@ -55,10 +60,14 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		sourceEc: "sage",
 		dialog: { viewTable: [false, ""] },
 
+		filter: {
+			status: EStatus.ALL,
+			search: { type: "facture", value: "" },
+			invalide: [],
+		},
 		setDialogState: (dialogState: IDialogEcritures) =>
 			set({ dialog: { ...dialogState } }),
 		setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
-		filter: { status: EStatus.ALL },
 		setEvent: (event: IEvent) => set({ event: event }),
 		setSourceEc: (source: "sage" | "digital") => set({ sourceEc: source }),
 		setFilter: (filter: IFilter) => set({ filter: filter }),
@@ -75,7 +84,11 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		clear: () =>
 			set({
 				billCart: [],
-				filter: null,
+				filter: {
+					status: EStatus.ALL,
+					search: { type: "facture", value: "" },
+					invalide: [],
+				},
 				items: [],
 				event: null,
 			}),

@@ -9,6 +9,11 @@ import { EStatus, useEcritureEnteteLigneStore } from '../store/store'
 import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 import { Card } from '@/components/ui/card'
 import { DialogRecheckEcritures } from './DialogRecheckEcritures'
+import { Input } from '@/components/ui/input'
+import { IoFilter } from "react-icons/io5";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { PopoverFilterButton } from './FilterSection'
+
 
 const InvalideButtonContainer = () => {
     const store = useEcritureEnteteLigneStore()
@@ -37,18 +42,62 @@ const ResumeCard = ({ title, count }: { title: string, count: number }) => {
     </Card>
 }
 
+const SelectType = ({ onSetType, disabled }: { onSetType: (value: 'tiers' | 'facture') => void, disabled: boolean }) => {
+    const [itemValue, setItemValue] = useState<'tiers' | 'facture'>('facture')
+
+    return <Select disabled={disabled} value={itemValue} onValueChange={(value) => { onSetType(value as 'tiers' | 'facture'); setItemValue(value as 'tiers' | 'facture') }}>
+        <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="type" />
+        </SelectTrigger>
+        <SelectContent >
+            <SelectGroup>
+                <SelectItem key={"tiers"} value={"tiers"}>Compte Tiers</SelectItem>
+                <SelectItem key={"facture"} value={"facture"}>Facture</SelectItem>
+            </SelectGroup>
+        </SelectContent>
+    </Select>
+}
+
+const Search = () => {
+    const store = useEcritureEnteteLigneStore()
+    return <div className='flex items-center gap-4'>
+        <Input disabled={store.items.length <= 0} onChange={(e) => store.setFilter({ ...store.filter, search: { ...store.filter.search, value: e.currentTarget.value } })} className='w-64' placeholder='Rechercher' />
+        <SelectType disabled={store.items.length <= 0} onSetType={(value: 'tiers' | 'facture') => {
+
+            store.setFilter({ ...store.filter, search: { ...store.filter.search, type: value } })
+        }} />
+    </div>
+}
+
 const FilterSection = () => {
     const store = useEcritureEnteteLigneStore()
     const classNameButton = 'p-0 hover:bg-transparent hover:text-blue-600  rounded-none'
 
 
 
-    return <div className='border-b border-gray-200 flex items-center gap-8'>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-blue-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
-        <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
+    return <div className='border-b border-gray-200 flex items-center justify-between  gap-8 p-2'>
+
+        <div className=' border-gray-200 flex items-center gap-8'>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-blue-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-blue-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
+        </div>
+        <div className='flex items-center gap-4'>
+            <div className='border-r pr-2'>
+                <Search />
+            </div>
+            <div>
+                <PopoverFilterButton>
+
+                    <Button>
+                        <span><IoFilter />
+                        </span>
+                        Filtre</Button>
+                </PopoverFilterButton>
+            </div>
+        </div>
     </div>
 }
 

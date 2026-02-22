@@ -8,7 +8,6 @@ import { ErrorEcrituresContainer } from "./DialogTableDetail"
 
 
 export const HoverCardError = ({ children, status, refpiece }: { children: ReactNode, status: string, refpiece: string }) => {
-    console.log(status)
     if (status !== '1') {
         return <>{children}</>
     }

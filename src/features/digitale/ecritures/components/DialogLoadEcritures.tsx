@@ -121,7 +121,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 onSuccess: (results) => {
                     store.clear()
                     store.setItems(results.results)
-                    store.setFilter({ status: EStatus.ALL })
+                    store.setFilter({ ...store.filter, status: EStatus.ALL })
                     store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
                 }
             })
@@ -135,7 +135,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                         store.clear()
                         console.log(results.results)
                         store.setItems(results.results)
-                        store.setFilter({ status: EStatus.ALL })
+                        store.setFilter({ ...store.filter, status: EStatus.ALL })
                     }
                 })
 
@@ -149,7 +149,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                         store.clear()
                         console.log(results.results)
                         store.setItems(results.results)
-                        store.setFilter({ status: EStatus.ALL })
+                        store.setFilter({ ...store.filter, status: EStatus.ALL })
                     }
                 })
             }

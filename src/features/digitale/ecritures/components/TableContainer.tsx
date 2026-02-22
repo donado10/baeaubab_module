@@ -8,6 +8,7 @@ import Search from "@/features/missions/components/Search";
 import { Card } from "@/components/ui/card";
 import { EStatus, useEcritureEnteteLigneStore } from "../store/store";
 import { DialogTableDetail } from "./DialogTableDetail";
+import { IEcritureEnteteLigne } from "../interface";
 
 
 const TableEcritureDigitalContainer = () => {
@@ -17,21 +18,31 @@ const TableEcritureDigitalContainer = () => {
   const [ecritures, setEcritures] = useState(EcritureStore.items)
 
   useEffect(() => {
-    console.log(EcritureStore.items)
 
-    if (EcritureStore.filter?.status !== EStatus.ALL) {
 
-      const filterByStatus = EcritureStore.items.filter((ec) => {
-        if (EcMapByStatus.get(ec.entete.Status) === EcritureStore.filter?.status) {
-          return ec
-        }
-      })
-      setEcritures(filterByStatus)
-      return
-    }
 
-    console.log(EcritureStore.items)
-    setEcritures(EcritureStore.items)
+
+    const filterByStatus = EcritureStore.filter?.status !== EStatus.ALL ? EcritureStore.items.filter((ec) => {
+      if (EcMapByStatus.get(ec.entete.Status) === EcritureStore.filter?.status) {
+        return ec
+      }
+    }) : [...EcritureStore.items]
+
+    const filterBySearch = EcritureStore.filter.search.value ? filterByStatus.filter((value) => {
+      if (EcritureStore.filter.search.type === 'facture') {
+
+        return value.entete.EC_RefPiece.toLowerCase().includes(EcritureStore.filter.search.value.toLowerCase())
+      }
+      if (EcritureStore.filter.search.type === 'tiers') {
+
+        return value.entete.CT_Num && value.entete.CT_Num.toLowerCase().includes(EcritureStore.filter.search.value.toLowerCase())
+      }
+    }) : [...filterByStatus]
+
+
+    setEcritures(filterBySearch)
+
+
 
   }, [JSON.stringify(EcritureStore.filter), JSON.stringify(EcritureStore.items)])
 
