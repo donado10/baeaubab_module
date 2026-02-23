@@ -26,6 +26,7 @@ interface IFilter {
 		type: "tiers" | "facture";
 		value: string;
 	};
+	ecart_conformite: number;
 	invalide: string[];
 }
 
@@ -66,6 +67,7 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 			status: EStatus.ALL,
 			search: { type: "facture", value: "" },
 			invalide: [],
+			ecart_conformite: 0,
 		},
 		setDialogState: (dialogState: IDialogEcritures) =>
 			set({ dialog: { ...dialogState } }),
@@ -91,6 +93,7 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 					status: EStatus.ALL,
 					search: { type: "facture", value: "" },
 					invalide: [],
+					ecart_conformite: 0,
 				},
 				items: [],
 				event: null,

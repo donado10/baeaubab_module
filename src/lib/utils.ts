@@ -88,5 +88,9 @@ export function getFrenchMonthName(month: number): string {
 	return monthsInFrench.get(month)!;
 }
 
+export function isWithinRange(number: number, center: number, range: number) {
+	return number >= center - range && number <= center + range;
+}
+
 // Example:
 //console.log(formatDate("2025-12-10T00:00:00.000Z")); // "10/12/2025"

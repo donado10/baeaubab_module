@@ -221,6 +221,29 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
     ),
   },
   {
+    accessorKey: "Montant_reel",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <span>
+
+            Montant Réel
+          </span>
+          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
+        </Button>
+      )
+    },
+    cell: ({ row }) => (
+      <>
+        <div className="capitalize">{row.getValue("Montant_reel")}</div>
+      </>
+    ),
+  },
+  {
     accessorKey: "Status",
     header: ({ column }) => {
       return (

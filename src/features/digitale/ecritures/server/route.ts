@@ -48,7 +48,7 @@ const app = new Hono()
 			const { year, month } = c.req.valid("json");
 
 			const [rows_refpiece] = await pool.query(
-				"select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,Status from ecritures where year(date_facture)=? and month(date_facture)=? and ec_sens=0",
+				"select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,fact.montant_a_payer as Montant_reel,ec.Status as Status from ecritures ec inner join factures fact on ec.facture_id=fact.id where year(date_facture)=? and month(date_facture)=? and ec_sens=0",
 				[year, month]
 			);
 
@@ -91,7 +91,7 @@ const app = new Hono()
 
 			const pool = await getConnection();
 
-			let query_refpiece = `select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,row_status as Status from transit.dbo.f_ecriturec_temp where year(date_facture)='${year}' and month(date_facture)='${month}' and ec_sens=0`;
+			let query_refpiece = `select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,montant_reel,row_status as Status from transit.dbo.f_ecriturec_temp where year(date_facture)='${year}' and month(date_facture)='${month}' and ec_sens=0`;
 
 			let result_refpiece = await pool.request().query(query_refpiece);
 

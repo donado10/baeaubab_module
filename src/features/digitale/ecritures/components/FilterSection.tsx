@@ -13,6 +13,7 @@ import {
 import { ReactNode, useState } from "react"
 import { useEcritureEnteteLigneStore } from "../store/store"
 import { boolean } from "zod"
+import { Input } from "@/components/ui/input"
 
 const CheckboxFilter = ({ id, type, label }: { id: string, type: string, label: string }) => {
     const store = useEcritureEnteteLigneStore()
@@ -39,7 +40,7 @@ const PopoverFilter = () => {
     return (
         <Collapsible>
             <CollapsibleTrigger ><h1 className="text-blue-600 font-semibold"> Invalide</h1></CollapsibleTrigger>
-            <CollapsibleContent className="mt-4 text-xs">
+            <CollapsibleContent className="mt-4 text-xs flex flex-col gap-4">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-4">
 
@@ -59,7 +60,10 @@ const PopoverFilter = () => {
                         <CheckboxFilter id="er_ec_montant" type="EC_Montant" label="Montant Ecriture" />
                     </div>
                 </div>
-
+                <div className="flex items-center gap-4">
+                    <Label htmlFor={"er_ecart"} className="font-normal">Ecart conformité</Label>
+                    <Input id={"er_ecart"} className="py-0 h-7 w-1/4 rounded-md" min={0} type="number" onChange={(value) => store.setFilter({ ...store.filter, ecart_conformite: Number(value.currentTarget.value) })} />
+                </div>
 
             </CollapsibleContent>
         </Collapsible>)

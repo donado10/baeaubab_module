@@ -123,6 +123,7 @@ const FilterResume = () => {
 
             store.filter.invalide && store.filter.invalide.map((value) => <li key={value}><FilterResumeCard value={value} /></li>)
         }
+        {store.filter.ecart_conformite !== 0 && <li key={'ecart'}><FilterResumeCard value={`ecart: ${store.filter.ecart_conformite}`} /></li>}
     </ul>
 }
 

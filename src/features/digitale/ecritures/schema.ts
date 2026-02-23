@@ -41,6 +41,7 @@ export const ecritureEnteteDigitalSchema = z.object({
 	EC_RefPiece: z.string(),
 	CT_Num: z.string(),
 	EC_Montant: z.number(),
+	Montant_reel: z.number(),
 	Status: z.number(),
 });
 

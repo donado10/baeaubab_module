@@ -6,6 +6,7 @@ import { DataTable } from "./Table/table";
 import { EStatus, useEcritureEnteteLigneStore } from "../store/store";
 import { DialogTableDetail } from "./DialogTableDetail";
 import { IEcritureEnteteLigne, IEcritureError } from "../interface";
+import { isWithinRange } from "@/lib/utils";
 
 
 function sleep(ms: number) {
@@ -116,9 +117,11 @@ const TableEcritureDigitalContainer = () => {
 
       const filterByInvalide = store.filter.status === EStatus.INVALIDE ? filterInvalide(filterBySearch, store.filter.invalide) : [...filterBySearch]
 
+      const filterByEcart = store.filter.status === EStatus.INVALIDE && store.filter.ecart_conformite !== 0 ? filterByInvalide.filter((filter) => !isWithinRange(filter.entete.EC_Montant, filter.entete.Montant_reel, store.filter.ecart_conformite)) : [...filterByInvalide]
 
 
-      setEcritures(filterByInvalide)
+
+      setEcritures(filterByEcart)
 
     }
 

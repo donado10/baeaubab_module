@@ -15,10 +15,10 @@ RUN set -eux; \
  ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18; \
  rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir  pika
-RUN pip install --no-cache-dir  requests
-RUN pip install --no-cache-dir  setuptools
-RUN pip install --no-cache-dir  pyodbc
-RUN pip install --no-cache-dir mysql-connector-python
+RUN pip install   pika
+RUN pip install   requests
+RUN pip install   setuptools
+RUN pip install   pyodbc
+RUN pip install  mysql-connector-python
 RUN python setup.py install
 CMD ["python", "worker.py"]

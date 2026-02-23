@@ -51,7 +51,7 @@ def getData(year, month):
     query = """
         Select JO_Num,EC_No,JM_Date,EC_Jour,EC_Date,EC_Piece,EC_RefPiece,CG_Num,CT_Num,EC_Intitule,
         EC_Echeance,EC_Sens,EC_Montant,facture_id,date_facture from ecritures
-        where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1) 
+        where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1)
         """
 
     data = (year, month)
@@ -184,6 +184,10 @@ def Compliance_check(values: list):
     return True
 
 
+def update_ec_montant_reel():
+    pass
+
+
 def EC_Intitule_check(values: list):
     for value in values:
         if type(value[9]).__name__ != 'str':
@@ -310,6 +314,27 @@ def set_in_temp_table_sage(valid_rows):
     if not len(valid_rows):
         return
 
+    conn_mssql, cursor_mssql = dbo_mssql()
+    conn_mysql, cursor_mysql = dbo_mysql()
+
+    valid_rows_list = []
+    for row in valid_rows:
+        valid_rows_list.append(list(row))
+
+    for index, row in enumerate(valid_rows_list):
+        if row[10] == 0:
+            query = f"""
+                select montant_a_payer from factures where id='{row[12]}'
+            """
+            cursor_mysql.execute(query)
+            real_amount = cursor_mysql.fetchone()
+
+            valid_rows_list[index].append(real_amount[0])
+            continue
+        valid_rows_list[index].append(None)
+
+    print(valid_rows_list)
+
     valid_rows_query_sage = f"""
         insert into transit.dbo.f_ecriturec_temp(
         [JO_Num]
@@ -328,12 +353,12 @@ def set_in_temp_table_sage(valid_rows):
       ,[date_facture]
       ,[job_id]
       ,[row_status]
-      ,[hash_row])
-      Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+      ,[hash_row]
+      ,[montant_reel])
+      Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     """
-    conn_mssql, cursor_mssql = dbo_mssql()
 
-    cursor_mssql.executemany(valid_rows_query_sage, valid_rows)
+    cursor_mssql.executemany(valid_rows_query_sage, valid_rows_list)
 
 
 def set_in_valid_table_digital(valid_rows_ref):
@@ -439,6 +464,7 @@ def main_process_all(jobId, year, month):
     set_in_temp_table_sage(temp_rows)
 
     set_in_valid_table_digital(valid_rows_ref)
+
     conn_mssql.commit()
     conn_mysql.commit()
 
@@ -506,5 +532,6 @@ def main_process_some(jobId, year, month, bills):
     set_in_temp_table_sage(temp_rows)
 
     set_in_valid_table_digital(valid_rows_ref)
+
     conn_mssql.commit()
     conn_mysql.commit()
