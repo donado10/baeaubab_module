@@ -164,17 +164,25 @@ def CT_Num_check(values: list):
 
 def Compliance_check(values: list):
     debit = [x for x in values if x[11] == 0]
-    conn_mysql, cursor_mysql = dbo_mysql()
+    conn_mssql, cursor_mssql = dbo_mssql()
 
     for ec_deb in debit:
         sql = f"""
-            Select montant_a_payer from factures where id='{ec_deb[13]}'
+            Select montant_ttc from transit.dbo.F_facture_digital where facture_id='{ec_deb[13]}'
             """
 
-        cursor_mysql.execute(sql)
+        cursor_mssql.execute(sql)
 
-        result = cursor_mysql.fetchall()
+        result = cursor_mssql.fetchall()
+
         print(ec_deb[6], ec_deb[13], flush=True)
+        print(result, flush=True)
+        if len(result) == 0:
+            print("The bill doesn't exist", flush=True)
+            return False
+        if result[0][0] == None:
+            print("The bill doesn't exist", flush=True)
+            return False
         print('facture: ', int(result[0][0]), flush=True)
         print('ecriture: ', int(ec_deb[12]), flush=True)
         if int(result[0][0]) != int(ec_deb[12]):
@@ -328,6 +336,13 @@ def set_in_temp_table_sage(valid_rows):
             """
             cursor_mysql.execute(query)
             real_amount = cursor_mysql.fetchone()
+
+            if not real_amount:
+                valid_rows_list[index].append(0)
+                continue
+            if not real_amount[0]:
+                valid_rows_list[index].append(0)
+                continue
 
             valid_rows_list[index].append(real_amount[0])
             continue

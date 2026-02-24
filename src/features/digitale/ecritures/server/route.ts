@@ -91,7 +91,7 @@ const app = new Hono()
 
 			const pool = await getConnection();
 
-			let query_refpiece = `select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,montant_reel,row_status as Status from transit.dbo.f_ecriturec_temp where year(date_facture)='${year}' and month(date_facture)='${month}' and ec_sens=0`;
+			let query_refpiece = `select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,fact.montant_ttc as Montant_reel,row_status as Status from transit.dbo.f_ecriturec_temp ec inner join transit.dbo.f_facture_digital fact on ec.facture_id = fact.facture_id where year(date_facture)='${year}' and month(date_facture)='${month}' and ec_sens=0`;
 
 			let result_refpiece = await pool.request().query(query_refpiece);
 

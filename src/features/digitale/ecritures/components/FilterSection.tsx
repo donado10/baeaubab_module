@@ -35,6 +35,14 @@ const CheckboxFilter = ({ id, type, label }: { id: string, type: string, label: 
     </div>
 }
 
+const EcartCompliance = ({ value, onChange }: { value: number, onChange: (value: number) => void }) => {
+    const [valueEcart, setValueEcart] = useState<number>(value)
+    return <div className="flex items-center gap-4">
+        <Label htmlFor={"er_ecart"} className="font-normal">Ecart conformité</Label>
+        <Input id={"er_ecart"} className="py-0 h-7 w-1/4 rounded-md" min={0} type="number" value={valueEcart} onChange={(e) => { onChange(Number(e.currentTarget.value)); setValueEcart(Number(e.currentTarget.value)) }} />
+    </div>
+}
+
 const PopoverFilter = () => {
     const store = useEcritureEnteteLigneStore()
     return (
@@ -60,9 +68,9 @@ const PopoverFilter = () => {
                         <CheckboxFilter id="er_ec_montant" type="EC_Montant" label="Montant Ecriture" />
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <Label htmlFor={"er_ecart"} className="font-normal">Ecart conformité</Label>
-                    <Input id={"er_ecart"} className="py-0 h-7 w-1/4 rounded-md" min={0} type="number" onChange={(value) => store.setFilter({ ...store.filter, ecart_conformite: Number(value.currentTarget.value) })} />
+                <div >
+                    <EcartCompliance value={store.filter.ecart_conformite} onChange={(value) => store.setFilter({ ...store.filter, ecart_conformite: Number(value) })} />
+
                 </div>
 
             </CollapsibleContent>
