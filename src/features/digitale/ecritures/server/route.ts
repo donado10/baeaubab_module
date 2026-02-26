@@ -193,6 +193,44 @@ const app = new Hono()
 
 			return c.json({ results: [], jobId: jobId });
 		}
+	)
+	.post(
+		"/setBillsValid",
+		sessionMiddleware,
+		adminActionMiddleware,
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+				bills: z.array(z.string()),
+			})
+		),
+		async (c) => {
+			const { year, month, bills } = c.req.valid("json");
+
+			const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("check_digital_ec_jobs");
+
+			const jobId = ID.unique();
+
+			channel.sendToQueue(
+				"check_digital_ec_jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						bills: bills,
+						type: "set_valid",
+					})
+				)
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		}
 	);
 
 export default app;

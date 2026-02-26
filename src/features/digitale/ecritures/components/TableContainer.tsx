@@ -117,7 +117,7 @@ const TableEcritureDigitalContainer = () => {
 
       const filterByInvalide = store.filter.status === EStatus.INVALIDE ? filterInvalide(filterBySearch, store.filter.invalide) : [...filterBySearch]
 
-      const filterByEcart = store.filter.status === EStatus.INVALIDE && store.filter.ecart_conformite !== 0 ? filterByInvalide.filter((filter) => !isWithinRange(filter.entete.EC_Montant, filter.entete.Montant_reel, store.filter.ecart_conformite)) : [...filterByInvalide]
+      const filterByEcart = store.filter.status === EStatus.INVALIDE && store.filter.ecart_conformite !== 0 ? filterByInvalide.filter((filter) => isWithinRange(filter.entete.EC_Montant, filter.entete.Montant_reel, store.filter.ecart_conformite)) : [...filterByInvalide]
 
 
 

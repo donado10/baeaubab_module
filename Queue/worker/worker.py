@@ -3,7 +3,7 @@ import json
 import time
 import requests
 
-from main import main_process_all, main_process_some
+from main import main_process_all, main_process_some, main_process_set_valid
 
 
 def connect_with_retry(host="rabbitmq", tries=30, delay=2):
@@ -44,6 +44,9 @@ def handle(ch, method, properties, body):
     if data["type"] == 'some':
         main_process_some(data["jobId"], data["year"],
                           data["month"], data["bills"])
+    if data["type"] == 'set_valid':
+        main_process_set_valid(data["jobId"], data["year"],
+                               data["month"], data["bills"])
 
     requests.post(
         "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",

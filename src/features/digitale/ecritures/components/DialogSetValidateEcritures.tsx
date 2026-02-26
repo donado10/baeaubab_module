@@ -12,23 +12,20 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
 import { EStatus, useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
-import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 import { toast } from "sonner"
-import useLoadEcrituresCheckBills from "../api/use-load-ecritures-check-bills"
+import useSetValidateBills from "../api/use-set-valid-bills"
+import { MdStarBorderPurple500 } from "react-icons/md"
 
 
-export function DialogRecheckEcritures({ children }: { children: ReactNode }) {
+export function DialogSetValidateEcritures({ children }: { children: ReactNode }) {
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
     const store = useEcritureEnteteLigneStore()
 
-    const { mutate: mutateWithCheck } = useLoadEcrituresCheckBills()
+    const { mutate: mutateValidateBills } = useSetValidateBills()
 
     const submitHandler = () => {
         setClose(false)
@@ -51,7 +48,15 @@ export function DialogRecheckEcritures({ children }: { children: ReactNode }) {
                 }
             });
 
-        mutateWithCheck({ json: { year: store.periode[0], month: store.periode[1], bills: store.billCart } }, {
+        const compliantBillsOnly = store.billCart.filter((bill) => {
+            const { Compliance, CreatedDate, EC_RefPiece, date_facture, job_id, Marq, ...error } = store.items.filter((item) => item.entete.EC_RefPiece === bill)[0].error[0]
+            console.log(error)
+            return Object.values(error).every((val) => { console.log(val); return val == "1" })
+        })
+
+        console.log(compliantBillsOnly)
+
+        mutateValidateBills({ json: { year: store.periode[0], month: store.periode[1], bills: compliantBillsOnly } }, {
             onSuccess: (results) => {
                 store.clear()
                 store.setItems(results.results)
@@ -71,9 +76,9 @@ export function DialogRecheckEcritures({ children }: { children: ReactNode }) {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="mb-4">
-                        <DialogTitle>Chargement des écritures comptables</DialogTitle>
+                        <DialogTitle>Validation des écritures conformes</DialogTitle>
                     </DialogHeader>
-
+                    <DialogDescription>Seul les écritures qui ayant des problèmes de conformité seront traités.</DialogDescription>
                     <DialogFooter className="gap-4">
                         <DialogClose asChild>
                             <Button variant="outline">Annuler</Button>

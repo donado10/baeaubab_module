@@ -550,3 +550,29 @@ def main_process_some(jobId, year, month, bills):
 
     conn_mssql.commit()
     conn_mysql.commit()
+
+
+def main_process_set_valid(jobId, year, month, bills):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    conn_mysql, cursor_mysql = dbo_mysql()
+
+    script_mysql = f"""
+        update ecritures
+        set status=2
+        where ec_refpiece in ({','.join(["'"+x+"'" for x in bills])}) and  month(date_facture)={month} and year(date_facture)={year}
+    """
+
+    script_mssql = f"""
+        update transit.dbo.f_ecriturec_temp
+        set row_status=2
+        where ec_refpiece in ({','.join(["'"+x+"'" for x in bills])}) and  month(date_facture)={month} and year(date_facture)={year}
+        
+    """
+    print(script_mysql, flush=True)
+
+    cursor_mysql.execute(script_mysql)
+    cursor_mssql.execute(script_mssql)
+    print("goood", flush=True)
+
+    conn_mssql.commit()
+    conn_mysql.commit()

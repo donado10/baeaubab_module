@@ -15,9 +15,19 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { PopoverFilterButton } from './FilterSection'
 import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
+import { DialogSetValidateEcritures } from './DialogSetValidateEcritures'
 
 
 
+
+const ValidateButtonContainer = () => {
+    const store = useEcritureEnteteLigneStore()
+    return <>
+        {store.billCart.length > 0 && store.filter.invalide.includes('Compliance') && <DialogSetValidateEcritures>
+            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Valider Ecritures</Button>
+        </DialogSetValidateEcritures>}
+    </>
+}
 
 const InvalideButtonContainer = () => {
     const store = useEcritureEnteteLigneStore()
@@ -155,6 +165,7 @@ const EcritureDigitaleSection = () => {
 
                         {store.filter && store.filter.status === EStatus.ATTENTE && <AttenteButtonContainer />}
                         {store.filter && store.filter.status === EStatus.INVALIDE && <InvalideButtonContainer />}
+                        {store.filter && store.filter.status === EStatus.INVALIDE && <ValidateButtonContainer />}
                         {store.filter && store.filter.status === EStatus.VALIDE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>}
                         {store.filter && store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
                         <DialogLoadEcritures >
