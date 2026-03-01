@@ -7,6 +7,7 @@ import { EStatus, useEcritureEnteteLigneStore } from "../store/store";
 import { DialogTableDetail } from "./DialogTableDetail";
 import { IEcritureEnteteLigne, IEcritureError } from "../interface";
 import { isWithinRange } from "@/lib/utils";
+import { DialogCorrectionTableDetail } from "./DialogCorrectionTableDetail";
 
 
 function sleep(ms: number) {
@@ -117,7 +118,7 @@ const TableEcritureDigitalContainer = () => {
 
       const filterByInvalide = store.filter.status === EStatus.INVALIDE ? filterInvalide(filterBySearch, store.filter.invalide) : [...filterBySearch]
 
-      const filterByEcart = store.filter.status === EStatus.INVALIDE && store.filter.ecart_conformite !== 0 ? filterByInvalide.filter((filter) => isWithinRange(filter.entete.EC_Montant, filter.entete.Montant_reel, store.filter.ecart_conformite)) : [...filterByInvalide]
+      const filterByEcart = store.filter.status === EStatus.INVALIDE && store.filter.ecart_conformite !== 0 ? filterByInvalide.filter((filter) => isWithinRange(filter.entete.EC_Montant, filter.entete.Montant_reel ?? 0, store.filter.ecart_conformite)) : [...filterByInvalide]
 
 
 
@@ -140,6 +141,7 @@ const TableEcritureDigitalContainer = () => {
         }
       />
       {<DialogTableDetail refpiece={store.dialog.viewTable[1]} open={store.dialog.viewTable[0]} setOpen={(value) => store.setDialogState({ ...store.dialog, viewTable: [value, ''] })} />}
+      {<DialogCorrectionTableDetail refpiece={store.dialog.viewTableCorrection[1]} open={store.dialog.viewTableCorrection[0]} setOpen={(value) => store.setDialogState({ ...store.dialog, viewTableCorrection: [value, ''] })} />}
 
     </div>
   );

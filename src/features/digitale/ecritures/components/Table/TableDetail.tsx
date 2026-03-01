@@ -22,7 +22,6 @@ export interface IDetails {
 }
 
 export function EcrituresTableDetails({ details }: { details: IEcritureLigne[] }) {
-    console.log(details)
     return (
         <Table >
             <TableHeader>

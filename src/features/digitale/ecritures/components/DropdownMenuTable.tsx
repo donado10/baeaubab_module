@@ -28,11 +28,17 @@ export function DropdownMenuTable({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="start">
-          <DropdownMenuItem className="text-blue-600" asChild onClick={() => store.setDialogState({ ...store.dialog, viewTable: [true, refpiece] })}>
-            <h1
+          <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTable: [true, refpiece] }) }}>
+            <span
             >
               Voir
-            </h1>
+            </span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTableCorrection: [true, refpiece] }) }}>
+            <span
+            >
+              Corriger
+            </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
