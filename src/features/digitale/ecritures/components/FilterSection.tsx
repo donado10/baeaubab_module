@@ -44,10 +44,12 @@ const EcartCompliance = ({ value, onChange }: { value: number, onChange: (value:
 }
 
 const PopoverFilter = () => {
+    const [open, setOpen] = useState(true)
     const store = useEcritureEnteteLigneStore()
+
     return (
-        <Collapsible>
-            <CollapsibleTrigger ><h1 className="text-blue-600 font-semibold"> Invalide</h1></CollapsibleTrigger>
+        <Collapsible open={open} onOpenChange={(value) => setOpen(value)}>
+            <CollapsibleTrigger ><span className="text-blue-600 font-semibold cursor-pointer"> Invalide</span></CollapsibleTrigger>
             <CollapsibleContent className="mt-4 text-xs flex flex-col gap-4">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-4">

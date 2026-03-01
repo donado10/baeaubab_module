@@ -23,6 +23,7 @@ def getBills(year, month):
     query = """
         Select distinct EC_RefPiece from ecritures
         where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1)
+        and ec_refpiece like 'FACT%'
         """
 
     data = (year, month)
@@ -37,6 +38,7 @@ def getBillsByRef(year, month, bills):
     query = f"""
         Select distinct EC_RefPiece from ecritures
         where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1) and EC_RefPiece in ({','.join(bills)})
+        and ec_refpiece like 'FACT%'
         """
 
     data = (year, month)
@@ -51,7 +53,7 @@ def getData(year, month):
     query = """
         Select JO_Num,EC_No,JM_Date,EC_Jour,EC_Date,EC_Piece,EC_RefPiece,CG_Num,CT_Num,EC_Intitule,
         EC_Echeance,EC_Sens,EC_Montant,facture_id,date_facture from ecritures
-        where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1)
+        where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1) and ec_refpiece like 'FACT%'
         """
 
     data = (year, month)
@@ -67,6 +69,7 @@ def getDataByRef(year, month, bills):
         Select JO_Num,EC_No,JM_Date,EC_Jour,EC_Date,EC_Piece,EC_RefPiece,CG_Num,CT_Num,EC_Intitule,
         EC_Echeance,EC_Sens,EC_Montant,facture_id,date_facture from ecritures
         where year(date_facture)=%s and month(date_facture)=%s and Status in (0,1) and EC_RefPiece in ({','.join(bills)})
+        and ec_refpiece like 'FACT%'
         """
 
     data = (year, month)

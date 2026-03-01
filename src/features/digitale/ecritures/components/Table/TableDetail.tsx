@@ -41,7 +41,7 @@ export function EcrituresTableDetails({ details }: { details: IEcritureLigne[] }
                         <TableCell className="font-medium ">{convertDate(detail.JM_Date)}</TableCell>
                         <TableCell className="font-medium">{detail.CG_Num}</TableCell>
                         <TableCell className="font-medium">{detail.CT_Num}</TableCell>
-                        <TableCell>{detail.EC_Intitule}</TableCell>
+                        <TableCell> {detail.EC_Intitule}</TableCell>
                         <TableCell>{detail.EC_Sens === 0 ? detail.EC_Montant : 0}</TableCell>
                         <TableCell>{detail.EC_Sens === 1 ? detail.EC_Montant : 0}</TableCell>
                     </TableRow>
