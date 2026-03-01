@@ -57,7 +57,8 @@ export function getCurrentTime() {
 }
 
 export function convertDate(timestamp: string) {
-	const originalDate = new Date(timestamp);
+	const originalDate = new Date(Number(timestamp));
+
 	const firstOfMonth = new Date(
 		Date.UTC(originalDate.getUTCFullYear(), originalDate.getUTCMonth(), 1)
 	);

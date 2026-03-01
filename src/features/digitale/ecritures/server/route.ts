@@ -9,6 +9,7 @@ import { pool } from "@/lib/db-mysql";
 import z from "zod";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
+import { ecritureEnteteLigneSchema, ecritureSchema } from "../schema";
 
 const app = new Hono()
 	.get("/errors", async (c) => {
@@ -244,6 +245,32 @@ const app = new Hono()
 			);
 
 			return c.json({ results: [], jobId: jobId });
+		}
+	)
+	.post(
+		"/correctBills",
+		sessionMiddleware,
+		adminActionMiddleware,
+		zValidator("json", ecritureEnteteLigneSchema),
+		async (c) => {
+			const ecritures_ = c.req.valid("json").map((ec) => ec.entete.EC_RefPiece);
+			const ecritures = c.req.valid("json").map((ec) => ec.ligne);
+
+			ecritures.forEach((ecriture) => {
+				ecriture.forEach(async (ec) => {
+					console.log("hey1");
+					const query = `update ecritures
+					set JM_Date='${ec.JM_Date}',
+					CG_Num='${ec.CG_Num}',CT_Num='${ec.CT_Num}',EC_Intitule='${ec.EC_Intitule}',EC_Montant='${ec.EC_Montant}'
+					where id = ${ec.id}
+					`;
+					const [rows] = await pool.query(query);
+				});
+			});
+
+			console.log("hey2");
+
+			return c.json({ results: ecritures_ });
 		}
 	);
 

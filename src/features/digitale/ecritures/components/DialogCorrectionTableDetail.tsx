@@ -75,7 +75,6 @@ export function DialogCorrectionTableDetail({ open, setOpen, refpiece }: { refpi
     const [openDialog, setOpenDialog] = useState(open)
 
     useEffect(() => {
-        console.log(open)
         setOpenDialog(open)
     }, [open])
 

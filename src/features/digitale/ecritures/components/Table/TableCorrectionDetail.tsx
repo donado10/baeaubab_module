@@ -12,12 +12,15 @@ import { IEcritureLigne } from "../../interface";
 import { convertDate } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useForm, useWatch } from "react-hook-form";
-import z from "zod";
+import z, { json } from "zod";
 import { ecritureEnteteLigneSchema, ecritureLigneDigitalSchema, ecritureSchema } from "../../schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import useCorrectBills from "../../api/use-correct-bills";
+import useLoadEcrituresCheckBills from "../../api/use-load-ecritures-check-bills";
+import { useEcritureEnteteLigneStore } from "../../store/store";
 
 export interface IDetails {
     piece: string;
@@ -31,6 +34,8 @@ export interface IDetails {
 
 export function EcrituresTableCorrectionDetails({ details }: { details: IEcritureLigne[] }) {
     const entete = details.filter((detail) => detail.EC_Sens === 0)[0]
+    const store = useEcritureEnteteLigneStore()
+    const { mutate } = useCorrectBills()
     const form = useForm<z.infer<typeof ecritureSchema>>({
         resolver: zodResolver(ecritureSchema),
 
@@ -42,7 +47,7 @@ export function EcrituresTableCorrectionDetails({ details }: { details: IEcritur
                 EC_RefPiece: entete.EC_RefPiece,
 
                 JM_Date: entete.JM_Date,
-                Status: entete.status
+                Status: entete.status,
             },
             ligne: details,
             error: []
@@ -51,9 +56,18 @@ export function EcrituresTableCorrectionDetails({ details }: { details: IEcritur
 
     const onSubmit = (values: z.infer<typeof ecritureSchema>) => {
         console.log(values)
+        mutate({ json: [values] }, {
+            onSuccess: (results) => {
+                console.log(results)
+                const billsUpdated = store.items.filter((bill) => !results.results.includes(bill.entete.EC_RefPiece))
+                values.entete.Montant_reel = store.items.filter((bill) => results.results.includes(bill.entete.EC_RefPiece))[0].entete.Montant_reel
+                store.setItems([values, ...billsUpdated])
+                store.setClearDialogState()
+                //mutateCheckBills({ json: { year: store.periode[0], month: store.periode[1], bills: [values.entete.EC_RefPiece] } })
+            }
+        })
     }
 
-    console.log(form.formState.errors)
 
     return (
         <Form {...form}>
@@ -203,10 +217,9 @@ export function EcrituresTableCorrectionDetails({ details }: { details: IEcritur
                             </TableRow>
                         ))}
                     </TableBody>
-                    <TableFooter>
+                    <TableFooter className="mt-8">
                         <TableRow>
                             <TableCell colSpan={4}>Total</TableCell>
-
                             <TableCell className="text-left">{form.watch('ligne').filter((val) => val.EC_Sens === 0).reduce((total, next) => { return total + Number(next.EC_Montant) }, 0)}</TableCell>
                             <TableCell className="text-left">{form.watch('ligne').filter((val) => val.EC_Sens === 1).reduce((total, next) => { return total + Number(next.EC_Montant) }, 0)}</TableCell>
                         </TableRow>

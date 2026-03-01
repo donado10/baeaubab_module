@@ -15,7 +15,6 @@ export const ecritureLigneDigitalSchema = z.object({
 	EC_Echeance: z.coerce.number(),
 	EC_Sens: z.coerce.number(),
 	EC_Montant: z.coerce.number(),
-	Status: z.coerce.number(),
 });
 
 export const ecritureErrorSchema = z.object({
@@ -41,13 +40,13 @@ export const ecritureEnteteDigitalSchema = z.object({
 	CT_Num: z.coerce.string(),
 	EC_Montant: z.coerce.number(),
 	Montant_reel: z.coerce.number().optional(),
-	Status: z.coerce.number().optional(),
+	Status: z.coerce.number(),
 });
 
 export const ecritureSchema = z.object({
 	entete: ecritureEnteteDigitalSchema,
 	ligne: z.array(ecritureLigneDigitalSchema),
-	error: z.array(ecritureErrorSchema).optional(),
+	error: z.array(ecritureErrorSchema),
 });
 
 export const ecritureEnteteLigneSchema = z.array(ecritureSchema);
