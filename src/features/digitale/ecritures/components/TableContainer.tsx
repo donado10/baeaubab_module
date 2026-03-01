@@ -8,6 +8,7 @@ import { DialogTableDetail } from "./DialogTableDetail";
 import { IEcritureEnteteLigne, IEcritureError } from "../interface";
 import { isWithinRange } from "@/lib/utils";
 import { DialogCorrectionTableDetail } from "./DialogCorrectionTableDetail";
+import { DialogRecheckEcriture } from "./DialogRecheckEcritures";
 
 
 function sleep(ms: number) {
@@ -142,6 +143,7 @@ const TableEcritureDigitalContainer = () => {
       />
       {<DialogTableDetail refpiece={store.dialog.viewTable[1]} open={store.dialog.viewTable[0]} setOpen={(value) => store.setDialogState({ ...store.dialog, viewTable: [value, ''] })} />}
       {<DialogCorrectionTableDetail refpiece={store.dialog.viewTableCorrection[1]} open={store.dialog.viewTableCorrection[0]} setOpen={(value) => store.setDialogState({ ...store.dialog, viewTableCorrection: [value, ''] })} />}
+      {<DialogRecheckEcriture refpiece={store.dialog.checkEcriture[1]} open={store.dialog.checkEcriture[0]} setOpen={(value) => store.setDialogState({ ...store.dialog, checkEcriture: [value, ''] })} />}
 
     </div>
   );

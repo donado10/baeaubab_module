@@ -85,3 +85,61 @@ export function DialogRecheckEcritures({ children }: { children: ReactNode }) {
         </Dialog>
     )
 }
+export function DialogRecheckEcriture({ refpiece, open, setOpen }: { refpiece: string, open: boolean; setOpen: (value: boolean) => void }) {
+
+    const store = useEcritureEnteteLigneStore()
+
+    const { mutate: mutateWithCheck } = useLoadEcrituresCheckBills()
+
+    const submitHandler = () => {
+        setOpen(false)
+
+
+        const id_toast = toast(() => {
+            const store = useEcritureEnteteLigneStore()
+
+            return (
+                <div className="text-white">
+                    <h1 >En cours</h1>
+                    {store.event && <JobWatcher jobId={store.event.jobId} />}
+                </div >
+            )
+        },
+            {
+                duration: Infinity,
+                style: {
+                    background: 'green'
+                }
+            });
+
+        mutateWithCheck({ json: { year: store.periode[0], month: store.periode[1], bills: [refpiece] } }, {
+            onSuccess: (results) => {
+                store.clear()
+                store.setItems(results.results)
+                store.setFilter({ ...store.filter, status: EStatus.ALL })
+                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+            }
+        })
+
+
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={(val) => setOpen(false)}>
+            <form >
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle>Chargement des écritures comptables</DialogTitle>
+                    </DialogHeader>
+
+                    <DialogFooter className="gap-4">
+                        <DialogClose asChild>
+                            <Button variant="outline">Annuler</Button>
+                        </DialogClose>
+                        <Button onClick={submitHandler}>Confirmer</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </form>
+        </Dialog>
+    )
+}

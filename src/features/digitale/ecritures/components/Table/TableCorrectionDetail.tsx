@@ -59,14 +59,18 @@ export function EcrituresTableCorrectionDetails({ details }: { details: IEcritur
         mutate({ json: [values] }, {
             onSuccess: (results) => {
                 console.log(results)
+                const oldBill = store.items.filter((bill) => results.results.includes(bill.entete.EC_RefPiece))[0]
                 const billsUpdated = store.items.filter((bill) => !results.results.includes(bill.entete.EC_RefPiece))
-                values.entete.Montant_reel = store.items.filter((bill) => results.results.includes(bill.entete.EC_RefPiece))[0].entete.Montant_reel
+                values.entete.Montant_reel = oldBill.entete.Montant_reel
+                values.entete.Status = oldBill.entete.Status
                 store.setItems([values, ...billsUpdated])
                 store.setClearDialogState()
                 //mutateCheckBills({ json: { year: store.periode[0], month: store.periode[1], bills: [values.entete.EC_RefPiece] } })
             }
         })
     }
+
+    console.log(form.formState.errors)
 
 
     return (

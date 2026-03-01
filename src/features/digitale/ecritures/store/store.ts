@@ -12,6 +12,7 @@ interface IEvent {
 interface IDialogEcritures {
 	viewTable: [boolean, string];
 	viewTableCorrection: [boolean, string];
+	checkEcriture: [boolean, string];
 }
 
 export enum EStatus {
@@ -63,7 +64,11 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		billCart: [],
 		event: null,
 		sourceEc: "sage",
-		dialog: { viewTable: [false, ""], viewTableCorrection: [false, ""] },
+		dialog: {
+			viewTable: [false, ""],
+			viewTableCorrection: [false, ""],
+			checkEcriture: [false, ""],
+		},
 		errors: [],
 		filter: {
 			status: EStatus.ALL,
@@ -73,7 +78,11 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		},
 		setClearDialogState: () => {
 			set({
-				dialog: { viewTable: [false, ""], viewTableCorrection: [false, ""] },
+				dialog: {
+					viewTable: [false, ""],
+					viewTableCorrection: [false, ""],
+					checkEcriture: [false, ""],
+				},
 			});
 		},
 		setDialogState: (dialogState: IDialogEcritures) =>

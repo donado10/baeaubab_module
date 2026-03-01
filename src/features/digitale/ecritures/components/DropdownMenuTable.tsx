@@ -40,6 +40,12 @@ export function DropdownMenuTable({
               Corriger
             </span>
           </DropdownMenuItem>
+          <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, checkEcriture: [true, refpiece] }) }}>
+            <span
+            >
+              Revérifier
+            </span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>

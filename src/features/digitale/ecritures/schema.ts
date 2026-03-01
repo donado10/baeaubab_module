@@ -15,6 +15,7 @@ export const ecritureLigneDigitalSchema = z.object({
 	EC_Echeance: z.coerce.number(),
 	EC_Sens: z.coerce.number(),
 	EC_Montant: z.coerce.number(),
+	status: z.coerce.number(),
 });
 
 export const ecritureErrorSchema = z.object({
