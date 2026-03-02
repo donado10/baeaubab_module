@@ -20,19 +20,19 @@ const StatusDisplay = ({ value, refpiece }: { value: string, refpiece: string })
     ["0", "bg-gray-600/20 border-2 border-gray-600 "],
     ["1", "bg-red-600/20 border-2 border-red-600 "],
     ["2", "bg-green-600/20 border-2 border-green-600 "],
-    ["3", "bg-[#FF8D28]"],
+    ["3", "bg-[#FF8D28]/20  border-2 border-[#FF8D28]"],
   ]);
   const MStatusDisplayColor = new Map<string, string>([
     ["0", "#4a5565 "],
     ["1", "#e7000b"],
     ["2", "#00a63e"],
-    ["3", "bg-[#FF8D28]"],
+    ["3", "#FF8D28"],
   ]);
   const MStatusDisplayTextColor = new Map<string, string>([
     ["0", "text-gray-600"],
     ["1", "text-red-600"],
     ["2", "text-green-600"],
-    ["3", "bg-[#FF8D28]"],
+    ["3", "text-[#FF8D28]"],
   ]);
   const MStatusText = new Map<string, string>([
     ["0", "Attente"],

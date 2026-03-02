@@ -258,7 +258,6 @@ const app = new Hono()
 
 			ecritures.forEach((ecriture) => {
 				ecriture.forEach(async (ec) => {
-					console.log("hey1");
 					const query = `update ecritures
 					set JM_Date='${ec.JM_Date}',
 					CG_Num='${ec.CG_Num}',CT_Num='${ec.CT_Num}',EC_Intitule='${ec.EC_Intitule}',EC_Montant='${ec.EC_Montant}'
@@ -268,9 +267,47 @@ const app = new Hono()
 				});
 			});
 
-			console.log("hey2");
-
 			return c.json({ results: ecritures_ });
+		}
+	)
+	.post(
+		"/integrateBills",
+		sessionMiddleware,
+		adminActionMiddleware,
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+				journal: z.string(),
+				database: z.string(),
+			})
+		),
+		async (c) => {
+			const { journal, database, month, year } = c.req.valid("json");
+
+			const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("integrate_digital_ec_jobs");
+
+			const jobId = ID.unique();
+
+			channel.sendToQueue(
+				"integrate_digital_ec_jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						journal: journal,
+						database: database,
+						type: "facture_detail",
+					})
+				)
+			);
+
+			return c.json({ results: [] });
 		}
 	);
 
