@@ -20,7 +20,7 @@ connection = connect_with_retry()
 
 channel = connection.channel()
 
-channel.queue_declare(queue="check_digital_ec_jobs", durable=True)
+channel.queue_declare(queue="integrate_digital_ec_jobs", durable=True)
 
 
 def handle(ch, method, properties, body):

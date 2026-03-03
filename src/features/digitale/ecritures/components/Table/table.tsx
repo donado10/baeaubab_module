@@ -22,15 +22,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, formatNumberToFrenchStandard } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 
 import { columns } from "./columns";
-import { IDriveTableInfo } from "../../interface";
+import { IEcritureEntete } from "../../interface";
 import { Card } from "@/components/ui/card";
 import { DialogTableDetail } from "../DialogTableDetail";
+import { useEcritureEnteteLigneStore } from "../../store/store";
 
-export function DataTable({ data }: { data: IDriveTableInfo[] }) {
+export function DataTable({ data }: { data: IEcritureEntete[] }) {
+
+  const store = useEcritureEnteteLigneStore()
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -150,9 +153,26 @@ export function DataTable({ data }: { data: IDriveTableInfo[] }) {
         </Card>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm">
-          <span className="text-xs font-semibold text-black">
-            Total factures: {table.getFilteredRowModel().rows.length}
+        <div className="flex-1 text-sm flex flex-col gap-2">
+          <span className="text-xs font-normal text-black">
+            Total factures: <span className="font-bold"> {formatNumberToFrenchStandard(table.getFilteredRowModel().rows.length)}</span>
+          </span>
+          <span className="text-xs font-normal text-black">
+            Montant total TTC: <span className="font-bold">{formatNumberToFrenchStandard(store.items.filter((bill) => store.billCart.includes(bill.entete.EC_RefPiece)).reduce((prev, next) => { return Number(next.entete.EC_Montant) + prev }, 0))}</span>
+          </span>
+          <span className="text-xs font-normal text-black">
+            Montant total TVA: <span className="font-bold">{formatNumberToFrenchStandard(store.items.filter((bill) => store.billCart.includes(bill.entete.EC_RefPiece)).reduce((prev, next) => {
+              const format = next.ligne.filter((l) => l.EC_Sens === 1 && l.CG_Num[0] === '4').map((l) => l.EC_Montant).reduce((p, n) => { return Number(n) + p }, 0)
+
+              return Number(format) + prev
+            }, 0))}</span>
+          </span>
+          <span className="text-xs font-normal text-black">
+            Montant total HT: <span className="font-bold">{formatNumberToFrenchStandard(store.items.filter((bill) => store.billCart.includes(bill.entete.EC_RefPiece)).reduce((prev, next) => {
+              const format = next.ligne.filter((l) => l.CG_Num[0] === '7').map((l) => l.EC_Montant).reduce((p, n) => { return Number(n) + p }, 0)
+
+              return Number(format) + prev
+            }, 0))}</span>
           </span>
         </div>
         <div className="space-x-2">

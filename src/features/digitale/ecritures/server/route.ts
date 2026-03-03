@@ -69,23 +69,30 @@ const app = new Hono()
 			let result_errors = await pool_.request().query(query_errors);
 			let result_montant_reel = await pool_.request().query(query_montant_reel);
 
-			//console.log(result_montant_reel);
+			console.log(result_montant_reel);
 
-			const ecritures_formated = Array.from(rows_refpiece).map((ref) => ({
-				entete: {
-					...ref,
-					Montant_reel: result_montant_reel.recordset.filter((value) => {
+			const ecritures_formated = Array.from(rows_refpiece).map((ref) => {
+				console.log(
+					result_montant_reel.recordset.filter((value) => {
 						return value.facture_id == ref.facture_id;
-					})[0].montant_ttc,
-				},
-				ligne: rows_ecritures.filter(
-					(ec) => ec.EC_RefPiece === ref.EC_RefPiece
-				),
-				error: result_errors.recordset.filter(
-					(err) => err.EC_RefPiece === ref.EC_RefPiece
-				),
-			}));
-			console.log(ecritures_formated);
+					})
+				);
+				return {
+					entete: {
+						...ref,
+						Montant_reel:
+							result_montant_reel.recordset.filter((value) => {
+								return value.facture_id == ref.facture_id;
+							})[0]?.montant_ttc ?? -1,
+					},
+					ligne: rows_ecritures.filter(
+						(ec) => ec.EC_RefPiece === ref.EC_RefPiece
+					),
+					error: result_errors.recordset.filter(
+						(err) => err.EC_RefPiece === ref.EC_RefPiece
+					),
+				};
+			});
 
 			return c.json({ results: ecritures_formated });
 		}
@@ -270,6 +277,7 @@ const app = new Hono()
 			return c.json({ results: ecritures_ });
 		}
 	)
+
 	.post(
 		"/integrateBills",
 		sessionMiddleware,
@@ -298,8 +306,8 @@ const app = new Hono()
 				Buffer.from(
 					JSON.stringify({
 						jobId: jobId,
-						year: year,
-						month: month,
+						year: Number(year),
+						month: Number(month),
 						journal: journal,
 						database: database,
 						type: "facture_detail",
@@ -307,7 +315,43 @@ const app = new Hono()
 				)
 			);
 
-			return c.json({ results: [] });
+			return c.json({ results: [], jobId: jobId });
+		}
+	)
+	.delete(
+		"/bills",
+		sessionMiddleware,
+		adminActionMiddleware,
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+				bills: z.array(z.string()),
+				database: z.string(),
+				journal: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month, bills, database, journal } = c.req.valid("json");
+			const pool_mssql = await getConnection();
+
+			const query_delete_bills = `delete from ${database}.dbo.f_ecriturec where ec_refpiece in (${bills.map((bill: string) => "'" + bill + "'").join(",")})`;
+
+			const query_update_bills_status_sage = `update transit.dbo.f_ecriturec_temp
+			set row_status = 2
+			where ec_refpiece in (${bills.map((bill: string) => "'" + bill + "'").join(",")})`;
+
+			const query_update_bills_status_digital = `update ecritures
+			set status = 2
+			where ec_refpiece in (${bills.map((bill: string) => "'" + bill + "'").join(",")})`;
+
+			await pool_mssql.request().query(query_delete_bills);
+			await pool_mssql.request().query(query_update_bills_status_sage);
+
+			await pool.query(query_update_bills_status_digital);
+
+			return c.json({ result: [] });
 		}
 	);
 

@@ -93,5 +93,9 @@ export function isWithinRange(number: number, center: number, range: number) {
 	return number >= center - range && number <= center + range;
 }
 
+export function formatNumberToFrenchStandard(num: number) {
+	return new Intl.NumberFormat("fr-FR").format(num);
+}
+
 // Example:
 //console.log(formatDate("2025-12-10T00:00:00.000Z")); // "10/12/2025"

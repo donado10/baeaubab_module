@@ -17,9 +17,11 @@ import { EStatus, useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useSetValidateBills from "../api/use-set-valid-bills"
+import { MdStarBorderPurple500 } from "react-icons/md"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import useIntegrateBills from "../api/use-integrate-bills"
-import { useRouter } from "next/navigation"
+import useCancelBills from "../api/use-cancel-bills"
+import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
+
 
 
 const SelectJournal = ({ onSetJournal }: { onSetJournal: (value: string) => void }) => {
@@ -55,48 +57,43 @@ const SelectDatabase = ({ onSetDatabase }: { onSetDatabase: (value: string) => v
     </Select>
 }
 
-export function DialogIntegrateEcritures({ children }: { children: ReactNode }) {
+export function DialogAnnulerEcritures({ children }: { children: ReactNode }) {
     const [close, setClose] = useState<boolean | undefined>(undefined)
     const [journal, setJournal] = useState('VTEDC3')
     const [database, setDatabase] = useState('F_GBAEAUBAB23')
-    const router = useRouter();
 
     const store = useEcritureEnteteLigneStore()
 
-    const { mutate } = useIntegrateBills()
+    const { mutate } = useCancelBills()
+    const { mutate: mutateLoadEcrituresFromDigital } = useLoadEcrituresFromDigital()
+    const { mutate: mutateLoadEcrituresFromSage } = useLoadEcrituresFromSage()
 
     const submitHandler = () => {
-        setClose(false)
 
+        mutate({
+            json: {
+                bills: store.billCart,
+                database: database,
+                year: store.periode[0],
+                month: store.periode[1],
+                journal: journal
+            },
 
-        const id_toast = toast(() => {
-            const store = useEcritureEnteteLigneStore()
+        }, {
+            onSuccess: () => {
+                if (store.sourceEc === 'sage') {
+                    mutateLoadEcrituresFromSage({ json: { month: store.periode[1], year: store.periode[0] } }, { onSuccess: () => setClose(false) })
 
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
                 }
-            });
+                if (store.sourceEc === 'digital') {
+                    mutateLoadEcrituresFromDigital({ json: { month: store.periode[1], year: store.periode[0] } }, { onSuccess: () => setClose(false) })
 
-        console.log(id_toast)
+                }
 
-        mutate({ json: { database: database, journal: journal, month: store.periode[1], year: store.periode[0] } }, {
-            onSuccess: (results) => {
-                store.event?.id_toast_job && toast.dismiss(store.event?.id_toast_job);
-                store.clear()
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+
+
             }
         })
-
-
 
     }
 
@@ -108,9 +105,8 @@ export function DialogIntegrateEcritures({ children }: { children: ReactNode }) 
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="mb-4">
-                        <DialogTitle>Intégration des écritures</DialogTitle>
+                        <DialogTitle>Annulation des écritures</DialogTitle>
                     </DialogHeader>
-
                     <div className="flex items-center justify-between w-full ">
                         <SelectJournal onSetJournal={setJournal} />
                         <SelectDatabase onSetDatabase={setDatabase} />

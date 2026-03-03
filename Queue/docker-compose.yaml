@@ -18,3 +18,11 @@ services:
       - rabbitmq
     environment:
       RABBITMQ_HOST: rabbitmq
+
+  worker_2:
+    restart: on-failure
+    build: ./worker_2
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq

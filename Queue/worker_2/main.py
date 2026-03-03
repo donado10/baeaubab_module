@@ -1,5 +1,7 @@
 from datetime import datetime
-from mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all
+
+import requests
+from mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
 from mysql_digital.database import database_objects as dbo_mysql
 
 
@@ -20,6 +22,16 @@ def create_jmouv(year, month, journal, database):
     change_date_format()
 
     conn_mssql, cursor_mssql = dbo_mssql()
+
+    check_query = f"select 1 from {database}.dbo.F_JMOUV where jm_date= '{build_date(year, month)}'"
+
+    is_jmouv_exists = execute_select_one(check_query)
+
+    print(is_jmouv_exists)
+
+    if is_jmouv_exists:
+        return
+
     insert_query = f'insert into {database}.dbo.F_JMOUV (JO_Num,JM_Date,JM_Cloture,JM_Impression) values (?,?,?,?)'
     cursor_mssql.execute(insert_query, journal, build_date(year, month), 0, 0)
     # conn_mssql.commit()
@@ -198,24 +210,21 @@ def insert_data(ecritures, database, journal):
             continue
 
 
-def change_status(bills):
+def change_status(bills, journal):
     conn_mssql, cursor_mssql = dbo_mssql()
     conn_mysql, cursor_mysql = dbo_mysql()
 
     change_status_digital = f"""
         update ecritures
-        set status = 3
+        set status = 3,jo_num='{journal}'
         where ec_refpiece in ({','.join(bills)})
     """
-
-    print(change_status_digital)
 
     change_status_sage = f"""
         update transit.dbo.f_ecriturec_temp
-        set row_status = 3
+        set row_status = 3,jo_num='{journal}'
         where ec_refpiece in ({','.join(bills)})
     """
-    print(change_status_sage)
     cursor_mysql.execute(change_status_digital)
     cursor_mssql.execute(change_status_sage)
 
@@ -245,16 +254,23 @@ def main_process_facture_detail(jobId, year, month, journal, database):
 
     for row in rowsByBill:
         row_count = row_count + 1
-        print(row[0])
         filteredRows = [x for x in rowsByEC if x[6] == row[0]]
 
         data = process_data(filteredRows, row[0])
         insert_data(data, database, journal)
-        print(str(row_count) + '/' + str(len(rowsByBill)))
+        requests.post(
+            "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+            json={
+                "jobId": jobId,
+                "status": "pending",
+                "ec_total": len(rowsByBill),
+                "ec_count": row_count
+            }
+        )
 
-    change_status([f"'{x[0]}'" for x in rowsByBill])
+    change_status([f"'{x[0]}'" for x in rowsByBill], journal)
     conn_mssql.commit()
     conn_mysql.commit()
 
 
-main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
+# main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')

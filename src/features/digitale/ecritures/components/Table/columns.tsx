@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { IEcritureEntete, IEcritureEnteteLigne } from "../../interface";
-import { cn, convertDate, MStatus } from "@/lib/utils";
+import { cn, convertDate, formatNumberToFrenchStandard, MStatus } from "@/lib/utils";
 import DotsIcon from "@/assets/dots.svg";
 import TrierIcon from "@/assets/trier.svg";
 import Image from "next/image";
@@ -216,7 +216,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
     },
     cell: ({ row }) => (
       <>
-        <div className="capitalize">{row.getValue("EC_Montant")}</div>
+        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("EC_Montant")))}</div>
       </>
     ),
   },
@@ -239,7 +239,7 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
     },
     cell: ({ row }) => (
       <>
-        <div className="capitalize">{row.getValue("Montant_reel")}</div>
+        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("Montant_reel")))}</div>
       </>
     ),
   },

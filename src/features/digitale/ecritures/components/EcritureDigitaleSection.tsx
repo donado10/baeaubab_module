@@ -17,10 +17,19 @@ import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { DialogSetValidateEcritures } from './DialogSetValidateEcritures'
 import { DialogIntegrateEcritures } from './DialogIntegrateEcritures'
+import { DialogAnnulerEcritures } from './DialogAnnulerEcritures'
 
 
 
 
+const AnnulerButtonContainer = () => {
+    const store = useEcritureEnteteLigneStore()
+    return <>
+        {store.billCart.length > 0 && <DialogAnnulerEcritures>
+            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>
+        </DialogAnnulerEcritures>}
+    </>
+}
 const IntegrateButtonContainer = () => {
     const store = useEcritureEnteteLigneStore()
     return <>
@@ -176,7 +185,7 @@ const EcritureDigitaleSection = () => {
                         {store.filter && store.filter.status === EStatus.INVALIDE && <InvalideButtonContainer />}
                         {store.filter && store.filter.status === EStatus.INVALIDE && <ValidateButtonContainer />}
                         {store.filter && store.filter.status === EStatus.VALIDE && <IntegrateButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.INTEGRE && <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>}
+                        {store.filter && store.filter.status === EStatus.INTEGRE && <AnnulerButtonContainer />}
                         <DialogLoadEcritures >
 
                             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
