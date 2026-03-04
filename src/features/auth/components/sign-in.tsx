@@ -91,19 +91,6 @@ const SignInCard = () => {
             </Button>
           </form>
         </Form>
-        <CardFooter className="mt-8 flex items-center justify-between p-0">
-          {" "}
-          <Link href="/sign-up">
-            <Button className="cursor-pointer" variant="link">
-              S'inscrire
-            </Button>
-          </Link>
-          <Link href="/forget-password">
-            <Button className="cursor-pointer" variant="link">
-              Mot de passe oublié
-            </Button>
-          </Link>
-        </CardFooter>
       </CardContent>
     </Card>
   );

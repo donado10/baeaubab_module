@@ -155,7 +155,7 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, check } = c.req.valid("json");
 
-			const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
 			await channel.assertQueue("check_digital_ec_jobs");
@@ -193,7 +193,7 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, bills } = c.req.valid("json");
 
-			const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
 			await channel.assertQueue("check_digital_ec_jobs");
@@ -231,7 +231,7 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, bills } = c.req.valid("json");
 
-			const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
 			await channel.assertQueue("check_digital_ec_jobs");
@@ -294,7 +294,7 @@ const app = new Hono()
 		async (c) => {
 			const { journal, database, month, year } = c.req.valid("json");
 
-			const conn = await amqp.connect("amqp://guest:guest@172.16.2.4:5672");
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
 			await channel.assertQueue("integrate_digital_ec_jobs");

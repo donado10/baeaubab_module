@@ -1,0 +1,25 @@
+services:
+  nginx:
+    image: nginx:1.29.0
+    container_name: nginx_wms
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ../nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    networks:
+      macvlan_net1:
+        ipv4_address: 172.16.1.50 # Replace with a free IP in your LAN
+      default: {} # Needed to talk to `web` on bridge
+    restart: unless-stopped
+
+  app:
+    image: wms-integration:15
+    container_name: wms-integration_1
+    networks:
+      - default
+    ports:
+      - "3000:3000"
+volumes:
+  nginx-data:
+  app-data:

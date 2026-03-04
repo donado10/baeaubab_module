@@ -1,22 +1,24 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import BreadcrumbContainer from "@/components/breadcrumbContainer";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
+
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { getCurrent } from "@/features/auth/action";
+import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
-export default function Layout({ children }: { children: ReactNode }) {
+export default async function Layout({ children }: { children: ReactNode }) {
+
+  const user = await getCurrent()
+
+  if (!user) {
+    redirect('/sign-in')
+  }
+
   return (
     <SidebarProvider className="">
       <AppSidebar />
