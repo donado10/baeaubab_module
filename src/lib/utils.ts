@@ -97,5 +97,18 @@ export function formatNumberToFrenchStandard(num: number) {
 	return new Intl.NumberFormat("fr-FR").format(num);
 }
 
+export function dateToMilliseconds(dateStr: string): number {
+	// Create a new Date object using the input string
+	const date = new Date(dateStr);
+
+	// Check if the date is valid
+	if (isNaN(date.getTime())) {
+		throw new Error("Invalid date format. Expected YYYY-MM-DD");
+	}
+
+	// Return milliseconds
+	return date.getTime();
+}
+
 // Example:
 //console.log(formatDate("2025-12-10T00:00:00.000Z")); // "10/12/2025"

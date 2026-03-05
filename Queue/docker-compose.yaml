@@ -10,6 +10,10 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      bridge-baeaubab:
+        ipv4_address: 172.30.0.10
+      default: {}
 
   worker:
     restart: on-failure
@@ -26,3 +30,7 @@ services:
       - rabbitmq
     environment:
       RABBITMQ_HOST: rabbitmq
+
+networks:
+  bridge-baeaubab:
+    external: true

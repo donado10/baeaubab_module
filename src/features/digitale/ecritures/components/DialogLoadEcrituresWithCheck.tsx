@@ -36,7 +36,7 @@ export function DialogLoadEcrituresWithCheck({ open, onOpen }: { open: boolean, 
 
 
             mutateFromSage({ json: { year: store.periode[0], month: store.periode[1] } }, {
-                onSuccess: (results) => {
+                onSuccess: (results: any) => {
                     store.setItems(results.results)
                 }
             })
@@ -45,7 +45,7 @@ export function DialogLoadEcrituresWithCheck({ open, onOpen }: { open: boolean, 
 
 
             mutateFromDigital({ json: { year: store.periode[0], month: store.periode[1] } }, {
-                onSuccess: (results) => {
+                onSuccess: (results: any) => {
                     store.setItems(results.results)
                 }
             })

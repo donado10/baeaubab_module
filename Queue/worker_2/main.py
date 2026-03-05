@@ -27,14 +27,12 @@ def create_jmouv(year, month, journal, database):
 
     is_jmouv_exists = execute_select_one(check_query)
 
-    print(is_jmouv_exists)
-
-    if is_jmouv_exists:
+    if not len(is_jmouv_exists):
         return
 
     insert_query = f'insert into {database}.dbo.F_JMOUV (JO_Num,JM_Date,JM_Cloture,JM_Impression) values (?,?,?,?)'
     cursor_mssql.execute(insert_query, journal, build_date(year, month), 0, 0)
-    # conn_mssql.commit()
+    conn_mssql.commit()
 
 
 def getData(year, month):
@@ -259,7 +257,7 @@ def main_process_facture_detail(jobId, year, month, journal, database):
         data = process_data(filteredRows, row[0])
         insert_data(data, database, journal)
         requests.post(
-            "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+            "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
             json={
                 "jobId": jobId,
                 "status": "pending",

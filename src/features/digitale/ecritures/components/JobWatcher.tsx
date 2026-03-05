@@ -10,7 +10,9 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
     useEffect(() => {
         if (!jobId) return;
 
-        const es = new EventSource(`http://srv-baeaubab.dyndns.org:53231/api/digitale/ecritures/events/${jobId}`);
+
+
+        const es = new EventSource(`${process.env.NEXT_PUBLIC_APP_URL!}/api/digitale/ecritures/events/${jobId}`);
 
         es.addEventListener("connected", () => {
             setStatus("connected, waiting for updates...");

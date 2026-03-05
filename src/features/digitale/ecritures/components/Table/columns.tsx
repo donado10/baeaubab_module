@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 
 import { IEcritureEntete, IEcritureEnteteLigne } from "../../interface";
-import { cn, convertDate, formatNumberToFrenchStandard, MStatus } from "@/lib/utils";
+import { cn, convertDate, dateToMilliseconds, formatNumberToFrenchStandard, MStatus } from "@/lib/utils";
 import DotsIcon from "@/assets/dots.svg";
 import TrierIcon from "@/assets/trier.svg";
 import Image from "next/image";
@@ -144,16 +144,28 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-
             Date Journal
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
-    cell: ({ row }) => (
-      <div className="capitalize">{convertDate(row.getValue("JM_Date"))}</div>
-    ),
+    cell: ({ row }) => {
+      const store = useEcritureEnteteLigneStore()
+
+      if (store.sourceEc === 'digital') {
+
+        return (
+          <div className="capitalize">{convertDate(row.getValue("JM_Date"))}</div>
+        )
+      }
+      if (store.sourceEc === 'sage') {
+
+        return (
+          <div className="capitalize">{row.getValue("JM_Date")}</div>
+        )
+      }
+    },
   },
   {
     accessorKey: "EC_RefPiece",

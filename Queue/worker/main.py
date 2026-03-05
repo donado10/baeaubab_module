@@ -464,7 +464,7 @@ def main_process_all(jobId, year, month):
             valid_rows_ref.append(f"'{row[0]}'")
         row_count = row_count + 1
         requests.post(
-            "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+            "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
             json={
                 "jobId": jobId,
                 "status": "pending",
@@ -532,7 +532,7 @@ def main_process_some(jobId, year, month, bills):
             valid_rows_ref.append(f"'{row[0]}'")
         row_count = row_count + 1
         requests.post(
-            "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+            "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
             json={
                 "jobId": jobId,
                 "status": "pending",

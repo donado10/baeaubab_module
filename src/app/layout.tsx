@@ -6,7 +6,10 @@ import ProgressBar from "@/components/progressBar";
 import NextTopLoader from 'nextjs-toploader';
 import { Montserrat, Roboto } from "@next/font/google"
 
-const montserrat = Montserrat()
+const montserrat = Montserrat({
+  subsets: ['latin'],       // required
+  weight: '400',            // optional
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",

@@ -30,7 +30,7 @@ def handle(ch, method, properties, body):
     time.sleep(2)
 
     requests.post(
-        "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+        "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
         json={
             "jobId": data["jobId"],
             "status": "pending",
@@ -43,7 +43,7 @@ def handle(ch, method, properties, body):
             data["jobId"], data["year"], data["month"], data["journal"], data["database"])
 
     requests.post(
-        "http://172.17.0.1:3000/api/digitale/ecritures/events/job-finished",
+        "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
         json={
             "jobId": data["jobId"],
             "status": "done",

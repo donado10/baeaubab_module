@@ -119,7 +119,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 });
 
             mutateWithCheck({ json: { year, month, check: withChecking } }, {
-                onSuccess: (results) => {
+                onSuccess: (results: any) => {
                     store.clear()
                     store.setItems(results.results)
                     store.setFilter({ ...store.filter, status: EStatus.ALL })
@@ -132,7 +132,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
             if (sourceEc === 'sage') {
 
                 mutateFromSage({ json: { year, month } }, {
-                    onSuccess: (results) => {
+                    onSuccess: (results: any) => {
                         store.clear()
                         store.setItems(results.results)
                         store.setFilter({ ...store.filter, status: EStatus.ALL })
@@ -145,7 +145,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
             if (sourceEc === 'digital') {
 
                 mutateFromDigital({ json: { year, month } }, {
-                    onSuccess: (results) => {
+                    onSuccess: (results: any) => {
                         store.clear()
                         store.setItems(results.results)
                         store.setFilter({ ...store.filter, status: EStatus.ALL })

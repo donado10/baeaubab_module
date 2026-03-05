@@ -89,10 +89,10 @@ export function DialogIntegrateEcritures({ children }: { children: ReactNode }) 
         console.log(id_toast)
 
         mutate({ json: { database: database, journal: journal, month: store.periode[1], year: store.periode[0] } }, {
-            onSuccess: (results) => {
+            onSuccess: (results: any) => {
                 store.event?.id_toast_job && toast.dismiss(store.event?.id_toast_job);
                 store.clear()
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+                store.setEvent({ ec_count: "", ec_total: "", jobId: results?.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })
 

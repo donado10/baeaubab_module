@@ -52,7 +52,7 @@ export function DialogRecheckEcritures({ children }: { children: ReactNode }) {
             });
 
         mutateWithCheck({ json: { year: store.periode[0], month: store.periode[1], bills: store.billCart } }, {
-            onSuccess: (results) => {
+            onSuccess: (results: any) => {
                 store.clear()
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EStatus.ALL })
@@ -113,7 +113,7 @@ export function DialogRecheckEcriture({ refpiece, open, setOpen }: { refpiece: s
             });
 
         mutateWithCheck({ json: { year: store.periode[0], month: store.periode[1], bills: [refpiece] } }, {
-            onSuccess: (results) => {
+            onSuccess: (results: any) => {
                 store.clear()
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EStatus.ALL })

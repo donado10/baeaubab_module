@@ -57,7 +57,7 @@ export function DialogSetValidateEcritures({ children }: { children: ReactNode }
         console.log(compliantBillsOnly)
 
         mutateValidateBills({ json: { year: store.periode[0], month: store.periode[1], bills: compliantBillsOnly } }, {
-            onSuccess: (results) => {
+            onSuccess: (results: any) => {
                 store.clear()
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EStatus.ALL })
