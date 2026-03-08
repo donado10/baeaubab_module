@@ -232,8 +232,8 @@ def process_facture_general(jobId, year, month, journal, database):
     conn_mysql, _ = dbo_mysql()
 
     query_cl = f"""
-        select temp.ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP temp inner join TRANSIT.dbo.F_Facture_Digital_format form 
-        on temp.facture_id = form.facture_id  
+        select temp.ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP temp inner join TRANSIT.dbo.F_Facture_Digital_format form
+        on temp.facture_id = form.facture_id
         where EC_Sens = 0 and year(EC_Date) = {year} and month(EC_Date)={month}  group by temp.CT_Num having(count(temp.CT_Num)) > 1
 
         """
@@ -242,13 +242,31 @@ def process_facture_general(jobId, year, month, journal, database):
     clients = ["'" + x[0]+"'" for x in results]
 
     query_fact = f"""
-            select ec_refpiece from TRANSIT.dbo.F_ECRITUREC_TEMP where ct_num in ({','.join(clients)}) 
+            select facture_id,ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP where ct_num in ({','.join(clients)})
             and ec_refpiece not in (select ec_refpiece from transit.dbo.f_ecriturec_invalid)
 """
 
     results = execute_select_all(query_fact)
 
-    factures = ["'" + x[0]+"'" for x in results]
+    factures_id = [str(x[0]) for x in results]
+    ct_nums = [x[1] for x in results]
+
+    for ct in ct_nums:
+        query = f"""
+            select facture_id,client_id from TRANSIT.dbo.f_facture_digital_format where ct_num ='{ct}'
+            and facture_id in ({','.join(factures_id)})
+"""
+        results = execute_select_all(query)
+        factures = [(str(x[0]), x[1], ct) for x in results]
+
+        facturesById = [str(x[0]) for x in results]
+        print(factures, facturesById, ct)
+        query2 = f"""
+            select cg_num,sum(ec_montant) from transit.dbo.f_ecriturec_temp where facture_id in ({','.join(facturesById)}) group by cg_num 
+    """
+        results2 = execute_select_all(query2)
+        print(results2)
+    return
 
     create_jmouv(year, month, journal, database)
 
@@ -286,9 +304,9 @@ def process_facture_detail(jobId, year, month, journal, database):
     conn_mysql, _ = dbo_mysql()
 
     query_cl = f"""
-        select temp.ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP temp inner join TRANSIT.dbo.F_Facture_Digital_format form 
-        on temp.facture_id = form.facture_id  
-        where EC_Sens = 0 and year(EC_Date) = {year} and month(EC_Date)={month}  group by temp.CT_Num having(count(temp.CT_Num)) = 1
+        select temp.ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP temp inner join TRANSIT.dbo.F_Facture_Digital_format form
+        on temp.facture_id = form.facture_id
+        where EC_Sens = 0 and year(EC_Date) = {year} and month(EC_Date) = {month}  group by temp.CT_Num having(count(temp.CT_Num)) = 1
 
         """
     results = execute_select_all(query_cl)
@@ -336,10 +354,10 @@ def process_facture_detail(jobId, year, month, journal, database):
 
 def main_process_facture_detail(jobId, year, month, journal, database):
 
-    process_facture_detail(jobId, year, month, journal, database)
-    # process_facture_general(jobId, year, month, journal, database)
+    # process_facture_detail(jobId, year, month, journal, database)
+    process_facture_general(jobId, year, month, journal, database)
 
 
-# process_facture_general(2026, 1)
+process_facture_general('', 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
 
 # main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')

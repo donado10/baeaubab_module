@@ -575,8 +575,15 @@ def main_process_set_valid(jobId, year, month, bills):
         
     """
 
+    script_delete = f"""
+    delete from transit.dbo.f_ecriturec_invalid
+    where ec_refpiece in ({','.join(["'"+x+"'" for x in bills])}) and  month(date_facture)={month} and year(date_facture)={year}
+
+"""
+
     cursor_mysql.execute(script_mysql)
     cursor_mssql.execute(script_mssql)
+    cursor_mssql.execute(script_delete)
 
     conn_mssql.commit()
     conn_mysql.commit()
