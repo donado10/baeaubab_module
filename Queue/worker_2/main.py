@@ -27,7 +27,7 @@ def create_jmouv(year, month, journal, database):
 
     is_jmouv_exists = execute_select_one(check_query)
 
-    if not len(is_jmouv_exists):
+    if len(is_jmouv_exists):
         return
 
     insert_query = f'insert into {database}.dbo.F_JMOUV (JO_Num,JM_Date,JM_Cloture,JM_Impression) values (?,?,?,?)'
@@ -35,20 +35,20 @@ def create_jmouv(year, month, journal, database):
     conn_mssql.commit()
 
 
-def getData(year, month):
+def getData(year, month, factures):
     query = f"""
         Select JO_Num,EC_No,JM_Date,EC_Jour,EC_Date,EC_Piece,EC_RefPiece,CG_Num,CT_Num,EC_Intitule,
         EC_Sens,EC_Montant from TRANSIT.dbo.f_ecriturec_temp
-        where year(jm_date)={year} and month(jm_date)={month} and row_status=2 
+        where year(jm_date)={year} and month(jm_date)={month} and row_status=2  and ec_refpiece in ({','.join(factures)})
         """
 
     return execute_select_all(query)
 
 
-def getBills(year, month):
+def getBills(year, month, factures):
     query = f"""
         Select distinct EC_RefPiece from TRANSIT.dbo.f_ecriturec_temp
-        where year(jm_date)={year} and month(jm_date)={month} and row_status=2 
+        where year(jm_date)={year} and month(jm_date)={month} and row_status=2 and ec_refpiece in ({','.join(factures)})
         """
 
     return execute_select_all(query)
@@ -227,26 +227,36 @@ def change_status(bills, journal):
     cursor_mssql.execute(change_status_sage)
 
 
-def main_process_facture_detail(jobId, year, month, journal, database):
+def process_facture_general(jobId, year, month, journal, database):
+    conn_mssql, _ = dbo_mssql()
+    conn_mysql, _ = dbo_mysql()
 
-    conn_mssql, cursor_mssql = dbo_mssql()
-    conn_mysql, cursor_mysql = dbo_mysql()
+    query_cl = f"""
+        select temp.ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP temp inner join TRANSIT.dbo.F_Facture_Digital_format form 
+        on temp.facture_id = form.facture_id  
+        where EC_Sens = 0 and year(EC_Date) = {year} and month(EC_Date)={month}  group by temp.CT_Num having(count(temp.CT_Num)) > 1
+
+        """
+    results = execute_select_all(query_cl)
+
+    clients = ["'" + x[0]+"'" for x in results]
+
+    query_fact = f"""
+            select ec_refpiece from TRANSIT.dbo.F_ECRITUREC_TEMP where ct_num in ({','.join(clients)}) 
+            and ec_refpiece not in (select ec_refpiece from transit.dbo.f_ecriturec_invalid)
+"""
+
+    results = execute_select_all(query_fact)
+
+    factures = ["'" + x[0]+"'" for x in results]
+
     create_jmouv(year, month, journal, database)
 
-    obligatoire = {}
-
-    rowsByBill = getBills(year, month)
-    rowsByEC = getData(year, month)
+    rowsByBill = getBills(year, month, factures)
+    rowsByEC = getData(year, month, factures)
 
     if len(rowsByBill) == 0:
         return
-
-    rowsByEC = getData(year, month)
-
-    invalid_rows = []
-    invalid_rows_ref = []
-    temp_rows = []
-    valid_rows_ref = []
 
     row_count = 0
 
@@ -270,5 +280,66 @@ def main_process_facture_detail(jobId, year, month, journal, database):
     conn_mssql.commit()
     conn_mysql.commit()
 
+
+def process_facture_detail(jobId, year, month, journal, database):
+    conn_mssql, _ = dbo_mssql()
+    conn_mysql, _ = dbo_mysql()
+
+    query_cl = f"""
+        select temp.ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP temp inner join TRANSIT.dbo.F_Facture_Digital_format form 
+        on temp.facture_id = form.facture_id  
+        where EC_Sens = 0 and year(EC_Date) = {year} and month(EC_Date)={month}  group by temp.CT_Num having(count(temp.CT_Num)) = 1
+
+        """
+    results = execute_select_all(query_cl)
+
+    clients = ["'" + x[0]+"'" for x in results]
+
+    query_fact = f"""
+            select ec_refpiece from TRANSIT.dbo.F_ECRITUREC_TEMP where ct_num in ({','.join(clients)})
+"""
+
+    results = execute_select_all(query_fact)
+
+    factures = ["'" + x[0]+"'" for x in results]
+
+    create_jmouv(year, month, journal, database)
+
+    rowsByBill = getBills(year, month, factures)
+    rowsByEC = getData(year, month, factures)
+
+    if len(rowsByBill) == 0:
+        return
+
+    row_count = 0
+
+    for row in rowsByBill:
+        row_count = row_count + 1
+        filteredRows = [x for x in rowsByEC if x[6] == row[0]]
+
+        data = process_data(filteredRows, row[0])
+        insert_data(data, database, journal)
+        requests.post(
+            "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
+            json={
+                "jobId": jobId,
+                "status": "pending",
+                "ec_total": len(rowsByBill),
+                "ec_count": row_count
+            }
+        )
+
+    change_status([f"'{x[0]}'" for x in rowsByBill], journal)
+    conn_mssql.commit()
+    conn_mysql.commit()
+
+
+def main_process_facture_detail(jobId, year, month, journal, database):
+
+    process_facture_detail(jobId, year, month, journal, database)
+    # process_facture_general(jobId, year, month, journal, database)
+
+
+# process_facture_general(2026, 1)
 
 # main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
