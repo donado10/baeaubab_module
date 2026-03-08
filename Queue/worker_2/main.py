@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 
 import requests
 from mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
@@ -63,7 +64,6 @@ def convert_to_datetime(date_string):
         return datetime_object
     except ValueError as e:
         # Handle the case where the input string is not in the expected format
-        print(f"Error: {e}")
         return None
 
 
@@ -204,7 +204,6 @@ def insert_data(ecritures, database, journal):
         #    conn_mssql.commit()
            # write_to_file(file_path='./logs/success.log.txt',content=f'{data}\n\n')
         except Exception as e:
-            print(e)
             continue
 
 
@@ -227,12 +226,88 @@ def change_status(bills, journal):
     cursor_mssql.execute(change_status_sage)
 
 
+def get_master_bill(factures):
+    master_bill_by_dg = [x for x in factures if x[3] == 1]
+
+    if len(master_bill_by_dg):
+        return master_bill_by_dg[0]
+
+    master_bill_by_dg = factures[0]
+    for fact in factures:
+        if fact[1] > master_bill_by_dg[1]:
+            master_bill_by_dg = fact
+
+    return master_bill_by_dg
+
+
+def build_ecritures(ecritures, cg_num):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    conn_mysql, cursor_mysql = dbo_mysql()
+
+    ecritures_ = []
+
+    ttc = r"411"
+    tva = r"443"
+
+    for cg in cg_num:
+        if re.search(ttc, cg[0]):
+            ecriture = (ecritures[0], ecritures[1], ecritures[2], ecritures[3], ecritures[4], ecritures[5],
+                        ecritures[6], cg[0], ecritures[8], ecritures[9], 0, cg[1], ecritures[13], ecritures[14], 4)
+            ecritures_.append(ecriture)
+            continue
+        if re.search(tva, cg[0]):
+            ecriture = (ecritures[0], ecritures[1], ecritures[2], ecritures[3], ecritures[4], ecritures[5],
+                        ecritures[6], cg[0], None, ecritures[9], 1, cg[1], ecritures[13], ecritures[14], 4)
+            ecritures_.append(ecriture)
+            continue
+        ecriture = (ecritures[0], ecritures[1], ecritures[2], ecritures[3], ecritures[4], ecritures[5],
+                    ecritures[6], cg[0], None, ecritures[9], 1, cg[1], ecritures[13], ecritures[14], 4)
+        ecritures_.append(ecriture)
+        continue
+
+    query = f"""
+        insert into transit.dbo.f_ecriturec_temp(
+        [JO_Num]
+      ,[EC_No]
+      ,[JM_Date]
+      ,[EC_Jour]
+      ,[EC_Date]
+      ,[EC_Piece]
+      ,[EC_RefPiece]
+      ,[CG_Num]
+      ,[CT_Num]
+      ,[EC_Intitule]
+      ,[EC_Sens]
+      ,[EC_Montant]
+      ,[facture_id]
+      ,[date_facture]
+      ,[row_status])
+      Values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    """
+
+    cursor_mssql.executemany(query, ecritures_)
+    cursor_mssql.commit()
+
+
+def facture_general_builder(factures, cg_num):
+
+    master_bill = get_master_bill(factures)
+
+    query = f"""
+    select * from transit.dbo.f_ecriturec_temp where facture_id = {master_bill[0]} and ec_sens =0
+"""
+    results = execute_select_all(query)
+    results_format = [x for x in results[0]]
+    results_format.pop(0)
+    build_ecritures(results_format, cg_num)
+
+
 def process_facture_general(jobId, year, month, journal, database):
     conn_mssql, _ = dbo_mssql()
     conn_mysql, _ = dbo_mysql()
 
     query_cl = f"""
-        select temp.ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP temp inner join TRANSIT.dbo.F_Facture_Digital_format form
+        select distinct temp.ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP temp inner join TRANSIT.dbo.F_Facture_Digital_format form
         on temp.facture_id = form.facture_id
         where EC_Sens = 0 and year(EC_Date) = {year} and month(EC_Date)={month}  group by temp.CT_Num having(count(temp.CT_Num)) > 1
 
@@ -243,58 +318,30 @@ def process_facture_general(jobId, year, month, journal, database):
 
     query_fact = f"""
             select facture_id,ct_num from TRANSIT.dbo.F_ECRITUREC_TEMP where ct_num in ({','.join(clients)})
-            and ec_refpiece not in (select ec_refpiece from transit.dbo.f_ecriturec_invalid)
+            and ec_refpiece not in (select ec_refpiece from transit.dbo.f_ecriturec_invalid) and ec_sens = 0
 """
 
     results = execute_select_all(query_fact)
 
     factures_id = [str(x[0]) for x in results]
     ct_nums = [x[1] for x in results]
+    ct_nums = list(set(ct_nums))
 
     for ct in ct_nums:
         query = f"""
-            select facture_id,client_id from TRANSIT.dbo.f_facture_digital_format where ct_num ='{ct}'
+            select facture_id,client_id,dg from TRANSIT.dbo.f_facture_digital_format where ct_num ='{ct}'
             and facture_id in ({','.join(factures_id)})
 """
         results = execute_select_all(query)
-        factures = [(str(x[0]), x[1], ct) for x in results]
+        factures = [(str(x[0]), x[1], ct, x[2]) for x in results]
 
         facturesById = [str(x[0]) for x in results]
-        print(factures, facturesById, ct)
         query2 = f"""
             select cg_num,sum(ec_montant) from transit.dbo.f_ecriturec_temp where facture_id in ({','.join(facturesById)}) group by cg_num 
     """
         results2 = execute_select_all(query2)
-        print(results2)
+        facture_general_builder(factures, results2)
     return
-
-    create_jmouv(year, month, journal, database)
-
-    rowsByBill = getBills(year, month, factures)
-    rowsByEC = getData(year, month, factures)
-
-    if len(rowsByBill) == 0:
-        return
-
-    row_count = 0
-
-    for row in rowsByBill:
-        row_count = row_count + 1
-        filteredRows = [x for x in rowsByEC if x[6] == row[0]]
-
-        data = process_data(filteredRows, row[0])
-        insert_data(data, database, journal)
-        requests.post(
-            "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
-            json={
-                "jobId": jobId,
-                "status": "pending",
-                "ec_total": len(rowsByBill),
-                "ec_count": row_count
-            }
-        )
-
-    change_status([f"'{x[0]}'" for x in rowsByBill], journal)
     conn_mssql.commit()
     conn_mysql.commit()
 
