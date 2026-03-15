@@ -509,6 +509,8 @@ def main_process_some(jobId, year, month, bills):
 
     row_count = 0
 
+    step_send = (len(rowsByBill) * 5) / 100
+
     for row in rowsByBill:
         filteredRows = [x for x in rowsByEC if x[6] == row[0]]
 
@@ -531,6 +533,7 @@ def main_process_some(jobId, year, month, bills):
                     (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 2, f'0x{hash}'))
             valid_rows_ref.append(f"'{row[0]}'")
         row_count = row_count + 1
+
         requests.post(
             "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
             json={
