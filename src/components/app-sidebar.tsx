@@ -49,6 +49,12 @@ const data = {
       isActive: false,
     },
     {
+      title: "Bon de Livraison",
+      endpoint: "bls",
+      url: "/m1/dashboard/bls",
+      isActive: false,
+    },
+    {
       title: "Ecritures Digitales",
       endpoint: 'ecritures-digitales',
       url: "/m1/dashboard/ecritures-digitales",

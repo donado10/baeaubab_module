@@ -69,7 +69,14 @@ def insert_new_client_prices(ArtPrix: list):
            (?,?,?,?,?,?,?)
 """
     cursor_mssql.executemany(script, ArtPrix)
-    conn_mssql.commit()
+
+    script = """
+        update artprix
+set artprix.ct_num= ct.CT_Num
+from [TRANSIT].[dbo].[F_ARTPRIX_DIGITAL] artprix inner join [TRANSIT].[dbo].F_COMPTET_DIGITAL ct on artprix.CT_No = ct.CT_No
+
+"""
+    cursor_mssql.execute(script)
 
 
 def handle_new_articles():
@@ -189,9 +196,9 @@ def update_entreprise_tva():
 
 def handle_clients():
     handle_entreprise()
+    handle_client_price()
     handle_new_client()
     update_entreprise_tva()
-    handle_client_price()
 
 
 def get_bls(year, month):
@@ -254,9 +261,14 @@ def handle_bl_entete(bl: tuple) -> list:
 
 
 def get_price(client_id, art: str):
+    script_get_ct = f"""
+    select ct_num from [TRANSIT].[dbo].[F_comptet_digital] where ct_no = '{client_id}'
+"""
+    result = execute_select_one(script_get_ct)
+
     script_mssql = f"""
     select [ArtPrice_Value] from [TRANSIT].[dbo].[F_ARTPRIX_DIGITAL]
-      where ct_no = '{client_id}' and art_no = '{art}' order by created_at desc
+      where ct_num = '{result[0]}' and art_no = '{art}' order by created_at desc
       """
 
     result = execute_select_one(script_mssql)
@@ -352,7 +364,7 @@ def handle_bl_ligne(bl: tuple) -> list:
 
 
 def update_entete(bl):
-    conn_mssql, cursor_mssql = dbo_mssql()
+    _, cursor_mssql = dbo_mssql()
     script = f"""
     select do_no, sum(DO_TotalHT) as total from TRANSIT.DBO.F_DOCLIGNE_DIGITAL where do_no in ({bl[0]}) group by do_no
 """
@@ -376,6 +388,7 @@ def handle_bl(bl: int):
     handle_bl_ligne(bl)
     conn_mssql.commit()
     update_entete(bl)
+
     conn_mssql.commit()
 
 
@@ -385,14 +398,33 @@ def handle_bl_documents(year, month):
         handle_bl(bl)
 
 
+def update_entreprise_id():
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = f"""
+        update ent
+        set entreprise_id =ct.CT_Entreprise
+        from transit.dbo.F_DOCENTETE_DIGITAL ent inner join transit.dbo.F_COMPTET_DIGITAL ct on ent.Client_ID = ct.CT_No 
+"""
+    script2 = f"""
+        update ligne
+        set entreprise_id =ct.CT_Entreprise
+        from transit.dbo.F_DOCLiGNE_DIGITAL ligne inner join transit.dbo.F_COMPTET_DIGITAL ct on ligne.Client_ID = ct.CT_No 
+"""
+
+    cursor_mssql.execute(script)
+    cursor_mssql.execute(script2)
+    conn_mssql.commit()
+
+
 def main_process_facture_detail(jobId, year, month, journal, database):
 
     # process_facture_detail(jobId, year, month, journal, database)
     handle_new_articles()
     handle_clients()
     handle_bl_documents(year, month)
+    update_entreprise_id()
 
 
-main_process_facture_detail('', 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
+main_process_facture_detail('', 2026, 2, 'VTEDC3', 'F_GBAEAUBAB23')
 
 # main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
