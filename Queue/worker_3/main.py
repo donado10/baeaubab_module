@@ -425,6 +425,6 @@ def main_process_facture_detail(jobId, year, month, journal, database):
     update_entreprise_id()
 
 
-main_process_facture_detail('', 2026, 2, 'VTEDC3', 'F_GBAEAUBAB23')
+main_process_facture_detail('', 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
 
 # main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')

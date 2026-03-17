@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import { IEcritureEntete, IEcritureEnteteLigne } from "../../interface";
+import { IentrepriseBonLivraisonSchema } from "../../interface";
 import { cn, convertDate, dateToMilliseconds, formatNumberToFrenchStandard, MStatus } from "@/lib/utils";
 import DotsIcon from "@/assets/dots.svg";
 import TrierIcon from "@/assets/trier.svg";
@@ -59,7 +59,7 @@ const StatusDisplay = ({ value, refpiece }: { value: string, refpiece: string })
   );
 };
 
-export const columns: ColumnDef<IEcritureEntete>[] = [
+export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
   {
     id: "select",
     header: ({ table }) => {

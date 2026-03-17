@@ -209,7 +209,7 @@ const BonLivraisonSection = () => {
                 <FilterSection />
                 <FilterResume />
                 <div>
-                    <TableEcritureDigitalContainer />
+                    <TableBonLivraisonDigitalContainer />
                 </div>
             </Card>
         </section>

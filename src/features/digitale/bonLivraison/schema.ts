@@ -3,8 +3,10 @@ import { z } from "zod";
 export const entrepriseBonLivraisonSchema = z.object({
 	EN_No: z.coerce.number(),
 	EN_Intitule: z.coerce.string(),
+	EN_BonLivraisons: z.coerce.number(),
 	EN_Agences: z.coerce.number(),
 	EN_Status: z.coerce.number(),
+	EN_TotalHT: z.coerce.number(),
 });
 
 export const bonLivraisonEnteteSchema = z.object({
