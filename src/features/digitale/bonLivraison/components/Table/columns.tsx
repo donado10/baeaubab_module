@@ -226,7 +226,7 @@ export const columns: ColumnDef<IEntrepriseBonLivraison>[] = [
     },
     cell: ({ row }) => (
       <>
-        <div className="capitalize">{row.getValue("EN_TotalHT")}</div>
+        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("EN_TotalHT")))}</div>
       </>
     ),
   },

@@ -12,7 +12,6 @@ const TableBonLivraisonDigitalContainer = () => {
   const blMapByStatus = new Map<number, EStatus>([[1, EStatus.TAXABLE], [2, EStatus.EXONORE]])
   const [blivraison, setBlivraison] = useState(store.items)
 
-  console.log(store.items)
   useEffect(() => {
 
     const filterByStatus = store.filter?.status !== EStatus.ALL ? store.items.filter((bl) => {

@@ -14,6 +14,7 @@ import { PopoverFilterButton } from './FilterSection'
 import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import TableBonLivraisonDigitalContainer from './TableContainer'
+import useGetBillStats from '../api/use-get-bl-stats'
 
 
 
@@ -69,18 +70,7 @@ const FilterSection = () => {
             <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.EXONORE ? ' text-yellow-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.EXONORE })} disabled={store.items.length <= 0}>Exonoré</Button>
         </div>
         <div className='flex items-center gap-4'>
-            <div className='border-r pr-2'>
-                <Search />
-            </div>
-            <div>
-                <PopoverFilterButton>
-
-                    <Button className='bg-primary hover:bg-primary/60'>
-                        <span><IoFilter />
-                        </span>
-                        Filtre</Button>
-                </PopoverFilterButton>
-            </div>
+            <Search />
         </div>
     </div>
 }
@@ -101,6 +91,38 @@ const FilterResume = () => {
         }
         {store.filter.ecart_conformite !== 0 && <li key={'ecart'}><FilterResumeCard value={`ecart: ${store.filter.ecart_conformite}`} /></li>}
     </ul>
+}
+
+const FilterResumeContainer = () => {
+    const store = useEntrepriseBonLivraisonStore()
+    const { data, isPending } = useGetBillStats(store.periode[0], store.periode[1])
+
+    if (isPending) {
+        return <>
+            <ResumeCard background='bg-primary text-white' text='text-white' title='Total Clients' count={store.items.length} />
+            <ResumeCard background='bg-yellow-200' title='Total BL' count={0} />
+            <ResumeCard background='bg-green-200' title='BL Valides' count={0} />
+            <ResumeCard background='bg-red-200' title='BL Supprimés' count={0} />
+        </>
+    }
+
+    if (!data) {
+        return <>
+            <ResumeCard background='bg-primary text-white' text='text-white' title='Total Clients' count={store.items.length} />
+            <ResumeCard background='bg-yellow-200' title='Total BL' count={0} />
+            <ResumeCard background='bg-green-200' title='BL Valides' count={0} />
+            <ResumeCard background='bg-red-200' title='BL Supprimés' count={0} />
+        </>
+    }
+
+
+
+    return <>
+        <ResumeCard background='bg-primary text-white' text='text-white' title='Total Clients' count={store.items.length} />
+        <ResumeCard background='bg-yellow-200' title='Total BL' count={data.results.total} />
+        <ResumeCard background='bg-green-200' title='BL Valides' count={data.results.valid} />
+        <ResumeCard background='bg-red-200' title='BL Supprimés' count={data.results.deleted} />
+    </>
 }
 
 const BonLivraisonSection = () => {
@@ -142,10 +164,7 @@ const BonLivraisonSection = () => {
                     {/*                 {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
  */}            </div>
                 <div className='h-32 mb-4 shadow-none  grid grid-cols-4 gap-4 '>
-                    <ResumeCard background='bg-primary text-white' text='text-white' title='Total Clients' count={store.items.length} />
-                    <ResumeCard background='bg-yellow-200' title='Total BL' count={0} />
-                    <ResumeCard background='bg-green-200' title='BL Valides' count={0} />
-                    <ResumeCard background='bg-red-200' title='BL Supprimés' count={0} />
+                    <FilterResumeContainer />
                 </div>
             </div>
             <Card className='p-4 shadow-none'>
