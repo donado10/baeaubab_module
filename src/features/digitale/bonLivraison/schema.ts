@@ -5,7 +5,7 @@ export const entrepriseBonLivraisonSchema = z.object({
 	EN_Intitule: z.coerce.string(),
 	EN_BonLivraisons: z.coerce.number(),
 	EN_Agences: z.coerce.number(),
-	EN_Status: z.coerce.number(),
+	EN_TVA: z.coerce.number(),
 	EN_TotalHT: z.coerce.number(),
 });
 

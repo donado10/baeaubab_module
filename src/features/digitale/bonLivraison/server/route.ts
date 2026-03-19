@@ -11,13 +11,21 @@ import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 import { entrepriseBonLivraisonSchema } from "../schema";
 
-const app = new Hono().get("/:year/:month", async (c) => {
-	const year = c.req.param("year");
-	const month = c.req.param("month");
+const app = new Hono().post(
+	"/",
+	zValidator(
+		"json",
+		z.object({
+			year: z.string(),
+			month: z.string(),
+		})
+	),
+	async (c) => {
+		const { month, year } = c.req.valid("json");
 
-	const pool = await getConnection();
+		const pool = await getConnection();
 
-	const query = `with lev1 as (select entreprise_id,count(do_no) as nbre_bls from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by entreprise_id),
+		const query = `with lev1 as (select entreprise_id,count(do_no) as nbre_bls from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by entreprise_id),
 lev2 as (select entreprise_id,sum(DO_TotalHT) as totalHT from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by entreprise_id),
 lev3 as (select lev1.entreprise_id as EN_No,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT 
 from lev1 inner join lev2 on lev1.entreprise_id = lev2.entreprise_id ),
@@ -28,9 +36,12 @@ select lev4.*,lev5.EN_Agences from lev4 inner join lev5 on lev4.EN_No = lev5.CT_
 
 `;
 
-	let result = await pool.request().query(query);
+		let result = await pool.request().query(query);
 
-	return c.json({ result: result.recordset });
-});
+		console.log(result.recordset);
+
+		return c.json({ result: result.recordset });
+	}
+);
 
 export default app;

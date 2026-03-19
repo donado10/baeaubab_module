@@ -8,8 +8,7 @@ import {
 import { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { DialogTableDetail } from "./DialogTableDetail";
-import { useEcritureEnteteLigneStore } from "../store/store";
+import { useEntrepriseBonLivraisonStore } from "../store/store";
 
 
 
@@ -21,7 +20,7 @@ export function DropdownMenuTable({
   refpiece: string;
   children: ReactNode;
 }) {
-  const store = useEcritureEnteteLigneStore()
+  const store = useEntrepriseBonLivraisonStore()
 
   return (
     <>

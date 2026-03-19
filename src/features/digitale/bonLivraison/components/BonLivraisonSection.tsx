@@ -3,69 +3,19 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { cn, getFrenchMonthName } from '@/lib/utils'
-import TableEcritureDigitalContainer from './TableContainer'
 import { DialogLoadEcritures } from './DialogLoadEcritures'
-import { EStatus, useEcritureEnteteLigneStore } from '../store/store'
+import { EStatus, useEntrepriseBonLivraisonStore } from '../store/store'
 import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 import { Card } from '@/components/ui/card'
-import { DialogRecheckEcritures } from './DialogRecheckEcritures'
 import { Input } from '@/components/ui/input'
 import { IoFilter } from "react-icons/io5";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PopoverFilterButton } from './FilterSection'
 import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
-import { DialogSetValidateEcritures } from './DialogSetValidateEcritures'
-import { DialogIntegrateEcritures } from './DialogIntegrateEcritures'
-import { DialogAnnulerEcritures } from './DialogAnnulerEcritures'
+import TableBonLivraisonDigitalContainer from './TableContainer'
 
 
-
-
-const AnnulerButtonContainer = () => {
-    const store = useEcritureEnteteLigneStore()
-    return <>
-        {store.billCart.length > 0 && <DialogAnnulerEcritures>
-            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Annuler Ecritures</Button>
-        </DialogAnnulerEcritures>}
-    </>
-}
-const IntegrateButtonContainer = () => {
-    const store = useEcritureEnteteLigneStore()
-    return <>
-        {store.billCart.length > 0 && <DialogIntegrateEcritures>
-            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Intégrer Ecritures</Button>
-        </DialogIntegrateEcritures>}
-    </>
-}
-const ValidateButtonContainer = () => {
-    const store = useEcritureEnteteLigneStore()
-    return <>
-        {store.billCart.length > 0 && store.filter.invalide.includes('Compliance') && <DialogSetValidateEcritures>
-            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Valider Ecritures</Button>
-        </DialogSetValidateEcritures>}
-    </>
-}
-
-const InvalideButtonContainer = () => {
-    const store = useEcritureEnteteLigneStore()
-    return <>
-        {store.billCart.length > 0 && <DialogRecheckEcritures>
-            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Revérifier Ecritures</Button>
-        </DialogRecheckEcritures>}
-    </>
-}
-const AttenteButtonContainer = () => {
-    const store = useEcritureEnteteLigneStore()
-    console.log(store.billCart
-
-    )
-    return <>
-        {store.billCart.length > 0 && <DialogRecheckEcritures>
-            <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Vérifier Ecritures</Button>
-        </DialogRecheckEcritures>}
-    </>
-}
 
 const ResumeCard = ({ title, count, background, text = 'text-gray-700' }: { title: string, count: number, background: string, text?: string }) => {
     return <Card className={cn('shadow-none p-4 gap-4 flex flex-row items-center justify-between', background)}>
@@ -78,27 +28,27 @@ const ResumeCard = ({ title, count, background, text = 'text-gray-700' }: { titl
     </Card>
 }
 
-const SelectType = ({ onSetType, disabled }: { onSetType: (value: 'tiers' | 'facture') => void, disabled: boolean }) => {
-    const [itemValue, setItemValue] = useState<'tiers' | 'facture'>('facture')
+const SelectType = ({ onSetType, disabled }: { onSetType: (value: 'entreprise_id' | 'Intitule') => void, disabled: boolean }) => {
+    const [itemValue, setItemValue] = useState<'entreprise_id' | 'Intitule'>('Intitule')
 
-    return <Select disabled={disabled} value={itemValue} onValueChange={(value) => { onSetType(value as 'tiers' | 'facture'); setItemValue(value as 'tiers' | 'facture') }}>
+    return <Select disabled={disabled} value={itemValue} onValueChange={(value) => { onSetType(value as 'entreprise_id' | 'Intitule'); setItemValue(value as 'entreprise_id' | 'Intitule') }}>
         <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="type" />
         </SelectTrigger>
         <SelectContent >
             <SelectGroup>
-                <SelectItem key={"tiers"} value={"tiers"}>Compte Tiers</SelectItem>
-                <SelectItem key={"facture"} value={"facture"}>Facture</SelectItem>
+                <SelectItem key={"entreprise_id"} value={"entreprise_id"}>ID Entreprise</SelectItem>
+                <SelectItem key={"Intitule"} value={"Intitule"}>Intitulé</SelectItem>
             </SelectGroup>
         </SelectContent>
     </Select>
 }
 
 const Search = () => {
-    const store = useEcritureEnteteLigneStore()
+    const store = useEntrepriseBonLivraisonStore()
     return <div className='flex items-center gap-4'>
         <Input disabled={store.items.length <= 0} onChange={(e) => store.setFilter({ ...store.filter, search: { ...store.filter.search, value: e.currentTarget.value } })} className='w-64' placeholder='Rechercher' />
-        <SelectType disabled={store.items.length <= 0} onSetType={(value: 'tiers' | 'facture') => {
+        <SelectType disabled={store.items.length <= 0} onSetType={(value: 'entreprise_id' | 'Intitule') => {
 
             store.setFilter({ ...store.filter, search: { ...store.filter.search, type: value } })
         }} />
@@ -106,7 +56,7 @@ const Search = () => {
 }
 
 const FilterSection = () => {
-    const store = useEcritureEnteteLigneStore()
+    const store = useEntrepriseBonLivraisonStore()
     const classNameButton = 'p-0 hover:bg-transparent hover:text-primary/30  rounded-none'
 
 
@@ -115,10 +65,8 @@ const FilterSection = () => {
 
         <div className=' border-gray-200 flex items-center gap-8'>
             <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-primary font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-yellow-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-green-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-red-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-gray-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.TAXABLE ? 'text-green-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.TAXABLE })} disabled={store.items.length <= 0}>Taxable</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.EXONORE ? ' text-yellow-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.EXONORE })} disabled={store.items.length <= 0}>Exonoré</Button>
         </div>
         <div className='flex items-center gap-4'>
             <div className='border-r pr-2'>
@@ -142,8 +90,8 @@ const FilterResumeCard = ({ value }: { value: string }) => {
 }
 
 const FilterResume = () => {
-    const store = useEcritureEnteteLigneStore()
-    if (store.filter.status !== EStatus.INVALIDE) {
+    const store = useEntrepriseBonLivraisonStore()
+    if (store.filter.status !== EStatus.ALL) {
         return <></>
     }
     return <ul className='flex items-center gap-4'>
@@ -159,7 +107,7 @@ const BonLivraisonSection = () => {
 
     const [dialogEcWithCheck, setDialogEcWithCheck] = useState(false)
 
-    const store = useEcritureEnteteLigneStore()
+    const store = useEntrepriseBonLivraisonStore()
 
     useEffect(() => {
         if (store.event?.status === 'done') {
@@ -181,11 +129,6 @@ const BonLivraisonSection = () => {
                     </div>
                     <div className='flex items-center gap-4'>
 
-                        {store.filter && store.filter.status === EStatus.ATTENTE && <AttenteButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.INVALIDE && <InvalideButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.INVALIDE && <ValidateButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.VALIDE && <IntegrateButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.INTEGRE && <AnnulerButtonContainer />}
                         <DialogLoadEcritures >
 
                             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
@@ -200,9 +143,9 @@ const BonLivraisonSection = () => {
  */}            </div>
                 <div className='h-32 mb-4 shadow-none  grid grid-cols-4 gap-4 '>
                     <ResumeCard background='bg-primary text-white' text='text-white' title='Total Clients' count={store.items.length} />
-                    <ResumeCard background='bg-yellow-200' title='Total BL' count={store.items.filter((item) => item.entete.Status === 3).length} />
-                    <ResumeCard background='bg-green-200' title='BL Valides' count={store.items.filter((item) => item.entete.Status === 2).length} />
-                    <ResumeCard background='bg-red-200' title='BL Supprimés' count={store.items.filter((item) => item.entete.Status === 1).length} />
+                    <ResumeCard background='bg-yellow-200' title='Total BL' count={0} />
+                    <ResumeCard background='bg-green-200' title='BL Valides' count={0} />
+                    <ResumeCard background='bg-red-200' title='BL Supprimés' count={0} />
                 </div>
             </div>
             <Card className='p-4 shadow-none'>

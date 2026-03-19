@@ -1,6 +1,6 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import { IentrepriseBonLivraisonSchema } from "../../interface";
+import { IEntrepriseBonLivraison } from "../../interface";
 import { cn, convertDate, dateToMilliseconds, formatNumberToFrenchStandard, MStatus } from "@/lib/utils";
 import DotsIcon from "@/assets/dots.svg";
 import TrierIcon from "@/assets/trier.svg";
@@ -8,63 +8,52 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { DropdownMenuTable } from "../DropdownMenuTable";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEcritureEnteteLigneStore } from "../../store/store";
+import { useEntrepriseBonLivraisonStore } from "../../store/store";
 import { useEffect } from "react";
 import { GoDotFill } from "react-icons/go";
-import { DialogTableDetail } from "../DialogTableDetail";
-import { HoverCardError } from "../HoverCard";
 
 
-const StatusDisplay = ({ value, refpiece }: { value: string, refpiece: string }) => {
+const StatusDisplay = ({ value }: { value: string }) => {
   const MStatusDisplay = new Map<string, string>([
-    ["0", "bg-gray-600/20 border-2 border-gray-600 "],
-    ["1", "bg-red-600/20 border-2 border-red-600 "],
-    ["2", "bg-green-600/20 border-2 border-green-600 "],
-    ["3", "bg-[#FF8D28]/20  border-2 border-[#FF8D28]"],
+    ["1", "bg-green-600/20 border-2 border-green-600 "],
+    ["2", "bg-[#FF8D28]/20  border-2 border-[#FF8D28]"],
   ]);
   const MStatusDisplayColor = new Map<string, string>([
-    ["0", "#4a5565 "],
-    ["1", "#e7000b"],
-    ["2", "#00a63e"],
-    ["3", "#FF8D28"],
+    ["1", "#00a63e"],
+    ["2", "#FF8D28"],
   ]);
   const MStatusDisplayTextColor = new Map<string, string>([
-    ["0", "text-gray-600"],
-    ["1", "text-red-600"],
-    ["2", "text-green-600"],
-    ["3", "text-[#FF8D28]"],
+    ["1", "text-green-600"],
+    ["2", "text-[#FF8D28]"],
   ]);
   const MStatusText = new Map<string, string>([
-    ["0", "Attente"],
-    ["1", "Invalide"],
-    ["2", "Valide"],
-    ["3", "Intégré"],
+    ["1", "Taxable"],
+    ["2", "Exonoré"],
   ]);
 
   return (
-    <HoverCardError status={value.toString()} refpiece={refpiece}>
-      <div
-        className={cn(
-          "capitalize rounded-md w-3/4  font-semibold flex items-center gap-2 px-2 ",
-          MStatusDisplay.get(value.toString())
-        )}
-      >
-        <span><GoDotFill color={MStatusDisplayColor.get(value.toString())} /></span>
-        <h1 className={cn(MStatusDisplayTextColor.get(value.toString()))}>
+    <div
+      className={cn(
+        "capitalize rounded-md w-3/4  font-semibold flex items-center gap-2 px-2 ",
+        MStatusDisplay.get(value.toString())
+      )}
+    >
+      <span><GoDotFill color={MStatusDisplayColor.get(value.toString())} /></span>
+      <h1 className={cn(MStatusDisplayTextColor.get(value.toString()))}>
 
-          {MStatusText.get(value.toString())}
-        </h1>
-      </div>
-    </HoverCardError>
+        {MStatusText.get(value.toString())}
+      </h1>
+    </div>
   );
 };
 
-export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
+
+export const columns: ColumnDef<IEntrepriseBonLivraison>[] = [
   {
     id: "select",
     header: ({ table }) => {
       // console.log(table.getRowModel().rows);
-      const store = useEcritureEnteteLigneStore()
+      const store = useEntrepriseBonLivraisonStore()
 
       useEffect(() => {
         table.toggleAllRowsSelected(false)
@@ -80,7 +69,7 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
           onCheckedChange={(value) => {
             table.toggleAllRowsSelected(!!value);
             if (!!value) {
-              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.EC_RefPiece))
+              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.EN_No))
             } else {
               store.setRemoveAllBillCart()
             }
@@ -91,7 +80,7 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
     },
     cell: ({ row }) => {
 
-      const store = useEcritureEnteteLigneStore()
+      const store = useEntrepriseBonLivraisonStore()
 
       return (
         <Checkbox
@@ -99,9 +88,9 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
           onCheckedChange={(value) => {
             row.toggleSelected(!!value);
             if (!!value) {
-              store.setAddBillCart(row.original.EC_RefPiece)
+              store.setAddBillCart(row.original.EN_No)
             } else {
-              store.setRemoveBillCart(row.original.EC_RefPiece)
+              store.setRemoveBillCart(row.original.EN_No)
 
             }
           }}
@@ -113,7 +102,7 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "JO_Num",
+    accessorKey: "EN_No",
     header: ({ column }) => {
       return (
         <Button
@@ -122,8 +111,7 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-
-            Journal
+            ID Entreprise
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
@@ -131,11 +119,11 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
     },
 
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("JO_Num")}</div>
+      <div className="capitalize">{row.getValue("EN_No")}</div>
     ),
   },
   {
-    accessorKey: "JM_Date",
+    accessorKey: "EN_Intitule",
     header: ({ column }) => {
       return (
         <Button
@@ -144,31 +132,22 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-            Date Journal
+            Intitulé
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
     cell: ({ row }) => {
-      const store = useEcritureEnteteLigneStore()
 
-      if (store.sourceEc === 'digital') {
+      return (
+        <div className="capitalize">{row.getValue("EN_Intitule")}</div>
+      )
 
-        return (
-          <div className="capitalize">{convertDate(row.getValue("JM_Date"))}</div>
-        )
-      }
-      if (store.sourceEc === 'sage') {
-
-        return (
-          <div className="capitalize">{row.getValue("JM_Date")}</div>
-        )
-      }
     },
   },
   {
-    accessorKey: "EC_RefPiece",
+    accessorKey: "EN_Agences",
     header: ({ column }) => {
       return (
         <Button
@@ -177,19 +156,18 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-
-            Facture
+            Agences
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("EC_RefPiece")}</div>
+      <div className="capitalize">{row.getValue("EN_Agences")}</div>
     ),
   },
   {
-    accessorKey: "CT_Num",
+    accessorKey: "EN_BonLivraisons",
     header: ({ column }) => {
       return (
         <Button
@@ -198,19 +176,18 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-
-            Compte Tiers
+            Bon de livraisons
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("CT_Num")}</div>
+      <div className="capitalize">{row.getValue("EN_BonLivraisons")}</div>
     ),
   },
   {
-    accessorKey: "EC_Montant",
+    accessorKey: "EN_TVA",
     header: ({ column }) => {
       return (
         <Button
@@ -219,53 +196,6 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-
-            Montant
-          </span>
-          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
-        </Button>
-      )
-    },
-    cell: ({ row }) => (
-      <>
-        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("EC_Montant")))}</div>
-      </>
-    ),
-  },
-  {
-    accessorKey: "Montant_reel",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          <span>
-
-            Montant Réel
-          </span>
-          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
-        </Button>
-      )
-    },
-    cell: ({ row }) => (
-      <>
-        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("Montant_reel")))}</div>
-      </>
-    ),
-  },
-  {
-    accessorKey: "Status",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          <span>
-
             Status
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
@@ -274,14 +204,36 @@ export const columns: ColumnDef<IentrepriseBonLivraisonSchema>[] = [
     },
     cell: ({ row }) => (
       <>
-        <div className="capitalize"><StatusDisplay value={row.getValue("Status")} refpiece={row.original.EC_RefPiece} /></div>
+        <div className="capitalize"><StatusDisplay value={row.getValue("EN_TVA")} /></div>
+      </>
+    ),
+  },
+  {
+    accessorKey: "EN_TotalHT",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <span>
+            TotalHT
+          </span>
+          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
+        </Button>
+      )
+    },
+    cell: ({ row }) => (
+      <>
+        <div className="capitalize">{row.getValue("EN_TotalHT")}</div>
       </>
     ),
   },
   {
     header: "Action",
     cell: ({ row }) => (
-      <DropdownMenuTable refpiece={row.original.EC_RefPiece}>
+      <DropdownMenuTable refpiece={row.original.EN_No.toString()}>
 
 
         <Button variant={"ghost"} type="button">

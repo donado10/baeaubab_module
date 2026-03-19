@@ -11,12 +11,12 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { ReactNode, useState } from "react"
-import { useEcritureEnteteLigneStore } from "../store/store"
+import { useEntrepriseBonLivraisonStore } from "../store/store"
 import { boolean } from "zod"
 import { Input } from "@/components/ui/input"
 
 const CheckboxFilter = ({ id, type, label }: { id: string, type: string, label: string }) => {
-    const store = useEcritureEnteteLigneStore()
+    const store = useEntrepriseBonLivraisonStore()
     const [state, setState] = useState(store.filter.invalide.includes(type))
 
     return <div className="flex items-center gap-3">
@@ -45,7 +45,7 @@ const EcartCompliance = ({ value, onChange }: { value: number, onChange: (value:
 
 const PopoverFilter = () => {
     const [open, setOpen] = useState(true)
-    const store = useEcritureEnteteLigneStore()
+    const store = useEntrepriseBonLivraisonStore()
 
     return (
         <Collapsible open={open} onOpenChange={(value) => setOpen(value)}>

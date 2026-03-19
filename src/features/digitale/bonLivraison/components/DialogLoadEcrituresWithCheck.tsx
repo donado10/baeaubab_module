@@ -16,8 +16,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
-import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
-import { useEcritureEnteteLigneStore } from "../store/store"
+import useGetBonLivraison from "../api/use-get-bon-livraison"
+import { useEntrepriseBonLivraisonStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 
 export function DialogLoadEcrituresWithCheck({ open, onOpen }: { open: boolean, onOpen: (value: boolean) => void }) {
@@ -25,31 +25,13 @@ export function DialogLoadEcrituresWithCheck({ open, onOpen }: { open: boolean, 
     const [withChecking, setWithChecking] = useState(false)
 
 
-    const store = useEcritureEnteteLigneStore()
+    const store = useEntrepriseBonLivraisonStore()
 
-    const { mutate: mutateFromSage } = useLoadEcrituresFromSage()
-    const { mutate: mutateFromDigital } = useLoadEcrituresFromDigital()
 
     const submitHandler = () => {
 
-        if (store.sourceEc === 'sage') {
 
 
-            mutateFromSage({ json: { year: store.periode[0], month: store.periode[1] } }, {
-                onSuccess: (results: any) => {
-                    store.setItems(results.results)
-                }
-            })
-        }
-        if (store.sourceEc === 'digital') {
-
-
-            mutateFromDigital({ json: { year: store.periode[0], month: store.periode[1] } }, {
-                onSuccess: (results: any) => {
-                    store.setItems(results.results)
-                }
-            })
-        }
         onOpen(false)
 
     }

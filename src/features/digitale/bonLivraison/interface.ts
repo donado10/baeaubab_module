@@ -1,6 +1,6 @@
 import z from "zod";
 import { entrepriseBonLivraisonSchema } from "./schema";
 
-export type IentrepriseBonLivraisonSchema = z.infer<
+export type IEntrepriseBonLivraison = z.infer<
 	typeof entrepriseBonLivraisonSchema
 >;

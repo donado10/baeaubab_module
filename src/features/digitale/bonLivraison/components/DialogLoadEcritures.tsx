@@ -15,12 +15,12 @@ import {
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
-import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
-import { EStatus, useEcritureEnteteLigneStore } from "../store/store"
+//import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
+import { EStatus, useEntrepriseBonLivraisonStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 import { toast } from "sonner"
-import { RadioGroupChoiceCard } from "./ChoiceCardLoadEcritures"
+import useGetBonLivraison from "../api/use-get-bon-livraison"
 
 
 const months = [
@@ -86,12 +86,10 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
 
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
-    const store = useEcritureEnteteLigneStore()
+    const store = useEntrepriseBonLivraisonStore()
 
-    const { mutate: mutateFromSage } = useLoadEcrituresFromSage()
-    const { mutate: mutateFromDigital } = useLoadEcrituresFromDigital()
-    const { mutate: mutateWithCheck } = useLoadEcrituresWithCheck()
-    const [sourceEc, setSourceEc] = useState<'sage' | 'digital'>('sage')
+
+    const { mutate } = useGetBonLivraison()
 
 
 
@@ -99,60 +97,34 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
         setClose(false)
         store.setPeriode(year, month)
 
-        if (withChecking) {
+        /*
+        const id_toast = toast(() => {
+            const store = useEntrepriseBonLivraisonStore()
 
-            const id_toast = toast(() => {
-                const store = useEcritureEnteteLigneStore()
-
-                return (
-                    <div className="text-white">
-                        <h1 >En cours</h1>
-                        {store.event && <JobWatcher jobId={store.event.jobId} />}
-                    </div >
-                )
-            },
-                {
-                    duration: Infinity,
-                    style: {
-                        background: 'green'
-                    }
-                });
-
-            mutateWithCheck({ json: { year, month, check: withChecking } }, {
-                onSuccess: (results: any) => {
-                    store.clear()
-                    store.setItems(results.results)
-                    store.setFilter({ ...store.filter, status: EStatus.ALL })
-                    store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+            return (
+                <div className="text-white">
+                    <h1 >En cours</h1>
+                    {store.event && <JobWatcher jobId={store.event.jobId} />}
+                </div >
+            )
+        },
+            {
+                duration: Infinity,
+                style: {
+                    background: 'green'
                 }
-            })
+            });*/
 
-
-        } else {
-            if (sourceEc === 'sage') {
-
-                mutateFromSage({ json: { year, month } }, {
-                    onSuccess: (results: any) => {
-                        store.clear()
-                        store.setItems(results.results)
-                        store.setFilter({ ...store.filter, status: EStatus.ALL })
-                    }
-                })
-
-
-
+        mutate({ json: { year, month } }, {
+            onSuccess: (results: any) => {
+                store.clear()
+                store.setItems(results.result)
+                store.setFilter({ ...store.filter, status: EStatus.ALL })
+                //    store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
-            if (sourceEc === 'digital') {
+        })
 
-                mutateFromDigital({ json: { year, month } }, {
-                    onSuccess: (results: any) => {
-                        store.clear()
-                        store.setItems(results.results)
-                        store.setFilter({ ...store.filter, status: EStatus.ALL })
-                    }
-                })
-            }
-        }
+
     }
 
     return (
@@ -166,14 +138,6 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                         <DialogTitle>Chargement des écritures comptables</DialogTitle>
                     </DialogHeader>
                     <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-4">
-                            <Checkbox id="terms-checkbox" name="terms-checkbox" className="hover:cursor-pointer" checked={withChecking} onCheckedChange={(value: boolean) => setWithChecking(value)} />
-                            <Label htmlFor="terms-checkbox">Vérification</Label>
-                        </div>
-                        <div>
-                            <RadioGroupChoiceCard onSelectSource={setSourceEc} />
-                        </div>
-
                         <div className="flex items-center justify-between w-full ">
                             <SelectMonth onSetMonth={setMonth} />
                             <SelectYear onSetYear={setYear} />

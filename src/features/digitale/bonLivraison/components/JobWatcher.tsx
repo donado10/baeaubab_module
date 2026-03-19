@@ -1,11 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useEcritureEnteteLigneStore } from "../store/store";
+import { useEntrepriseBonLivraisonStore } from "../store/store";
 import { toast } from "sonner";
 
 export default function JobWatcher({ jobId }: { jobId: string }) {
     const [status, setStatus] = useState("waiting...");
-    const store = useEcritureEnteteLigneStore()
+    const store = useEntrepriseBonLivraisonStore()
 
     useEffect(() => {
         if (!jobId) return;

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { IEcritureEnteteLigne, IEcritureError } from "../interface";
+import { IEntrepriseBonLivraison } from "../interface";
 
 interface IEvent {
 	jobId: string;
@@ -17,53 +17,46 @@ interface IDialogEcritures {
 
 export enum EStatus {
 	ALL = "Tout",
-	INTEGRE = "Intégré",
-	VALIDE = "Valide",
-	INVALIDE = "Invalide",
-	ATTENTE = "Attente",
+	EXONORE = 2,
+	TAXABLE = 1,
 }
 interface IFilter {
 	status: EStatus;
 	search: {
-		type: "tiers" | "facture";
+		type: "entreprise_id" | "Intitule";
 		value: string;
 	};
 	ecart_conformite: number;
 	invalide: string[];
 }
 
-interface IEcritureEnteteLigneState {
-	items: IEcritureEnteteLigne;
-	sourceEc: "sage" | "digital";
+interface IEntrepriseBonLivraisonState {
+	items: IEntrepriseBonLivraison[];
 	periode: string[];
 	event: IEvent | null;
 	filter: IFilter;
-	billCart: string[];
-	errors: IEcritureError[];
+	billCart: number[];
 	dialog: IDialogEcritures;
 	setClearDialogState: () => void;
 	setDialogState: (dialogState: IDialogEcritures) => void;
-	setAddBillCart: (bill: string) => void;
-	setRemoveBillCart: (bill: string) => void;
-	setAddAllBillCart: (bills: string[]) => void;
+	setAddBillCart: (bill: number) => void;
+	setRemoveBillCart: (bill: number) => void;
+	setAddAllBillCart: (bills: number[]) => void;
 	setRemoveAllBillCart: () => void;
-	setItems: (items: IEcritureEnteteLigne) => void;
+	setItems: (items: IEntrepriseBonLivraison[]) => void;
 	setEvent: (event: IEvent) => void;
-	setErrors: (errors: IEcritureError[]) => void;
 	setFilter: (filter: IFilter) => void;
-	setSourceEc: (source: "sage" | "digital") => void;
 	setPeriode: (year: string, month: string) => void;
 
 	clear: () => void;
 }
 
-export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
-	(set) => ({
+export const useEntrepriseBonLivraisonStore =
+	create<IEntrepriseBonLivraisonState>()((set) => ({
 		items: [],
 		periode: [],
 		billCart: [],
 		event: null,
-		sourceEc: "sage",
 		dialog: {
 			viewTable: [false, ""],
 			viewTableCorrection: [false, ""],
@@ -72,7 +65,7 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		errors: [],
 		filter: {
 			status: EStatus.ALL,
-			search: { type: "facture", value: "" },
+			search: { type: "Intitule", value: "" },
 			invalide: [],
 			ecart_conformite: 0,
 		},
@@ -87,17 +80,15 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		},
 		setDialogState: (dialogState: IDialogEcritures) =>
 			set({ dialog: { ...dialogState } }),
-		setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
+		setItems: (items: IEntrepriseBonLivraison[]) => set({ items: [...items] }),
 		setEvent: (event: IEvent) => set({ event: event }),
-		setSourceEc: (source: "sage" | "digital") => set({ sourceEc: source }),
 		setFilter: (filter: IFilter) => set({ filter: filter }),
-		setErrors: (errors: IEcritureError[]) => set({ errors: errors }),
-		setAddBillCart: (bill: string) =>
+		setAddBillCart: (bill: number) =>
 			set((state) => ({ billCart: [...state.billCart, bill] })),
-		setAddAllBillCart: (bills: string[]) =>
+		setAddAllBillCart: (bills: number[]) =>
 			set((state) => ({ billCart: [...bills] })),
 		setRemoveAllBillCart: () => set((state) => ({ billCart: [] })),
-		setRemoveBillCart: (bill: string) =>
+		setRemoveBillCart: (bill: number) =>
 			set((state) => ({ billCart: state.billCart.filter((b) => b !== bill) })),
 		setPeriode: (year: string, month: string) =>
 			set({ periode: [year, month] }),
@@ -107,12 +98,11 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 				billCart: [],
 				filter: {
 					status: EStatus.ALL,
-					search: { type: "facture", value: "" },
+					search: { type: "Intitule", value: "" },
 					invalide: [],
 					ecart_conformite: 0,
 				},
 				items: [],
 				event: null,
 			}),
-	})
-);
+	}));
