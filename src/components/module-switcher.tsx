@@ -41,7 +41,6 @@ export const ModuleSwitcherContainer = () => {
         return null
     }
 
-    console.log(modulesData)
     const modules = [
         {
             name: "Acme Inc",
@@ -77,7 +76,6 @@ export function ModuleSwitcher({
     const { isMobile } = useSidebar()
     const [activeModule, setActiveModule] = React.useState(modules[0])
 
-    console.log(modules[0])
     if (!activeModule) {
 
         return null

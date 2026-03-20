@@ -54,7 +54,6 @@ export function NavUser({
     return <></>
   }
 
-  console.log(data.user)
 
   return (
     <SidebarMenu>

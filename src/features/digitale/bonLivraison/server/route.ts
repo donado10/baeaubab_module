@@ -1,10 +1,55 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import z from "zod";
+import z, { string } from "zod";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 
 const app = new Hono()
+	.get(
+		"/entreprise/list",
+		zValidator(
+			"query",
+			z.object({
+				en_no: z.string(),
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { en_no, month, year } = c.req.valid("query");
+			console.log(en_no, month, year);
+
+			const pool = await getConnection();
+
+			const query_entete = `
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} )
+			select lev1.*,ct.CT_No,ct.CT_Intitule from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = ${en_no}
+	`;
+			const query_ligne = `
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = 2026 and MONTH(created_at)=1 )
+select lev1.*,art.Art_Design from lev1 inner join F_ARTICLE_DIGITAL art on lev1.ART_No= art.Art_No where lev1.EN_No = ${en_no}
+			`;
+			let result_entete = await pool.request().query(query_entete);
+			let result_ligne = await pool.request().query(query_ligne);
+
+			const entetes = [...result_entete.recordset];
+			const lignes = [...result_ligne.recordset];
+
+			const documents = entetes.map((entete) => {
+				const ligne = lignes.filter((li) => {
+					return entete.DO_No === li.DO_No;
+				});
+				return {
+					entete: entete,
+					lignes: ligne,
+				};
+			});
+
+			console.log(documents[0].entete);
+
+			return c.json({ result: documents });
+		}
+	)
 	.get("/:year/:month", async (c) => {
 		const month = c.req.param("month");
 		const year = c.req.param("year");
@@ -26,10 +71,6 @@ const app = new Hono()
 		let result_total = await pool.request().query(query_total);
 		let result_valid = await pool.request().query(query_valid);
 		let result_deleted = await pool.request().query(query_deleted);
-
-		console.log(result_total.recordset[0].total);
-		console.log(result_valid.recordset[0].valid);
-		console.log(result_deleted.recordset[0].deleted);
 
 		return c.json({
 			results: {

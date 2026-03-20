@@ -23,7 +23,6 @@ const useGetBonLivraison = () => {
 
             const res_ = await res.json();
 
-            console.log(res_)
 
             return res_
         }

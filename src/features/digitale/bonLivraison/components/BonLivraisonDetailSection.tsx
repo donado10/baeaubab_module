@@ -4,6 +4,9 @@ import { useEntrepriseBonLivraisonStore } from '../store/store'
 import { Input } from '@/components/ui/input'
 import { GoDotFill } from 'react-icons/go';
 import { cn, formatNumberToFrenchStandard } from '@/lib/utils';
+import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
+import { useParams } from 'next/navigation';
+import { IDocumentBonLivraison } from '../interface';
 
 
 const StatusDisplay = ({ value }: { value: string }) => {
@@ -42,13 +45,13 @@ const StatusDisplay = ({ value }: { value: string }) => {
 const Search = () => {
     const store = useEntrepriseBonLivraisonStore()
     return <div className='flex items-center gap-4'>
-        <Input disabled={store.items.length <= 0} onChange={(e) => store.setFilter({ ...store.filter, search: { ...store.filter.search, value: e.currentTarget.value } })} className='w-full border border-gray-500 ' placeholder='Rechercher' />
+        <Input onChange={(e) => store.setFilter({ ...store.filter, search: { ...store.filter.search, value: e.currentTarget.value } })} className='w-full border border-gray-500 ' placeholder='Rechercher' />
 
     </div>
 }
 
-const BonLivraisonListe = ({ status, totalht, ref, idClient, intituleClient }: { status: string, totalht: number, ref: string, idClient: number, intituleClient: string }) => {
-    return <div className='w-full h-40  border-b border-gray-500 p-8 flex flex-col'>
+const BonLivraisonResume = ({ status, totalht, ref, idClient, intituleClient }: { status: string, totalht: number, ref: string, idClient: string, intituleClient: string }) => {
+    return <li className='w-full h-40  border-b border-gray-500 p-8 flex flex-col'>
         <div className='flex items-center justify-between mb-4'>
             <StatusDisplay value={status} />
             <span className='font-bold'>{formatNumberToFrenchStandard(totalht)} FCFA</span>
@@ -63,21 +66,50 @@ const BonLivraisonListe = ({ status, totalht, ref, idClient, intituleClient }: {
                 <span>{intituleClient}</span>
             </div>
         </div>
-    </div>
+    </li>
 }
 
+
+
+const BonLivraisonListContainer = () => {
+    const { entreprise_id } = useParams()
+    const store = useEntrepriseBonLivraisonStore()
+    const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), '2026', '1')
+
+
+    if (isPending) {
+        return <></>
+    }
+
+    if (!data) {
+        return <></>
+    }
+    return <BonLivraisonList documents={data.result as IDocumentBonLivraison[]} />
+}
+const BonLivraisonList = ({ documents }: { documents: IDocumentBonLivraison[] }) => {
+    return <ul className='overflow-y-scroll'>
+        {documents.map((document) => document.entete).map((document) =>
+            <BonLivraisonResume key={document.DO_No} idClient={document.CT_No} intituleClient={document.CT_Intitule} ref={document.DO_No} status={document.DO_Status.toString()} totalht={document.DO_TotalHT} />
+        )}
+    </ul>
+}
 const BonLivraisonDetailSection = () => {
+
+
+
     return (
         <main className='flex items-center w-full min-h-screen border border-gray-500  '>
-            <div className='w-2/7 h-screen border-r border-gray-500  '>
+            <div className='w-2/7 h-screen  border-r border-gray-500  '>
                 <div className='border-b border-gray-500 p-8'>
                     <h1 className='text-2xl font-bold mb-4'>Bon de Livraisons</h1>
                     <div>
                         <Search />
                     </div>
                 </div>
-                <BonLivraisonListe idClient={1284} intituleClient='IGF Services Sicap Foire' ref='225687' status='1' totalht={2500} />
-                <BonLivraisonListe idClient={1284} intituleClient='IGF Services Sicap Foire' ref='225686' status='2' totalht={1900} />
+                <div className='h-[80vh] overflow-y-scroll'>
+
+                    <BonLivraisonListContainer />
+                </div>
             </div>
             <div className='w-5/7 h-full'>
 
