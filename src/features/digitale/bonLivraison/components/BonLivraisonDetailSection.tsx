@@ -119,12 +119,18 @@ const BonLivraisonSelected = () => {
     return <>
 
         <div className='  border-b border-gray-500 h-[15vh] p-8'>
-            <span className='text-normal font-semibold'>{document.entete.CT_Intitule}</span>
-            <div>
-                <span className='text-xs'>{formatDate(document.entete.created_at)}</span>
+            <div className='flex items-center justify-between'>
+
+                <div>
+                    <span className='text-normal font-semibold'>{document.entete.CT_Intitule}</span>
+                    <div>
+                        <span className='text-xs'>Date bon de livraison: <strong>{formatDate(document.entete.created_at)}</strong></span>
+                    </div>
+                </div>
+                <span className='font-bold'> REF-{document.entete.DO_No}</span>
             </div>
         </div>
-        <div>
+        <div className='bg-gray-500/20 flex-1'>
 
         </div>
     </>
@@ -155,7 +161,7 @@ const BonLivraisonDetailSection = () => {
                     <BonLivraisonListContainer entreprise_id={entreprise_id.toString()} />
                 </div>
             </div>
-            <div className='w-5/7'>
+            <div className='w-5/7 flex flex-col'>
 
                 {store.selectedBonLivraison && <BonLivraisonSelected />}
             </div>
