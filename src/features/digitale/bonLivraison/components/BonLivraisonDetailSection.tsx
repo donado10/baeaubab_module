@@ -7,6 +7,9 @@ import { cn, convertDate, formatDate, formatNumberToFrenchStandard } from '@/lib
 import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
 import { useParams } from 'next/navigation';
 import { IDocumentBonLivraison } from '../interface';
+import { DocumentPDF } from './DocumentPDFRendered';
+import { PDFDownloadLink, Document, Page, PDFViewer } from '@react-pdf/renderer';
+
 
 
 const StatusDisplay = ({ value }: { value: string }) => {
@@ -113,9 +116,12 @@ const BonLivraisonList = ({ documents }: { documents: IDocumentBonLivraison[] })
     </ul>
 }
 
+
 const BonLivraisonSelected = () => {
     const store = useEntrepriseBonLivraisonStore()
     const document = store.selectedBonLivraison
+
+    console.log(document)
     return <>
 
         <div className='  border-b border-gray-500 h-[15vh] p-8'>
@@ -127,11 +133,25 @@ const BonLivraisonSelected = () => {
                         <span className='text-xs'>Date bon de livraison: <strong>{formatDate(document.entete.created_at)}</strong></span>
                     </div>
                 </div>
-                <span className='font-bold'> REF-{document.entete.DO_No}</span>
+                <div>
+
+                    <span className='font-bold'> REF-{document.entete.DO_No}</span>
+                    <div>
+                        <PDFDownloadLink document={<DocumentPDF document={document} />} fileName={`REF-${document.entete.DO_No}.pdf`}>
+                            {({ loading }) => (loading ? 'Loading...' : 'Download')}
+                        </PDFDownloadLink>
+                    </div>
+                </div>
+
             </div>
         </div>
-        <div className='bg-gray-500/20 flex-1'>
+        <div className='bg-gray-500/20 flex-1 flex items-center justify-center'>
+            <div className='w-2/4'>
+                <PDFViewer width="100%" height="650px" style={{ border: 'none' }} >
 
+                    <DocumentPDF document={document} />
+                </PDFViewer>
+            </div>
         </div>
     </>
 }
