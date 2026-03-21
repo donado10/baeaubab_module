@@ -1,9 +1,9 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useEntrepriseBonLivraisonStore } from '../store/store'
 import { Input } from '@/components/ui/input'
 import { GoDotFill } from 'react-icons/go';
-import { cn, formatNumberToFrenchStandard } from '@/lib/utils';
+import { cn, convertDate, formatDate, formatNumberToFrenchStandard } from '@/lib/utils';
 import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
 import { useParams } from 'next/navigation';
 import { IDocumentBonLivraison } from '../interface';
@@ -50,8 +50,19 @@ const Search = () => {
     </div>
 }
 
-const BonLivraisonResume = ({ status, totalht, ref, idClient, intituleClient }: { status: string, totalht: number, ref: string, idClient: string, intituleClient: string }) => {
-    return <li className='w-full h-40  border-b border-gray-500 p-8 flex flex-col'>
+const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClient, isActive, setActive }: { date: string, status: string, totalht: number, ref: string, idClient: string, intituleClient: string, isActive: string, setActive: (ref: string) => void }) => {
+
+
+    return <li onClick={() => {
+
+        if (isActive === ref) {
+            setActive(null)
+            return
+        }
+        setActive(ref)
+    }}
+
+        className={cn('w-full h-40  border-b border-gray-500 p-8 flex flex-col', 'hover:cursor-pointer hover:bg-gray-500/20', isActive === ref && 'bg-gray-500/20')}>
         <div className='flex items-center justify-between mb-4'>
             <StatusDisplay value={status} />
             <span className='font-bold'>{formatNumberToFrenchStandard(totalht)} FCFA</span>
@@ -59,7 +70,7 @@ const BonLivraisonResume = ({ status, totalht, ref, idClient, intituleClient }: 
         <div className='flex flex-col gap-2'>
             <div className='flex items-center justify-between'>
                 <h2 className='font-bold'>REF-{ref}</h2>
-                <span>19-03-2026</span>
+                <span>{formatDate(date)}</span>
             </div>
             <div className='flex gap-4'>
                 <span className='border-r-2 border-gray-500 pr-2'>{idClient}</span>
@@ -71,10 +82,10 @@ const BonLivraisonResume = ({ status, totalht, ref, idClient, intituleClient }: 
 
 
 
-const BonLivraisonListContainer = () => {
-    const { entreprise_id } = useParams()
+const BonLivraisonListContainer = ({ entreprise_id }: { entreprise_id: string }) => {
     const store = useEntrepriseBonLivraisonStore()
-    const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), '2026', '1')
+
+    const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), store.periode[0], store.periode[1])
 
 
     if (isPending) {
@@ -87,32 +98,66 @@ const BonLivraisonListContainer = () => {
     return <BonLivraisonList documents={data.result as IDocumentBonLivraison[]} />
 }
 const BonLivraisonList = ({ documents }: { documents: IDocumentBonLivraison[] }) => {
+    const [isActive, setIsActive] = useState(null)
+    const store = useEntrepriseBonLivraisonStore()
+
+    useEffect(() => {
+        const document = documents.find((doc) => doc.entete.DO_No === isActive) ?? null
+        store.setSelectedBonLivraison(document)
+    }, [isActive])
+
     return <ul className='overflow-y-scroll'>
         {documents.map((document) => document.entete).map((document) =>
-            <BonLivraisonResume key={document.DO_No} idClient={document.CT_No} intituleClient={document.CT_Intitule} ref={document.DO_No} status={document.DO_Status.toString()} totalht={document.DO_TotalHT} />
+            <BonLivraisonResume key={document.DO_No} date={document.created_at} isActive={isActive} setActive={(ref) => setIsActive(ref)} idClient={document.CT_No} intituleClient={document.CT_Intitule} ref={document.DO_No} status={document.DO_Status.toString()} totalht={document.DO_TotalHT} />
         )}
     </ul>
 }
+
+const BonLivraisonSelected = () => {
+    const store = useEntrepriseBonLivraisonStore()
+    const document = store.selectedBonLivraison
+    return <>
+
+        <div className='  border-b border-gray-500 h-[15vh] p-8'>
+            <span className='text-normal font-semibold'>{document.entete.CT_Intitule}</span>
+            <div>
+                <span className='text-xs'>{formatDate(document.entete.created_at)}</span>
+            </div>
+        </div>
+        <div>
+
+        </div>
+    </>
+}
+
 const BonLivraisonDetailSection = () => {
+    const store = useEntrepriseBonLivraisonStore()
+    const { entreprise_id } = useParams()
+
+    const entreprise = store.items.find((en) => en.EN_No.toString() == entreprise_id.toString())
 
 
 
     return (
-        <main className='flex items-center w-full min-h-screen border border-gray-500  '>
+        <main className='flex  w-full min-h-screen border border-gray-500  '>
             <div className='w-2/7 h-screen  border-r border-gray-500  '>
-                <div className='border-b border-gray-500 p-8'>
-                    <h1 className='text-2xl font-bold mb-4'>Bon de Livraisons</h1>
+                <div className='border-b border-gray-500 p-8 h-[25vh]'>
+                    <div className='mb-4'>
+                        <h1 className='text-2xl font-bold '>Bon de Livraisons</h1>
+                        <span className='text-xs italic'>{entreprise.EN_Intitule}</span>
+                    </div>
                     <div>
                         <Search />
                     </div>
                 </div>
                 <div className='h-[80vh] overflow-y-scroll'>
 
-                    <BonLivraisonListContainer />
+                    <BonLivraisonListContainer entreprise_id={entreprise_id.toString()} />
                 </div>
             </div>
-            <div className='w-5/7 h-full'>
+            <div className='w-5/7'>
 
+                {store.selectedBonLivraison && <BonLivraisonSelected />}
             </div>
         </main>
     )

@@ -31,6 +31,7 @@ export const documentEnteteSchema = z.object({
 	EN_No: z.string(),
 	CT_No: z.string(),
 	CT_Intitule: z.string(),
+	created_at: z.string(),
 });
 export const documentLigneSchema = z.object({
 	DO_No: z.string(),
@@ -42,6 +43,7 @@ export const documentLigneSchema = z.object({
 	DO_Status: z.number(),
 	EN_No: z.string(),
 	Art_Design: z.string(),
+	created_at: z.string(),
 });
 
 export const documentSchema = z.object({
