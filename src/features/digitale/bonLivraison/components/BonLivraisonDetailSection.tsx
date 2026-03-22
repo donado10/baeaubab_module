@@ -2,13 +2,12 @@
 import React, { useEffect, useState } from 'react'
 import { useEntrepriseBonLivraisonStore } from '../store/store'
 import { Input } from '@/components/ui/input'
-import { GoDotFill } from 'react-icons/go';
-import { cn, convertDate, formatDate, formatNumberToFrenchStandard } from '@/lib/utils';
+import { cn, formatDate, formatNumberToFrenchStandard } from '@/lib/utils';
 import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
 import { useParams } from 'next/navigation';
 import { IDocumentBonLivraison } from '../interface';
-import { DocumentPDF } from './DocumentPDFRendered';
-import { PDFDownloadLink, Document, Page, PDFViewer, usePDF } from '@react-pdf/renderer';
+import { DocumentPDFBonLivraison } from './DocumentPDFRendered';
+import { usePDF } from '@react-pdf/renderer';
 import dynamic from "next/dynamic";
 import { Button } from '@/components/ui/button';
 
@@ -134,10 +133,10 @@ const BonLivraisonSelected = () => {
     const store = useEntrepriseBonLivraisonStore()
     const document = store.selectedBonLivraison
 
-    const [instance, updateInstance] = usePDF({ document: <DocumentPDF document={document} /> });
+    const [instance, updateInstance] = usePDF({ document: <DocumentPDFBonLivraison document={document} /> });
 
     useEffect(() => {
-        updateInstance(<DocumentPDF document={document} />);
+        updateInstance(<DocumentPDFBonLivraison document={document} />);
     }, [JSON.stringify(document)]);
 
 
@@ -158,9 +157,7 @@ const BonLivraisonSelected = () => {
                     <span className='font-bold'> REF-{document.entete.DO_No}</span>
                     <div>
                         {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url) }}>Download</Button>}
-                        {/* {instance.loading ? 'loading...' : <PDFDownloadLink document={<DocumentPDF document={document} />} fileName={`BL-REF-${document.entete.DO_No}.pdf`}>
-                            {({ loading }) => (loading ? <span> Loading...</span> : <span className='text-blue-400'>Download</span>)}
-                        </PDFDownloadLink>} */}
+
                     </div>
                 </div>
 
@@ -204,6 +201,7 @@ const BonLivraisonDetailSection = () => {
             <div className='w-5/7 flex flex-col h-screen overflow-scroll'>
 
                 {store.selectedBonLivraison && <BonLivraisonSelected />}
+
             </div>
         </main>
     )

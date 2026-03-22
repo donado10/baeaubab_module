@@ -17,17 +17,16 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { en_no, month, year } = c.req.valid("query");
-			console.log(en_no, month, year);
 
 			const pool = await getConnection();
 
 			const query_entete = `
 		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} )
-			select lev1.*,ct.CT_No,ct.CT_Intitule from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = ${en_no}
+			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = ${en_no}
 	`;
 			const query_ligne = `
-			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = 2026 and MONTH(created_at)=1 )
-select lev1.*,art.Art_Design from lev1 inner join F_ARTICLE_DIGITAL art on lev1.ART_No= art.Art_No where lev1.EN_No = ${en_no}
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = 2026 and MONTH(created_at)=1 )
+			select lev1.*,art.Art_Design,art.Art_Code from lev1 inner join F_ARTICLE_DIGITAL art on lev1.ART_No= art.Art_No where lev1.EN_No = ${en_no}
 			`;
 			let result_entete = await pool.request().query(query_entete);
 			let result_ligne = await pool.request().query(query_ligne);

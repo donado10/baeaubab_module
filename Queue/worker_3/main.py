@@ -46,9 +46,12 @@ def insert_new_clients(clients: list):
            ,[CT_TVA]
            ,[CT_DG]
            ,[CT_Entreprise]
+           ,[CT_Phone]
+           ,[CT_Addresse]
+           ,[CT_Email]
            ,[created_at])
      VALUES
-           (?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?,?,?,?)
 """
     cursor_mssql.executemany(script, clients)
     conn_mssql.commit()
@@ -132,6 +135,49 @@ def handle_entreprise():
     insert_new_enterprises(result)
 
 
+def insert_new_livreurs(livreurs: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        INSERT INTO [TRANSIT].[dbo].[F_LIVREUR_DIGITAL]
+           ([LIV_No]
+           ,[LIV_Nom]
+           ,[LIV_Prenom]
+           ,[LIV_Email]
+           ,[LIV_Status]
+           ,[created_at])
+     VALUES
+           (?,?,?,?,?,?)
+"""
+    cursor_mssql.executemany(script, livreurs)
+    conn_mssql.commit()
+    pass
+
+
+def handle_livreurs():
+    script_mssql = """
+    SELECT  LIV_No
+  FROM TRANSIT.dbo.F_LIVREUR_DIGITAL
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    script_mysql = ""
+
+    if len(result):
+        script_mysql = f"""
+        SELECT id,nom,prenom,username,status,created_at FROM livreurs where id not in ({','.join(result)})
+    """
+    else:
+        script_mysql = """
+        SELECT id,nom,prenom,username,status,created_at FROM livreurs 
+    """
+
+    result = mysql_execute_select_all(script_mysql)
+    if not len(result):
+        return
+    insert_new_livreurs(result)
+
+
 def handle_new_client():
     script_mssql = """
     SELECT  CT_No
@@ -144,11 +190,11 @@ def handle_new_client():
 
     if len(result):
         script_mysql = f"""
-        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id ,created_at from clients where id not in ({','.join(result)})
+        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id,mobile,adresse,email ,created_at from clients where id not in ({','.join(result)})
     """
     else:
         script_mysql = """
-        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id ,created_at from clients 
+        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id,mobile,adresse,email ,created_at from clients 
     """
 
     result = mysql_execute_select_all(script_mysql)
@@ -222,7 +268,7 @@ def get_bls(year, month):
 
 
 def get_bl(bl: int):
-    script = f"""SELECT dl.id,3 as do_type,client_id,cl.code_compta,qte,article_ids,date,dl.created_at,dl.status FROM distribution_lines dl inner join clients cl
+    script = f"""SELECT dl.id,3 as do_type,client_id,cl.code_compta,qte,article_ids,date,dl.created_at,dl.status,dl.livreur_id FROM distribution_lines dl inner join clients cl
     on dl.client_id = cl.id
     where dl.id = {bl}
     ORDER BY dl.id ASC """
@@ -240,6 +286,7 @@ def handle_bl_entete(bl: tuple) -> list:
     entete.append(bl[6])
     entete.append(bl[7])
     entete.append(bl[8])
+    entete.append(bl[9])
 
     conn_mssql, cursor_mssql = dbo_mssql()
     script = """
@@ -251,9 +298,10 @@ def handle_bl_entete(bl: tuple) -> list:
            ,[CT_Num]
            ,[DO_Date]
            ,[created_at]
-           ,[DO_Status])
+           ,[DO_Status]
+           ,[LIV_No])
      VALUES
-           (?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?,?)
 """
     cursor_mssql.execute(script, entete)
 
@@ -380,6 +428,25 @@ def update_entete(bl):
         cursor_mssql.execute(script)
 
 
+def update_ligne(bl):
+    _, cursor_mssql = dbo_mssql()
+    script = f"""
+        update ligne
+        set ligne.ART_Design = art.Art_Design
+        from TRANSIT.dbo.F_DOCLIGNE_DIGITAL ligne inner join TRANSIT.dbo.F_ARTICLE_DIGITAL art on ligne.ART_No = art.Art_No
+        where do_no in ({bl[0]})
+    """
+    cursor_mssql.execute(script)
+
+    script = f"""
+        update ligne1
+        set ligne1.DO_PrixUnitaire = ligne2.DO_TotalHT / ligne2.ART_Qte
+        from TRANSIT.dbo.F_DOCLIGNE_DIGITAL ligne1 inner join TRANSIT.dbo.F_DOCLIGNE_DIGITAL ligne2 on ligne1.DO_No = ligne2.DO_No
+        where ligne1.do_no in ({bl[0]})
+    """
+    cursor_mssql.execute(script)
+
+
 def handle_bl(bl: int):
     conn_mssql, _ = dbo_mssql()
     bl = get_bl(bl)
@@ -387,7 +454,9 @@ def handle_bl(bl: int):
     handle_bl_entete(bl)
     handle_bl_ligne(bl)
     conn_mssql.commit()
+
     update_entete(bl)
+    update_ligne(bl)
 
     conn_mssql.commit()
 
@@ -421,6 +490,7 @@ def main_process_facture_detail(jobId, year, month, journal, database):
     # process_facture_detail(jobId, year, month, journal, database)
     handle_new_articles()
     handle_clients()
+    handle_livreurs()
     handle_bl_documents(year, month)
     update_entreprise_id()
 

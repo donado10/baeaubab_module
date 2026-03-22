@@ -22,7 +22,7 @@ const tw = createTw({
     },
 });
 
-export function DocumentPDF({ document }: { document: IDocumentBonLivraison }) {
+export function DocumentPDFBonLivraison({ document }: { document: IDocumentBonLivraison }) {
     return (
         <Document>
             {/* Remove 'flex' from the page style and use 'flex-col' for vertical stacking */}
@@ -45,24 +45,27 @@ export function DocumentPDF({ document }: { document: IDocumentBonLivraison }) {
 
                     {/* From / To Section */}
                     <View style={tw("w-full flex flex-row justify-between mb-10")}>
-                        <View>
+                        <View style={tw('flex gap-1')}>
                             <Text style={tw("text-lg font-bold")}>Expéditeur</Text>
                             <Text style={tw("text-sm font-bold")}>Baeaubab Senegal</Text>
                             <Text style={tw("text-sm")}>Ecole Normal en face ecole police</Text>
                             <Text style={tw("text-sm")}>Email: baeaubab@baeaubab.com</Text>
                             <Text style={tw("text-sm")}>Téléphone: +221 33 865 40 40</Text>
                         </View>
-                        <View>
+                        <View style={tw('flex gap-1')}>
                             <Text style={tw("text-lg font-bold text-right")}>Destinataire</Text>
                             <Text style={tw("text-sm font-bold text-right")}>{document.entete.CT_Intitule}</Text>
+                            <Text style={tw("text-sm")}>{document.entete.CT_Addresse}</Text>
+                            <Text style={tw("text-sm")}>Email: {document.entete.CT_Email}</Text>
+                            {document.entete.CT_Phone && <Text style={tw("text-sm")}>Téléphone: {document.entete.CT_Phone}</Text>}
                         </View>
                     </View>
 
                     {/* Table Section */}
                     <View style={tw("w-full")}>
                         {/* Header Row */}
-                        <View style={tw("w-full flex flex-row border border-black bg-gray-50")}>
-                            <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>Article</Text>
+                        <View style={tw("w-full flex flex-row border border-black bg-gray-300")}>
+                            <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>Référence</Text>
                             <Text style={tw("text-[10px] w-[40%] p-2 border-r border-black font-bold")}>Designation</Text>
                             <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>Quantité</Text>
                             <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>P.U.</Text>
@@ -72,18 +75,18 @@ export function DocumentPDF({ document }: { document: IDocumentBonLivraison }) {
                         {/* Data Rows */}
                         {document.lignes.map((ligne, i) => (
                             <View key={i} style={tw("w-full flex flex-row border-l border-r border-b border-black")}>
-                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{ligne.ART_No}</Text>
+                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{ligne.Art_Code}</Text>
                                 <Text style={tw("text-[10px] w-[40%] p-2 border-r border-black")}>{ligne.Art_Design}</Text>
                                 <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{ligne.ART_Qte}</Text>
-                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{(ligne.DO_TotalHT / ligne.ART_Qte).toFixed(2)}</Text>
-                                <Text style={tw("text-[10px] w-[15%] p-2")}>{ligne.DO_TotalHT}</Text>
+                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{(ligne.DO_PrixUnitaire).toFixed(2)}</Text>
+                                <Text style={tw("text-[10px] w-[15%] p-2")}>{(ligne.DO_TotalHT).toFixed(2)}</Text>
                             </View>
                         ))}
 
                         {/* Total Section */}
                         <View style={tw("mt-4 flex flex-row justify-end")}>
                             <Text style={tw("text-[12px] p-2 border border-black font-bold")}>
-                                Total: {document.lignes.reduce((prev, next) => prev + next.DO_TotalHT, 0)} FCFA
+                                Total: {(document.lignes.reduce((prev, next) => prev + next.DO_TotalHT, 0)).toFixed(2)} FCFA
                             </Text>
                         </View>
                     </View>

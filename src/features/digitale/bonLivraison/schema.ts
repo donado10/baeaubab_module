@@ -31,6 +31,9 @@ export const documentEnteteSchema = z.object({
 	EN_No: z.string(),
 	CT_No: z.string(),
 	CT_Intitule: z.string(),
+	CT_Phone: z.string(),
+	CT_Addresse: z.string(),
+	CT_Email: z.string(),
 	created_at: z.string(),
 });
 export const documentLigneSchema = z.object({
@@ -38,6 +41,8 @@ export const documentLigneSchema = z.object({
 	Client_ID: z.string(),
 	CT_Num: z.string(),
 	ART_No: z.string(),
+	Art_Code: z.string(),
+	DO_PrixUnitaire: z.number(),
 	ART_Qte: z.number(),
 	DO_TotalHT: z.number(),
 	DO_Status: z.number(),

@@ -1,6 +1,6 @@
 'use client'
 
-import { DocumentPDF } from '@/features/digitale/bonLivraison/components/DocumentPDFRendered'
+import { DocumentPDFBonLivraison } from '@/features/digitale/bonLivraison/components/DocumentPDFRendered'
 import { PDFViewer } from '@react-pdf/renderer'
 import React from 'react'
 
@@ -36,7 +36,7 @@ const page = () => {
         <div className='w-2/4'>
             <PDFViewer width="100%" height="650px" style={{ border: 'none' }} >
 
-                <DocumentPDF document={document} />
+                <DocumentPDFBonLivraison document={document} />
             </PDFViewer>
         </div>
     )
