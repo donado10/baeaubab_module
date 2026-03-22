@@ -1,78 +1,63 @@
-import { Document, Page } from "react-pdf";
-import { Text, View, StyleSheet, PDFViewer } from "@react-pdf/renderer";
+"use client"
 
-import { pdfjs } from "react-pdf";
-import { createTw } from "@hyperline/react-pdf-tailwind";
+import { Document, Page, pdfjs } from "react-pdf";
 import { useState } from "react";
 
-// The 'theme' object is your Tailwind theme config
-const tw = createTw({
-    theme: {
-        fontFamily: {
-            sans: ["Comic Sans"],
-        },
-        extend: {
-            colors: {
-                custom: "#bada55",
-            },
-        },
-    },
-});
+// Required for correct text alignment and avoiding "ghost" heights
+import 'react-pdf/dist/Page/TextLayer.css';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
 
+// Using a reliable CDN for the worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-export function DocumentPDFView() {
-    const [numPages, setNumPages] = useState(0);
+export function DocumentPDFView({ fileUrl }: { fileUrl: string }) {
+    const [numPages, setNumPages] = useState<number | null>(null);
     const [pageNumber, setPageNumber] = useState(1);
 
-    const fileUrl = "/sample.pdf";
-
-    function onLoadSuccess({ numPages }) {
+    function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
         setNumPages(numPages);
     }
 
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        "pdfjs-dist/build/pdf.worker.min.mjs",
-        import.meta.url,
-    ).toString();
-
-
     return (
-        <div>
+        <div className="flex flex-col items-center p-5 w-full ">
+            {/* 1. The Scrollable Container with restricted height */}
+            <div className='w-full max-w-[600px] h-[600px]  overflow-y-auto bg-gray-100 '>
+                <Document
+                    file={fileUrl}
+                    onLoadSuccess={onDocumentLoadSuccess}
+                    loading={<p>Chargement du PDF...</p>}
+                >
+                    <Page
+                        pageNumber={pageNumber}
+                        width={600}
+                        renderAnnotationLayer={false} // Prevents extra height bugs
+                        renderTextLayer={true}
+                    />
+                </Document>
+            </div>
 
-
-            <Document file={fileUrl} onLoadSuccess={onLoadSuccess}>
-                <Page size="A4" pageNumber={pageNumber}
-                    style={tw("p-4 flex flex-row flex-wrap gap-4 border-none")}>
-                    {[...Array(12)].map((_, i) => (
-                        <View
-                            key={i}
-                            style={tw("flex-1 min-w-[200pt] p-4 flex-col bg-blue-100")}
-                            wrap={false}
-                        >
-                            <Text style={tw("text-2xl font-bold text-custom")}>
-                                Section {i + 1}
-                            </Text>
-                            <Text style={tw("text-sm")}>
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla
-                                semper efficitur libero in laoreet. Sed iaculis, magna suscipit
-                                placerat commodo, risus turpis tincidunt ligula, ac euismod
-                                justo sem id risus. Nullam euismod vestibulum leo, mollis
-                                maximus sapien luctus in. Vivamus malesuada vulputate ornare.
-                                Mauris ut accumsan felis. Vivamus enim urna, ultrices eu eros
-                                ac, bibendum vehicula eros. Praesent ipsum orci, molestie
-                                gravida tristique at, dapibus vitae est. Phasellus lectus nulla,
-                                consequat eu mi ut, tempus pulvinar neque.
-                            </Text>
-                        </View>
-                    ))}
-                </Page>
-            </Document>
-            <button onClick={() => setPageNumber((p) => p - 1)}>
-                Prev
-            </button>
-            <button onClick={() => setPageNumber((p) => p + 1)}>
-                Next
-            </button>
+            {/* 2. Pagination Controls */}
+            {numPages && (
+                <div className="flex items-center gap-4 mt-4 bg-white p-2 rounded shadow">
+                    <button
+                        disabled={pageNumber <= 1}
+                        onClick={() => setPageNumber(prev => prev - 1)}
+                        className="px-3 py-1 bg-blue-500 text-white rounded disabled:bg-gray-300"
+                    >
+                        Précédent
+                    </button>
+                    <p className="text-sm font-medium">
+                        Page {pageNumber} sur {numPages}
+                    </p>
+                    <button
+                        disabled={pageNumber >= numPages}
+                        onClick={() => setPageNumber(prev => prev + 1)}
+                        className="px-3 py-1 bg-blue-500 text-white rounded disabled:bg-gray-300"
+                    >
+                        Suivant
+                    </button>
+                </div>
+            )}
         </div>
     );
-}
+};

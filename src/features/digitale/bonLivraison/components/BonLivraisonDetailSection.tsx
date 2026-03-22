@@ -8,7 +8,14 @@ import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
 import { useParams } from 'next/navigation';
 import { IDocumentBonLivraison } from '../interface';
 import { DocumentPDF } from './DocumentPDFRendered';
-import { PDFDownloadLink, Document, Page, PDFViewer } from '@react-pdf/renderer';
+import { PDFDownloadLink, Document, Page, PDFViewer, usePDF } from '@react-pdf/renderer';
+import dynamic from "next/dynamic";
+import { Button } from '@/components/ui/button';
+
+const DocumentPDFView = dynamic(
+    () => import("./DocumentPDFViewer").then(m => m.DocumentPDFView),
+    { ssr: false }
+);
 
 
 
@@ -116,15 +123,28 @@ const BonLivraisonList = ({ documents }: { documents: IDocumentBonLivraison[] })
     </ul>
 }
 
+const handleDownload = (fileUrl: string) => {
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = "my-document.pdf";
+    link.click();
+};
 
 const BonLivraisonSelected = () => {
     const store = useEntrepriseBonLivraisonStore()
     const document = store.selectedBonLivraison
 
-    console.log(document)
+    const [instance, updateInstance] = usePDF({ document: <DocumentPDF document={document} /> });
+
+    useEffect(() => {
+        updateInstance(<DocumentPDF document={document} />);
+    }, [JSON.stringify(document)]);
+
+
+
     return <>
 
-        <div className='  border-b border-gray-500 h-[15vh] p-8'>
+        <div className='  border-b border-gray-500 h-[15vh] p-8 '>
             <div className='flex items-center justify-between'>
 
                 <div>
@@ -137,21 +157,21 @@ const BonLivraisonSelected = () => {
 
                     <span className='font-bold'> REF-{document.entete.DO_No}</span>
                     <div>
-                        <PDFDownloadLink document={<DocumentPDF document={document} />} fileName={`REF-${document.entete.DO_No}.pdf`}>
-                            {({ loading }) => (loading ? 'Loading...' : 'Download')}
-                        </PDFDownloadLink>
+                        {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url) }}>Download</Button>}
+                        {/* {instance.loading ? 'loading...' : <PDFDownloadLink document={<DocumentPDF document={document} />} fileName={`BL-REF-${document.entete.DO_No}.pdf`}>
+                            {({ loading }) => (loading ? <span> Loading...</span> : <span className='text-blue-400'>Download</span>)}
+                        </PDFDownloadLink>} */}
                     </div>
                 </div>
 
             </div>
         </div>
-        <div className='bg-gray-500/20 flex-1 flex items-center justify-center'>
-            <div className='w-2/4'>
-                <PDFViewer width="100%" height="650px" style={{ border: 'none' }} >
+        <div className='bg-gray-500/20  flex items-center justify-center'>
+            {instance.loading ? 'loading...' :
 
-                    <DocumentPDF document={document} />
-                </PDFViewer>
-            </div>
+                <DocumentPDFView fileUrl={instance.url} />
+
+            }
         </div>
     </>
 }
@@ -165,8 +185,8 @@ const BonLivraisonDetailSection = () => {
 
 
     return (
-        <main className='flex  w-full min-h-screen border border-gray-500  '>
-            <div className='w-2/7 h-screen  border-r border-gray-500  '>
+        <main className='flex  w-full min-h-screen border border-gray-500  overflow-scroll'>
+            <div className='w-2/7 h-screen overflow-scroll border-r border-gray-500  '>
                 <div className='border-b border-gray-500 p-8 h-[25vh]'>
                     <div className='mb-4'>
                         <h1 className='text-2xl font-bold '>Bon de Livraisons</h1>
@@ -181,7 +201,7 @@ const BonLivraisonDetailSection = () => {
                     <BonLivraisonListContainer entreprise_id={entreprise_id.toString()} />
                 </div>
             </div>
-            <div className='w-5/7 flex flex-col'>
+            <div className='w-5/7 flex flex-col h-screen overflow-scroll'>
 
                 {store.selectedBonLivraison && <BonLivraisonSelected />}
             </div>
