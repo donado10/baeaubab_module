@@ -5,6 +5,29 @@ import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 
 const app = new Hono()
+
+	.get(
+		"/entreprise/dg",
+		zValidator(
+			"query",
+			z.object({
+				en_no: z.string(),
+			})
+		),
+		async (c) => {
+			const { en_no } = c.req.valid("query");
+			console.log(en_no);
+
+			const pool = await getConnection();
+
+			const query = `
+			select * from TRANSIT.dbo.F_COMPTET_DIGITAL where ct_dg=1 and ct_entreprise=${en_no}
+			`;
+			let result = await pool.request().query(query);
+
+			return c.json({ result: result.recordset[0] });
+		}
+	)
 	.get(
 		"/entreprise/list",
 		zValidator(

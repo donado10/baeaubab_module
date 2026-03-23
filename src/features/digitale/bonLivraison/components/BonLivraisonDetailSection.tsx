@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input'
 import { cn, formatDate, formatNumberToFrenchStandard } from '@/lib/utils';
 import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
 import { useParams } from 'next/navigation';
-import { IDocumentBonLivraison } from '../interface';
-import { DocumentPDFBonLivraison } from './DocumentPDFRendered';
+import { IAgence, IDocumentBonLivraison } from '../interface';
+import { DocumentPDFBonLivraison, DocumentPDFFactureResume, DocumentPDFFactureResumeContainer } from './DocumentPDFRendered';
 import { usePDF } from '@react-pdf/renderer';
 import dynamic from "next/dynamic";
 import { Button } from '@/components/ui/button';
+import useGetEntrepriseDG from '../api/use-get-entreprise-dg';
 
 const DocumentPDFView = dynamic(
     () => import("./DocumentPDFViewer").then(m => m.DocumentPDFView),
@@ -96,6 +97,19 @@ const BonLivraisonListContainer = ({ entreprise_id }: { entreprise_id: string })
 
     const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), store.periode[0], store.periode[1])
 
+    useEffect(() => {
+        if (isPending) {
+            return
+        }
+
+        if (!data) {
+            return
+        }
+        console.log(data.result)
+        store.setItemsBL(data.result)
+
+    }, [entreprise_id, data])
+
 
     if (isPending) {
         return <></>
@@ -104,6 +118,8 @@ const BonLivraisonListContainer = ({ entreprise_id }: { entreprise_id: string })
     if (!data) {
         return <></>
     }
+
+
     return <BonLivraisonList documents={data.result as IDocumentBonLivraison[]} />
 }
 const BonLivraisonList = ({ documents }: { documents: IDocumentBonLivraison[] }) => {
@@ -172,14 +188,79 @@ const BonLivraisonSelected = () => {
         </div>
     </>
 }
+const FactureResume = ({ agence_dg }: { agence_dg: IAgence }) => {
+    const store = useEntrepriseBonLivraisonStore()
 
-const BonLivraisonDetailSection = () => {
+
+
+    const [instance, updateInstance] = usePDF({ document: <DocumentPDFFactureResume agence={agence_dg} documents={store.itemsBL.filter((item) => item.entete.DO_Status != 2)} /> });
+
+    useEffect(() => {
+        updateInstance(<DocumentPDFFactureResume agence={agence_dg} documents={store.itemsBL.filter((item) => item.entete.DO_Status != 2)} />);
+    }, [JSON.stringify(agence_dg)]);
+
+
+
+    return <>
+
+        <div className='  border-b border-gray-500 h-[15vh] p-8 '>
+            <div className='flex items-center justify-between'>
+
+                <div className='flex flex-col '>
+                    <span className='text-normal font-semibold'>{agence_dg.CT_Intitule}</span>
+                    <span className='text-xs font-semibold'>{agence_dg.CT_No}</span>
+                    <div>
+                    </div>
+                </div>
+                <div>
+
+                    <div>
+                        {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url) }}>Download</Button>}
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div className='bg-gray-500/20  flex items-center justify-center'>
+            {instance.loading ? 'loading...' :
+
+                <DocumentPDFView fileUrl={instance.url} />
+
+            }
+        </div>
+    </>
+}
+
+const BonLivraisonDetailSectionContainer = () => {
+    const { entreprise_id } = useParams()
+    const { data, isPending } = useGetEntrepriseDG(entreprise_id.toString())
+    const store = useEntrepriseBonLivraisonStore()
+
+    useEffect(() => {
+        store.setItemsBL([])
+    }, [entreprise_id])
+
+    if (isPending
+    ) {
+        return <></>
+
+    }
+    if (!data) {
+        return <></>
+
+    }
+    return <><BonLivraisonDetailSection agence={data.result} /></>
+}
+
+const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
     const store = useEntrepriseBonLivraisonStore()
     const { entreprise_id } = useParams()
 
     const entreprise = store.items.find((en) => en.EN_No.toString() == entreprise_id.toString())
 
 
+    console.log(store.itemsBL)
 
     return (
         <main className='flex  w-full min-h-screen border border-gray-500  overflow-scroll'>
@@ -201,10 +282,11 @@ const BonLivraisonDetailSection = () => {
             <div className='w-5/7 flex flex-col h-screen overflow-scroll'>
 
                 {store.selectedBonLivraison && <BonLivraisonSelected />}
+                {!store.selectedBonLivraison && store.itemsBL.length > 0 && <FactureResume agence_dg={agence} />}
 
             </div>
         </main>
     )
 }
 
-export default BonLivraisonDetailSection
+export default BonLivraisonDetailSectionContainer

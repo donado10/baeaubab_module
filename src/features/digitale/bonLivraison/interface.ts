@@ -1,5 +1,6 @@
 import z from "zod";
 import {
+	agenceSchema,
 	documentEnteteSchema,
 	documentLigneSchema,
 	documentSchema,
@@ -13,3 +14,4 @@ export type IEntrepriseBonLivraison = z.infer<
 export type IDocumentBonLivraison = z.infer<typeof documentSchema>;
 export type IDocumentEnteteBonLivraison = z.infer<typeof documentEnteteSchema>;
 export type IDocumentLigneBonLivraison = z.infer<typeof documentLigneSchema>;
+export type IAgence = z.infer<typeof agenceSchema>;

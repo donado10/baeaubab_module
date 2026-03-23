@@ -59,3 +59,16 @@ export const documentSchema = z.object({
 export const bonLivraisonSchema = z.object({
 	entete: entrepriseBonLivraisonSchema,
 });
+
+export const agenceSchema = z.object({
+	CT_No: z.number(),
+	CT_Intitule: z.string(),
+	CT_Num: z.string(),
+	CT_TVA: z.string(),
+	CT_DG: z.string(),
+	CT_Entreprise: z.string(),
+	CT_Phone: z.string(),
+	CT_Addresse: z.string(),
+	CT_Email: z.string(),
+	created_at: z.string(),
+});

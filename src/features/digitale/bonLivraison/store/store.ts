@@ -33,6 +33,7 @@ interface IFilter {
 
 interface IEntrepriseBonLivraisonState {
 	items: IEntrepriseBonLivraison[];
+	itemsBL: IDocumentBonLivraison[];
 	periode: string[];
 	event: IEvent | null;
 	filter: IFilter;
@@ -47,6 +48,7 @@ interface IEntrepriseBonLivraisonState {
 	setAddAllBillCart: (bills: number[]) => void;
 	setRemoveAllBillCart: () => void;
 	setItems: (items: IEntrepriseBonLivraison[]) => void;
+	setItemsBL: (items: IDocumentBonLivraison[]) => void;
 	setEvent: (event: IEvent) => void;
 	setFilter: (filter: IFilter) => void;
 	setPeriode: (year: string, month: string) => void;
@@ -59,6 +61,7 @@ export const useEntrepriseBonLivraisonStore =
 		persist(
 			(set) => ({
 				items: [],
+				itemsBL: [],
 				periode: [],
 				billCart: [],
 				event: null,
@@ -91,6 +94,8 @@ export const useEntrepriseBonLivraisonStore =
 					set({ dialog: { ...dialogState } }),
 				setItems: (items: IEntrepriseBonLivraison[]) =>
 					set({ items: [...items] }),
+				setItemsBL: (items: IDocumentBonLivraison[]) =>
+					set({ itemsBL: [...items] }),
 				setEvent: (event: IEvent) => set({ event: event }),
 				setFilter: (filter: IFilter) => set({ filter: filter }),
 				setAddBillCart: (bill: number) =>
@@ -108,6 +113,9 @@ export const useEntrepriseBonLivraisonStore =
 				clear: () =>
 					set({
 						billCart: [],
+						itemsBL: [],
+						selectedBonLivraison: null,
+
 						filter: {
 							status: EStatus.ALL,
 							search: { type: "Intitule", value: "" },

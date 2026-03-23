@@ -1,3 +1,4 @@
+import BonLivraisonDetailSectionContainer from '@/features/digitale/bonLivraison/components/BonLivraisonDetailSection';
 import BonLivraisonDetailSection from '@/features/digitale/bonLivraison/components/BonLivraisonDetailSection';
 import BonLivraisonSection from '@/features/digitale/bonLivraison/components/BonLivraisonSection';
 import React from 'react'
@@ -9,7 +10,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }>; }) => {
 
 
     return (
-        <div className='min-h-screen'><BonLivraisonDetailSection /></div>
+        <div className='min-h-screen'><BonLivraisonDetailSectionContainer /></div>
     )
 }
 

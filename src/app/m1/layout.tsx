@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import BreadcrumbContainer from "@/components/breadcrumbContainer";
+import Providers from "@/components/queryProviders";
 
 import { Separator } from "@/components/ui/separator";
 import {
@@ -20,21 +21,24 @@ export default async function Layout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SidebarProvider className="">
-      <AppSidebar />
-      <SidebarInset className="h-[95vh]">
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-500-900 ">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator
-              orientation="vertical"
-              className="mr-2 data-[orientation=vertical]:h-4"
-            />
-            <BreadcrumbContainer />
-          </div>
-        </header>
-        <main className="  overflow-scroll">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+    <Providers>
+
+      <SidebarProvider className="">
+        <AppSidebar />
+        <SidebarInset className="h-[95vh]">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-gray-500-900 ">
+            <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <Separator
+                orientation="vertical"
+                className="mr-2 data-[orientation=vertical]:h-4"
+              />
+              <BreadcrumbContainer />
+            </div>
+          </header>
+          <main className="  overflow-scroll">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    </Providers>
   );
 }
