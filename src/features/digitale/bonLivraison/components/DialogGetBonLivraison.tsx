@@ -20,17 +20,21 @@ import useGetBonLivraison from "../api/use-get-bon-livraison"
 import { useEntrepriseBonLivraisonStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 
-export function DialogLoadEcrituresWithCheck({ open, onOpen }: { open: boolean, onOpen: (value: boolean) => void }) {
-
-    const [withChecking, setWithChecking] = useState(false)
-
+export function DialogGetBonLivraison({ open, onOpen }: { open: boolean, onOpen: (value: boolean) => void }) {
 
     const store = useEntrepriseBonLivraisonStore()
+    const { mutate } = useGetBonLivraison()
+
 
 
     const submitHandler = () => {
 
-
+        mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
+            onSuccess: (results: any) => {
+                store.setItems(results.result)
+                store.setEvent(null)
+            }
+        })
 
         onOpen(false)
 

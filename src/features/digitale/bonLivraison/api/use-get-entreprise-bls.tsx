@@ -10,8 +10,8 @@ const useGetEnterpriseBonLivraison = (en_no: string, year: string, month: string
                     .list.$get({
                         query: {
                             en_no: en_no,
-                            year: 2026,
-                            month: 1,
+                            year: year,
+                            month: month,
                         },
                     });
 

@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import z, { string } from "zod";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
+import amqp from "amqplib";
 
 const app = new Hono()
 
@@ -48,7 +49,7 @@ const app = new Hono()
 			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = ${en_no}
 	`;
 			const query_ligne = `
-			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = 2026 and MONTH(created_at)=1 )
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} )
 			select lev1.*,art.Art_Design,art.Art_Code from lev1 inner join F_ARTICLE_DIGITAL art on lev1.ART_No= art.Art_No where lev1.EN_No = ${en_no}
 			`;
 			let result_entete = await pool.request().query(query_entete);
@@ -66,8 +67,6 @@ const app = new Hono()
 					lignes: ligne,
 				};
 			});
-
-			console.log(documents[0].entete);
 
 			return c.json({ result: documents });
 		}
@@ -103,6 +102,39 @@ const app = new Hono()
 		});
 	})
 	.post(
+		"/getBonLivraisonDigital",
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month } = c.req.valid("json");
+
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("get_digital_bl_jobs");
+
+			const jobId = ID.unique();
+
+			channel.sendToQueue(
+				"get_digital_bl_jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+					})
+				)
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		}
+	)
+	.post(
 		"/",
 		zValidator(
 			"json",
@@ -117,12 +149,12 @@ const app = new Hono()
 			const pool = await getConnection();
 
 			const query = `with lev1 as (select entreprise_id,count(do_no) as nbre_bls from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by entreprise_id),
-lev2 as (select entreprise_id,sum(DO_TotalHT) as totalHT from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by entreprise_id),
-lev3 as (select lev1.entreprise_id as EN_No,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT 
-from lev1 inner join lev2 on lev1.entreprise_id = lev2.entreprise_id ),
-lev4 as (select lev3.*,en.EN_Intitule,en.EN_TVA from lev3 inner join F_ENTREPRISE_DIGITAL en on lev3.EN_No = en.EN_No),
-lev5 as (select CT_Entreprise,count(CT_Entreprise) as EN_Agences from F_COMPTET_DIGITAL  group by CT_Entreprise)
-select lev4.*,lev5.EN_Agences from lev4 inner join lev5 on lev4.EN_No = lev5.CT_Entreprise order by en_no
+			lev2 as (select entreprise_id,sum(DO_TotalHT) as totalHT from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by entreprise_id),
+			lev3 as (select lev1.entreprise_id as EN_No,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT 
+			from lev1 inner join lev2 on lev1.entreprise_id = lev2.entreprise_id ),
+			lev4 as (select lev3.*,en.EN_Intitule,en.EN_TVA from lev3 inner join F_ENTREPRISE_DIGITAL en on lev3.EN_No = en.EN_No),
+			lev5 as (select CT_Entreprise,count(CT_Entreprise) as EN_Agences from F_COMPTET_DIGITAL  group by CT_Entreprise)
+			select lev4.*,lev5.EN_Agences from lev4 inner join lev5 on lev4.EN_No = lev5.CT_Entreprise order by en_no
 
 
 `;

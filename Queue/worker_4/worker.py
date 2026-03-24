@@ -3,7 +3,7 @@ import json
 import time
 import requests
 
-from main import main_process_bl_detail
+from main import main_process_facture_detail
 
 
 def connect_with_retry(host="rabbitmq", tries=30, delay=2):
@@ -20,7 +20,7 @@ connection = connect_with_retry()
 
 channel = connection.channel()
 
-channel.queue_declare(queue="get_digital_bl_jobs", durable=True)
+channel.queue_declare(queue="integrate_digital_ec_jobs", durable=True)
 
 
 def handle(ch, method, properties, body):
@@ -30,7 +30,7 @@ def handle(ch, method, properties, body):
     time.sleep(2)
 
     requests.post(
-        "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
+        "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
         json={
             "jobId": data["jobId"],
             "status": "pending",
@@ -38,11 +38,12 @@ def handle(ch, method, properties, body):
             "ec_count": ""
         }
     )
-    main_process_bl_detail(
-        data["jobId"], data["year"], data["month"])
+    if data["type"] == 'facture_detail':
+        main_process_facture_detail(
+            data["jobId"], data["year"], data["month"], data["journal"], data["database"])
 
     requests.post(
-        "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
+        "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
         json={
             "jobId": data["jobId"],
             "status": "done",
@@ -53,7 +54,7 @@ def handle(ch, method, properties, body):
 
 
 channel.basic_consume(
-    queue="get_digital_bl_jobs",
+    queue="integrate_digital_ec_jobs",
     on_message_callback=handle,
     auto_ack=True
 )

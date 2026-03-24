@@ -14,13 +14,15 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ReactNode, useState } from "react"
+import { ReactNode, useEffect, useState } from "react"
 //import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { EStatus, useEntrepriseBonLivraisonStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 import { toast } from "sonner"
 import useGetBonLivraison from "../api/use-get-bon-livraison"
+import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
+import { Store } from "lucide-react"
 
 
 const months = [
@@ -38,8 +40,10 @@ const months = [
     { month: "décembre", value: 12 }
 ];
 
-const SelectMonth = ({ onSetMonth }: { onSetMonth: (value: string) => void }) => {
-    return <Select onValueChange={(value) => onSetMonth(value)}>
+const SelectMonth = ({ month, onSetMonth }: { month: string, onSetMonth: (value: string) => void }) => {
+    const store = useEntrepriseBonLivraisonStore()
+
+    return <Select value={month} onValueChange={(value) => { onSetMonth(value) }}>
         <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Mois" />
         </SelectTrigger>
@@ -53,9 +57,10 @@ const SelectMonth = ({ onSetMonth }: { onSetMonth: (value: string) => void }) =>
     </Select>
 }
 
-const SelectYear = ({ onSetYear }: { onSetYear: (value: string) => void }) => {
+const SelectYear = ({ year, onSetYear }: { year: string; onSetYear: (value: string) => void }) => {
 
     const currentYear = new Date().getFullYear();
+    const store = useEntrepriseBonLivraisonStore()
     let years: number[] = []
 
     for (let year = 2020; year < currentYear; year++) {
@@ -64,7 +69,7 @@ const SelectYear = ({ onSetYear }: { onSetYear: (value: string) => void }) => {
     }
 
 
-    return <Select onValueChange={(value) => onSetYear(value)}>
+    return <Select value={year} onValueChange={(value) => { onSetYear(value) }}>
         <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Année" />
         </SelectTrigger>
@@ -78,28 +83,28 @@ const SelectYear = ({ onSetYear }: { onSetYear: (value: string) => void }) => {
     </Select>
 }
 
-export function DialogLoadEcritures({ children }: { children: ReactNode }) {
+export function DialogLoadBonLivraison({ children }: { children: ReactNode }) {
 
-    const [year, setYear] = useState('2020')
-    const [month, setMonth] = useState('1')
-    const [withChecking, setWithChecking] = useState(false)
+    const store = useEntrepriseBonLivraisonStore()
+    const [year, setYear] = useState(store.periode[0])
+    const [month, setMonth] = useState(store.periode[1])
 
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
-    const store = useEntrepriseBonLivraisonStore()
 
 
-    const { mutate } = useGetBonLivraison()
 
+    const { mutate } = useGetBonLivraisonDigital()
 
 
     const submitHandler = () => {
         setClose(false)
         store.setPeriode(year, month)
 
-        /*
+
         const id_toast = toast(() => {
             const store = useEntrepriseBonLivraisonStore()
+
 
             return (
                 <div className="text-white">
@@ -113,14 +118,16 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 style: {
                     background: 'green'
                 }
-            });*/
+            });
+
+        console.log(year, month)
 
         mutate({ json: { year, month } }, {
             onSuccess: (results: any) => {
                 store.clear()
-                store.setItems(results.result)
+                store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EStatus.ALL })
-                //    store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })
 
@@ -135,12 +142,12 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="mb-4">
-                        <DialogTitle>Chargement des écritures comptables</DialogTitle>
+                        <DialogTitle>Chargement bon de livraisons </DialogTitle>
                     </DialogHeader>
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center justify-between w-full ">
-                            <SelectMonth onSetMonth={setMonth} />
-                            <SelectYear onSetYear={setYear} />
+                            <SelectMonth month={month} onSetMonth={setMonth} />
+                            <SelectYear year={year} onSetYear={setYear} />
                         </div>
                     </div>
 

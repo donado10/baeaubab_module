@@ -32,18 +32,20 @@ const StatusDisplay = ({ value }: { value: string }) => {
   ]);
 
   return (
-    <div
-      className={cn(
-        "capitalize rounded-md w-3/4  font-semibold flex items-center gap-2 px-2 ",
-        MStatusDisplay.get(value.toString())
-      )}
-    >
-      <span><GoDotFill color={MStatusDisplayColor.get(value.toString())} /></span>
-      <h1 className={cn(MStatusDisplayTextColor.get(value.toString()))}>
+    <>
+      {value && <div
+        className={cn(
+          "capitalize rounded-md w-3/4  font-semibold flex items-center gap-2 px-2 ",
+          MStatusDisplay.get(value.toString())
+        )}
+      >
+        <span><GoDotFill color={MStatusDisplayColor.get(value.toString())} /></span>
+        <h1 className={cn(MStatusDisplayTextColor.get(value.toString()))}>
 
-        {MStatusText.get(value.toString())}
-      </h1>
-    </div>
+          {MStatusText.get(value.toString())}
+        </h1>
+      </div>}
+    </>
   );
 };
 

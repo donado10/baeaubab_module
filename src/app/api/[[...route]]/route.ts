@@ -15,9 +15,8 @@ const routes = app
 	.route("/modules", modules)
 	.route("/digitale/ecritures", ecritureDigitale)
 	.route("/digitale/ecritures/events", ecritureDigitaleEvents)
-	.route("/digitale/ecritures/events", ecritureDigitaleEvents)
-	.route("/digitale/bonLivraison", bonLivraison)
-	.route("/digitale/bonLivraison/events", bonLivraisonEvents);
+	.route("/digitale/bonLivraison/events", bonLivraisonEvents)
+	.route("/digitale/bonLivraison", bonLivraison);
 
 export const GET = handle(app);
 export const POST = handle(app);

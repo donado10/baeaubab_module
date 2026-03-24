@@ -6,16 +6,15 @@ import { InferRequestType, InferResponseType } from "hono";
 import { useRouter } from "next/navigation";
 import { useEntrepriseBonLivraisonStore } from "../store/store";
 
-type RequestType = InferRequestType<(typeof client.api.digitale.bonLivraison)["$post"]>;
-type ResponseType = InferResponseType<(typeof client.api.digitale.bonLivraison)["$post"]>;
+type RequestType = InferRequestType<(typeof client.api.digitale.bonLivraison.getBonLivraisonDigital)["$post"]>;
+type ResponseType = InferResponseType<(typeof client.api.digitale.bonLivraison.getBonLivraisonDigital)["$post"]>;
 
-const useGetBonLivraison = () => {
+const useGetBonLivraisonDigital = () => {
     const store = useEntrepriseBonLivraisonStore()
     const mutation = useMutation<ResponseType, Error, RequestType>({
-        mutationKey: ["get_bon_livraison"],
+        mutationKey: ["get_bon_livraison_digital"],
         mutationFn: async ({ json }) => {
-            console.log(json)
-            const res = await client.api.digitale.bonLivraison.$post({ json });
+            const res = await client.api.digitale.bonLivraison.getBonLivraisonDigital.$post({ json });
 
             if (!res.ok) {
                 throw new Error("Failed to load bls!");
@@ -33,4 +32,4 @@ const useGetBonLivraison = () => {
     return mutation;
 };
 
-export default useGetBonLivraison;
+export default useGetBonLivraisonDigital;

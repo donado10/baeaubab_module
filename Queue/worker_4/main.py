@@ -461,21 +461,10 @@ def handle_bl(bl: int):
     conn_mssql.commit()
 
 
-def handle_bl_documents(jobID, year, month):
+def handle_bl_documents(year, month):
     results = get_bls(year, month)
-    count = 0
     for bl in results:
-        count = count + 1
         handle_bl(bl)
-        requests.post(
-            "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
-            json={
-                "jobId": jobID,
-                "status": "pending",
-                "ec_total": len(results),
-                "ec_count": count
-            }
-        )
 
 
 def update_entreprise_id():
@@ -496,16 +485,16 @@ def update_entreprise_id():
     conn_mssql.commit()
 
 
-def main_process_bl_detail(jobID, year, month):
+def main_process_facture_detail(jobId, year, month, journal, database):
 
     # process_facture_detail(jobId, year, month, journal, database)
     handle_new_articles()
     handle_clients()
     handle_livreurs()
-    handle_bl_documents(jobID, year, month)
+    handle_bl_documents(year, month)
     update_entreprise_id()
 
 
-# main_process_bl_detail(2026, 1)
+main_process_facture_detail('', 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
 
-# main_process_bl_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
+# main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')

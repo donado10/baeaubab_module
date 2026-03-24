@@ -30,6 +30,13 @@ services:
       - rabbitmq
     environment:
       RABBITMQ_HOST: rabbitmq
+  worker_3:
+    restart: on-failure
+    build: ./worker_3
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_HOST: rabbitmq
 
 networks:
   bridge-baeaubab:

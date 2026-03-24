@@ -32,7 +32,7 @@ function sendToJob(jobId: string, eventName: string, data: unknown): void {
 }
 
 const app = new Hono()
-	.get("/:jobId", async (c) => {
+	.get("/jobId/:jobId", async (c) => {
 		const jobId = c.req.param("jobId");
 		console.log(jobId);
 		if (!jobId) return c.text("Missing jobId", 400);

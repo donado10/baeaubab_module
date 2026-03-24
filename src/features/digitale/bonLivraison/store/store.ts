@@ -27,6 +27,7 @@ interface IFilter {
 		type: "entreprise_id" | "Intitule";
 		value: string;
 	};
+	searchByBL: string;
 	ecart_conformite: number;
 	invalide: string[];
 }
@@ -74,6 +75,7 @@ export const useEntrepriseBonLivraisonStore =
 				filter: {
 					status: EStatus.ALL,
 					search: { type: "Intitule", value: "" },
+					searchByBL: "",
 					invalide: [],
 					ecart_conformite: 0,
 				},
@@ -122,8 +124,6 @@ export const useEntrepriseBonLivraisonStore =
 							invalide: [],
 							ecart_conformite: 0,
 						},
-						items: [],
-						event: null,
 					}),
 			}),
 			{

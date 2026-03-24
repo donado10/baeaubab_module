@@ -4,13 +4,16 @@ import { useEntrepriseBonLivraisonStore } from '../store/store'
 import { Input } from '@/components/ui/input'
 import { cn, formatDate, formatNumberToFrenchStandard } from '@/lib/utils';
 import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
-import { useParams } from 'next/navigation';
-import { IAgence, IDocumentBonLivraison } from '../interface';
+import { useParams, usePathname } from 'next/navigation';
+import { IAgence, IDocumentBonLivraison, IEntrepriseBonLivraison } from '../interface';
 import { DocumentPDFBonLivraison, DocumentPDFFactureResume, DocumentPDFFactureResumeContainer } from './DocumentPDFRendered';
 import { usePDF } from '@react-pdf/renderer';
 import dynamic from "next/dynamic";
 import { Button } from '@/components/ui/button';
 import useGetEntrepriseDG from '../api/use-get-entreprise-dg';
+import { CiCircleChevLeft, CiCircleChevRight } from "react-icons/ci";
+import Link from 'next/link';
+
 
 const DocumentPDFView = dynamic(
     () => import("./DocumentPDFViewer").then(m => m.DocumentPDFView),
@@ -55,7 +58,7 @@ const StatusDisplay = ({ value }: { value: string }) => {
 const Search = () => {
     const store = useEntrepriseBonLivraisonStore()
     return <div className='flex items-center gap-4'>
-        <Input onChange={(e) => store.setFilter({ ...store.filter, search: { ...store.filter.search, value: e.currentTarget.value } })} className='w-full border border-gray-500 ' placeholder='Rechercher' />
+        <Input onChange={(e) => store.setFilter({ ...store.filter, searchByBL: e.currentTarget.value })} className='w-full border border-gray-500 ' placeholder='Rechercher' />
 
     </div>
 }
@@ -82,9 +85,9 @@ const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClie
                 <h2 className='font-bold'>REF-{ref}</h2>
                 <span>{formatDate(date)}</span>
             </div>
-            <div className='flex gap-4'>
+            <div className='flex gap-4 items-center'>
                 <span className='border-r-2 border-gray-500 pr-2'>{idClient}</span>
-                <span>{intituleClient}</span>
+                <span className='text-xs'>{intituleClient}</span>
             </div>
         </div>
     </li>
@@ -94,6 +97,8 @@ const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClie
 
 const BonLivraisonListContainer = ({ entreprise_id }: { entreprise_id: string }) => {
     const store = useEntrepriseBonLivraisonStore()
+
+    console.log(store.periode)
 
     const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), store.periode[0], store.periode[1])
 
@@ -120,16 +125,22 @@ const BonLivraisonListContainer = ({ entreprise_id }: { entreprise_id: string })
     }
 
 
-    return <BonLivraisonList documents={data.result as IDocumentBonLivraison[]} />
+    return <BonLivraisonList p_documents={data.result as IDocumentBonLivraison[]} />
 }
-const BonLivraisonList = ({ documents }: { documents: IDocumentBonLivraison[] }) => {
+const BonLivraisonList = ({ p_documents }: { p_documents: IDocumentBonLivraison[] }) => {
     const [isActive, setIsActive] = useState(null)
     const store = useEntrepriseBonLivraisonStore()
+    const [documents, setDocuments] = useState<IDocumentBonLivraison[]>(p_documents)
 
     useEffect(() => {
         const document = documents.find((doc) => doc.entete.DO_No === isActive) ?? null
         store.setSelectedBonLivraison(document)
     }, [isActive])
+
+    useEffect(() => {
+        const filterBySearch = store.filter.searchByBL ? p_documents.filter((doc) => doc.entete.DO_No.includes(store.filter.searchByBL)) : [...p_documents]
+        setDocuments(filterBySearch)
+    }, [JSON.stringify(store.filter)])
 
     return <ul className='overflow-y-scroll'>
         {documents.map((document) => document.entete).map((document) =>
@@ -222,13 +233,13 @@ const FactureResume = ({ agence_dg }: { agence_dg: IAgence }) => {
 
             </div>
         </div>
-        <div className='bg-gray-500/20  flex items-center justify-center'>
-            {instance.loading ? 'loading...' :
+        {instance.loading ? 'loading...' :
+            <div className='bg-gray-500/20  flex items-center justify-center'>
 
                 <DocumentPDFView fileUrl={instance.url} />
 
-            }
-        </div>
+            </div>
+        }
     </>
 }
 
@@ -238,6 +249,7 @@ const BonLivraisonDetailSectionContainer = () => {
     const store = useEntrepriseBonLivraisonStore()
 
     useEffect(() => {
+        store.clear()
         store.setItemsBL([])
     }, [entreprise_id])
 
@@ -256,19 +268,55 @@ const BonLivraisonDetailSectionContainer = () => {
 const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
     const store = useEntrepriseBonLivraisonStore()
     const { entreprise_id } = useParams()
+    const pathname = usePathname()
 
     const entreprise = store.items.find((en) => en.EN_No.toString() == entreprise_id.toString())
 
+    const [nearEn, setNearEn] = useState<{ previous: IEntrepriseBonLivraison | null; next: IEntrepriseBonLivraison | null }>({ previous: null, next: null });
+    useEffect(() => {
 
-    console.log(store.itemsBL)
+        for (let item = 0; item < store.items.length; item++) {
+            if (store.items[item].EN_No.toString() !== entreprise_id.toString()) {
+                continue
+            }
+            if (item === 0) {
+                setNearEn({ previous: null, next: store.items[item + 1] })
+                break
+            }
+            if (item !== 0) {
+                setNearEn({ previous: store.items[item - 1], next: store.items[item + 1] })
+                break
+            }
+            if (item === store.items.length - 1) {
+                setNearEn({ previous: store.items[item - 1], next: null })
+                break
+            }
+
+
+        }
+
+    }, [entreprise_id])
+
+    const new_path = pathname.split('/').slice(0, -1).join('/')
+
+
 
     return (
         <main className='flex  w-full min-h-screen border border-gray-500  overflow-scroll'>
             <div className='w-2/7 h-screen overflow-scroll border-r border-gray-500  '>
                 <div className='border-b border-gray-500 p-8 h-[25vh]'>
                     <div className='mb-4'>
-                        <h1 className='text-2xl font-bold '>Bon de Livraisons</h1>
-                        <span className='text-xs italic'>{entreprise.EN_Intitule}</span>
+                        <h1 className='text-2xl font-bold mb-2'>Bon de Livraisons</h1>
+                        <div className='flex items-center gap-2'>
+                            {nearEn?.previous && <Link href={new_path + '/' + nearEn.previous.EN_No}>
+                                <CiCircleChevLeft />
+                            </Link>}
+                            <span className='text-xs italic'>{entreprise.EN_Intitule}</span>
+                            {nearEn?.next && <Link href={new_path + '/' + nearEn.next.EN_No}>
+                                <CiCircleChevRight
+                                />
+                            </Link>}
+                        </div>
                     </div>
                     <div>
                         <Search />

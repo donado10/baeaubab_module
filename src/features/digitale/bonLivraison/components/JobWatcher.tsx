@@ -7,12 +7,14 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
     const [status, setStatus] = useState("waiting...");
     const store = useEntrepriseBonLivraisonStore()
 
+
     useEffect(() => {
-        if (!jobId) return;
 
 
 
-        const es = new EventSource(`${process.env.NEXT_PUBLIC_APP_URL!}/api/digitale/ecritures/events/${jobId}`);
+
+        const es = new EventSource(`${process.env.NEXT_PUBLIC_APP_URL!}/api/digitale/bonLivraison/events/jobId/${store.event.jobId}`);
+        console.log(es)
 
         es.addEventListener("connected", () => {
             setStatus("connected, waiting for updates...");
@@ -45,5 +47,5 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
         return () => es.close();
     }, [jobId]);
 
-    return <div>{status}</div>;
+    return <div className="w-full ">{status}</div>;
 }

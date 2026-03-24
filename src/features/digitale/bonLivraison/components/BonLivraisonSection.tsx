@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { cn, getFrenchMonthName } from '@/lib/utils'
-import { DialogLoadEcritures } from './DialogLoadEcritures'
+import { DialogLoadBonLivraison } from './DialogLoadBonLivraison'
 import { EStatus, useEntrepriseBonLivraisonStore } from '../store/store'
-import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
+import { DialogGetBonLivraison } from './DialogGetBonLivraison'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { IoFilter } from "react-icons/io5";
@@ -127,20 +127,27 @@ const FilterResumeContainer = () => {
 
 const BonLivraisonSection = () => {
 
-    const [dialogEcWithCheck, setDialogEcWithCheck] = useState(false)
+    const [dialogBonLivraison, setDialogBonLivraison] = useState(false)
 
     const store = useEntrepriseBonLivraisonStore()
 
     useEffect(() => {
+        store.setEvent(null)
+        store.setItems([])
+    }, [])
+
+
+    useEffect(() => {
         if (store.event?.status === 'done') {
-            setDialogEcWithCheck(true)
+            setDialogBonLivraison(true)
         }
     }, [store.event?.status])
 
 
+
     return (
         <section className='p-4 text-gray-700'>
-            {store.event?.status === 'done' && <DialogLoadEcrituresWithCheck open={dialogEcWithCheck} onOpen={setDialogEcWithCheck} />}
+            {store.event?.status === 'done' && <DialogGetBonLivraison open={dialogBonLivraison} onOpen={setDialogBonLivraison} />}
             <div className=''>
 
                 <div className='flex items-center justify-between mb-8 '>
@@ -151,18 +158,15 @@ const BonLivraisonSection = () => {
                     </div>
                     <div className='flex items-center gap-4'>
 
-                        <DialogLoadEcritures >
+                        <DialogLoadBonLivraison >
 
                             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
                                 <span><MdCloudDownload />
                                 </span><span>Charger</span>
                             </Button>
-                        </DialogLoadEcritures>
+                        </DialogLoadBonLivraison>
                     </div>
                 </div>
-                <div>
-                    {/*                 {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
- */}            </div>
                 <div className='h-32 mb-4 shadow-none  grid grid-cols-4 gap-4 '>
                     <FilterResumeContainer />
                 </div>
