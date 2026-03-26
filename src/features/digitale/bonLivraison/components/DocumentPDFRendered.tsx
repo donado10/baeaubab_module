@@ -114,13 +114,13 @@ export function DocumentPDFFactureResume({ agence, documents }: { agence: IAgenc
     })
 
     useEffect(() => {
-        console.log(prices)
-        console.log(documents.length)
         setPrices({
             totalHT: documents.reduce((prev, next) => prev + next.entete.DO_TotalHT, 0),
             TVA: Math.round((documents.reduce((prev, next) => prev + next.entete.DO_TotalHT, 0)) * 0.18),
         })
     }, [JSON.stringify(agence)])
+
+    console.log(agence)
 
 
     return (
@@ -177,7 +177,7 @@ export function DocumentPDFFactureResume({ agence, documents }: { agence: IAgenc
                                 <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>REF-{document.entete.DO_No}</Text>
                                 <Text style={tw("text-[10px] w-[40%] p-2 border-r border-black font-bold")}>{document.entete.CT_Intitule}</Text>
                                 <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>{formatDate(document.entete.created_at)}</Text>
-                                <Text style={tw("text-[10px] w-[10%] p-2 border-r border-black font-bold")}>18%</Text>
+                                <Text style={tw("text-[10px] w-[10%] p-2 border-r border-black font-bold")}>{agence.CT_TVA == '1' ? '18%' : '0%'}</Text>
                                 <Text style={tw("text-[10px] w-[10%] p-2 border-r border-black font-bold")}>0</Text>
                                 <Text style={tw("text-[10px] w-[10%] p-2 border-r border-black font-bold")}>{document.entete.DO_TotalHT}</Text>
                             </View>
@@ -188,12 +188,15 @@ export function DocumentPDFFactureResume({ agence, documents }: { agence: IAgenc
                             <Text style={tw("text-[12px] p-2  font-bold")}>
                                 TotalHT: {prices.totalHT} FCFA
                             </Text>
-                            <Text style={tw("text-[12px] p-2  font-bold")}>
+                            {agence.CT_TVA == '1' && <Text style={tw("text-[12px] p-2  font-bold")}>
                                 TVA: {prices.TVA} FCFA
-                            </Text>
-                            <Text style={tw("text-[12px] p-2  font-bold")}>
+                            </Text>}
+                            {agence.CT_TVA == '1' && <Text style={tw("text-[12px] p-2  font-bold")}>
                                 TotalTTC: {prices.totalHT + prices.TVA} FCFA
-                            </Text>
+                            </Text>}
+                            {agence.CT_TVA != '1' && <Text style={tw("text-[12px] p-2  font-bold")}>
+                                TotalTTC: {prices.totalHT} FCFA
+                            </Text>}
                         </View>
                     </View>
 

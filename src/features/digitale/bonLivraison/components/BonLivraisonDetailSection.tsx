@@ -6,7 +6,7 @@ import { cn, formatDate, formatNumberToFrenchStandard } from '@/lib/utils';
 import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
 import { useParams, usePathname } from 'next/navigation';
 import { IAgence, IDocumentBonLivraison, IEntrepriseBonLivraison } from '../interface';
-import { DocumentPDFBonLivraison, DocumentPDFFactureResume, DocumentPDFFactureResumeContainer } from './DocumentPDFRendered';
+import { DocumentPDFBonLivraison, DocumentPDFFactureResume } from './DocumentPDFRendered';
 import { usePDF } from '@react-pdf/renderer';
 import dynamic from "next/dynamic";
 import { Button } from '@/components/ui/button';
@@ -55,11 +55,9 @@ const StatusDisplay = ({ value }: { value: string }) => {
     );
 };
 
-const Search = () => {
-    const store = useEntrepriseBonLivraisonStore()
+const Search = ({ onSetFilter }: { onSetFilter: (value: string) => void }) => {
     return <div className='flex items-center gap-4'>
-        <Input onChange={(e) => store.setFilter({ ...store.filter, searchByBL: e.currentTarget.value })} className='w-full border border-gray-500 ' placeholder='Rechercher' />
-
+        <Input onChange={(e) => onSetFilter(e.currentTarget.value)} className='w-full border border-gray-500 ' placeholder='Rechercher' />
     </div>
 }
 
@@ -95,12 +93,9 @@ const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClie
 
 
 
-const BonLivraisonListContainer = ({ entreprise_id }: { entreprise_id: string }) => {
-    const store = useEntrepriseBonLivraisonStore()
+const BonLivraisonListContainer = ({ onSetItemsBL, entreprise_id, month, year }: { onSetItemsBL: (items: IDocumentBonLivraison[]) => void, entreprise_id: string, month: string; year: string }) => {
 
-    console.log(store.periode)
-
-    const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), store.periode[0], store.periode[1])
+    const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), year, month)
 
     useEffect(() => {
         if (isPending) {
@@ -110,8 +105,7 @@ const BonLivraisonListContainer = ({ entreprise_id }: { entreprise_id: string })
         if (!data) {
             return
         }
-        console.log(data.result)
-        store.setItemsBL(data.result)
+        onSetItemsBL(data.result)
 
     }, [entreprise_id, data])
 
@@ -149,16 +143,14 @@ const BonLivraisonList = ({ p_documents }: { p_documents: IDocumentBonLivraison[
     </ul>
 }
 
-const handleDownload = (fileUrl: string) => {
+const handleDownload = (fileUrl: string, filename: string) => {
     const link = document.createElement("a");
     link.href = fileUrl;
-    link.download = "my-document.pdf";
+    link.download = `${filename}.pdf`;
     link.click();
 };
 
-const BonLivraisonSelected = () => {
-    const store = useEntrepriseBonLivraisonStore()
-    const document = store.selectedBonLivraison
+const BonLivraisonSelected = ({ document }: { document: IDocumentBonLivraison }) => {
 
     const [instance, updateInstance] = usePDF({ document: <DocumentPDFBonLivraison document={document} /> });
 
@@ -183,7 +175,7 @@ const BonLivraisonSelected = () => {
 
                     <span className='font-bold'> REF-{document.entete.DO_No}</span>
                     <div>
-                        {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url) }}>Download</Button>}
+                        {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url, `BL-REF-${document.entete.DO_No}`) }}>Download</Button>}
 
                     </div>
                 </div>
@@ -199,15 +191,13 @@ const BonLivraisonSelected = () => {
         </div>
     </>
 }
-const FactureResume = ({ agence_dg }: { agence_dg: IAgence }) => {
-    const store = useEntrepriseBonLivraisonStore()
+const FactureResume = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgence, documentsBL: IDocumentBonLivraison[], month: string, year: string }) => {
 
 
-
-    const [instance, updateInstance] = usePDF({ document: <DocumentPDFFactureResume agence={agence_dg} documents={store.itemsBL.filter((item) => item.entete.DO_Status != 2)} /> });
+    const [instance, updateInstance] = usePDF({ document: <DocumentPDFFactureResume agence={agence_dg} documents={documentsBL} /> });
 
     useEffect(() => {
-        updateInstance(<DocumentPDFFactureResume agence={agence_dg} documents={store.itemsBL.filter((item) => item.entete.DO_Status != 2)} />);
+        updateInstance(<DocumentPDFFactureResume agence={agence_dg} documents={documentsBL} />);
     }, [JSON.stringify(agence_dg)]);
 
 
@@ -226,7 +216,7 @@ const FactureResume = ({ agence_dg }: { agence_dg: IAgence }) => {
                 <div>
 
                     <div>
-                        {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url) }}>Download</Button>}
+                        {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url, `FACT-${agence_dg.CT_Num}-${year}-${month}`) }}>Download</Button>}
 
                     </div>
                 </div>
@@ -291,8 +281,6 @@ const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
                 setNearEn({ previous: store.items[item - 1], next: null })
                 break
             }
-
-
         }
 
     }, [entreprise_id])
@@ -306,7 +294,7 @@ const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
             <div className='w-2/7 h-screen overflow-scroll border-r border-gray-500  '>
                 <div className='border-b border-gray-500 p-8 h-[25vh]'>
                     <div className='mb-4'>
-                        <h1 className='text-2xl font-bold mb-2'>Bon de Livraisons</h1>
+                        <h1 className='text-2xl font-bold mb-2'>Bon de Livraisons (<span className='text-xl font-light'>{store.itemsBL.length}</span>)</h1>
                         <div className='flex items-center gap-2'>
                             {nearEn?.previous && <Link href={new_path + '/' + nearEn.previous.EN_No}>
                                 <CiCircleChevLeft />
@@ -319,22 +307,23 @@ const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
                         </div>
                     </div>
                     <div>
-                        <Search />
+                        <Search onSetFilter={(value) => store.setFilter({ ...store.filter, searchByBL: value })} />
                     </div>
                 </div>
                 <div className='h-[80vh] overflow-y-scroll'>
 
-                    <BonLivraisonListContainer entreprise_id={entreprise_id.toString()} />
+                    <BonLivraisonListContainer onSetItemsBL={(values: IDocumentBonLivraison[]) => store.setItemsBL(values)} month={store.periode[1]} year={store.periode[0]} entreprise_id={entreprise_id.toString()} />
                 </div>
             </div>
             <div className='w-5/7 flex flex-col h-screen overflow-scroll'>
 
-                {store.selectedBonLivraison && <BonLivraisonSelected />}
-                {!store.selectedBonLivraison && store.itemsBL.length > 0 && <FactureResume agence_dg={agence} />}
+                {store.selectedBonLivraison && <BonLivraisonSelected document={store.selectedBonLivraison} />}
+                {!store.selectedBonLivraison && store.itemsBL.length > 0 && <FactureResume month={store.periode[1]} year={store.periode[0]} agence_dg={agence} documentsBL={store.itemsBL.filter((bl) => bl.entete.DO_Status != 2)} />}
 
             </div>
         </main>
     )
 }
+
 
 export default BonLivraisonDetailSectionContainer

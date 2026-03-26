@@ -10,7 +10,6 @@ type RequestType = InferRequestType<(typeof client.api.digitale.bonLivraison)["$
 type ResponseType = InferResponseType<(typeof client.api.digitale.bonLivraison)["$post"]>;
 
 const useGetBonLivraison = () => {
-    const store = useEntrepriseBonLivraisonStore()
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["get_bon_livraison"],
         mutationFn: async ({ json }) => {

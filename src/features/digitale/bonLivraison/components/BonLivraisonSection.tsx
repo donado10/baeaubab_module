@@ -133,7 +133,6 @@ const BonLivraisonSection = () => {
 
     useEffect(() => {
         store.setEvent(null)
-        store.setItems([])
     }, [])
 
 
@@ -181,5 +180,7 @@ const BonLivraisonSection = () => {
         </section>
     )
 }
+
+
 
 export default BonLivraisonSection
