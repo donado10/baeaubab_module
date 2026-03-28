@@ -38,6 +38,7 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
             }
         });
 
+        // write 
         es.onerror = (e) => {
             setStatus("SSE error / disconnected");
             es.close();
