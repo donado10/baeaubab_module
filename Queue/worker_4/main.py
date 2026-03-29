@@ -61,7 +61,26 @@ def handle_fact_entete(entete: list) -> list:
     cursor_mssql.execute(script, entete)
 
 
-# function to get the actual date in this format 2026-01-01 00:00:00.000
+def handle_fact_lignes(lignes: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        set dateformat ymd;
+        INSERT INTO [TRANSIT].[dbo].[F_DOCLIGNE_DIGITAL]
+           ([DO_No]
+            ,[DO_Type]
+            ,[Client_ID]
+            ,[CT_Num]
+            ,[ART_Design]
+            ,[DO_TotalHT]
+            ,[DO_Date]
+            ,[DO_Status]
+            ,[created_at]
+            ,[entreprise_id])
+     VALUES
+           (?,?,?,?,?,?,?,?,?,?)
+"""
+    for ligne in lignes:
+        cursor_mssql.execute(script, ligne)
 
 
 def get_current_date():
@@ -80,13 +99,21 @@ def get_last_day_of_month(year, month):
     return last_day.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
 
-def build_facture(agence_dg: tuple, entetes: list, latest_fact_id, year, month):
+def calculate_totals(entetes: list, is_tva_applicable: bool) -> tuple:
+    """
+    Calculate DO_TotalHT, DO_TotalTVA, and DO_TotalTTC.
+    """
     DO_TotalHT = sum(int(entete[5]) for entete in entetes)
-
-    DO_TotalTVA = DO_TotalHT * 0.18
-    if agence_dg[3] != 1:
-        DO_TotalTVA = 0
+    DO_TotalTVA = DO_TotalHT * 0.18 if is_tva_applicable else 0
     DO_TotalTTC = DO_TotalHT + DO_TotalTVA
+    return DO_TotalHT, DO_TotalTVA, DO_TotalTTC
+
+
+def build_facture(agence_dg: tuple, entetes: list, latest_fact_id, year, month):
+    current_date = get_current_date()
+    DO_TotalHT, DO_TotalTVA, DO_TotalTTC = calculate_totals(
+        entetes, agence_dg[3] == 1
+    )
 
     facture_entete = []
     facture_entete.append(int(latest_fact_id) + 1)  # DO_No
@@ -94,15 +121,34 @@ def build_facture(agence_dg: tuple, entetes: list, latest_fact_id, year, month):
     facture_entete.append(agence_dg[0])  # Client_ID
     facture_entete.append(agence_dg[2])  # CT_Num
     facture_entete.append(DO_TotalTTC)  # DO_TotalTTC
-    facture_entete.append(sum(int(entete[5])
-                          for entete in entetes))  # DO_TotalHT
+    facture_entete.append(DO_TotalHT)  # DO_TotalHT
     facture_entete.append(DO_TotalTVA)  # DO_TotalTVA
     facture_entete.append(get_last_day_of_month(year, month))  # DO_Date
     facture_entete.append(0)  # DO_Status
-    facture_entete.append(get_current_date())  # created_at
+    facture_entete.append(current_date)  # created_at
     facture_entete.append(agence_dg[5])  # entreprise_id
 
     handle_fact_entete(facture_entete)
+
+    facture_lignes = []
+    for entete in entetes:
+        facture_ligne = []
+        facture_ligne.append(int(latest_fact_id) + 1)  # DO_No
+        facture_ligne.append(6)  # DO_Type
+        facture_ligne.append(agence_dg[0])  # Client_ID
+        facture_ligne.append(agence_dg[2])  # CT_Num
+        facture_ligne.append(entete[0])  # ART_Design
+        facture_ligne.append(entete[5])  # DO_TotalHT
+        facture_ligne.append(get_last_day_of_month(year, month))  # do_date
+        facture_ligne.append(0)  # do_status
+        facture_ligne.append(current_date)  # created_at
+        facture_ligne.append(agence_dg[5])  # entreprise_id
+        facture_lignes.append(facture_ligne)
+
+    handle_fact_lignes(facture_lignes)
+
+    conn_mssql, _ = dbo_mssql()
+    conn_mssql.commit()
 
 
 def main_process_facture_detail(year, month):
