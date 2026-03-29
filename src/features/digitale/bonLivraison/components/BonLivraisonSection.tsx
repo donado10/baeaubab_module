@@ -15,6 +15,8 @@ import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import TableBonLivraisonDigitalContainer from './TableContainer'
 import useGetBillStats from '../api/use-get-bl-stats'
+import { DialogGenerateFactures } from './DialogGenerateFactures'
+import { DialogGenerateFacturesByEntrepriseID } from './DialogGenerateFacturesByEntrepriseID'
 
 
 
@@ -144,6 +146,8 @@ const BonLivraisonSection = () => {
 
 
 
+
+
     return (
         <section className='p-4 text-gray-700'>
             {store.event?.status === 'done' && <DialogGetBonLivraison open={dialogBonLivraison} onOpen={setDialogBonLivraison} />}
@@ -157,6 +161,20 @@ const BonLivraisonSection = () => {
                     </div>
                     <div className='flex items-center gap-4'>
 
+                        {store.billCart.length > 0 && <DialogGenerateFacturesByEntrepriseID  >
+
+                            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
+                                <span><MdCloudDownload />
+                                </span><span>Générer Factures Selectionnées</span>
+                            </Button>
+                        </DialogGenerateFacturesByEntrepriseID>}
+                        {!store.billCart.length && <DialogGenerateFactures  >
+
+                            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
+                                <span><MdCloudDownload />
+                                </span><span>Générer Factures</span>
+                            </Button>
+                        </DialogGenerateFactures>}
                         <DialogLoadBonLivraison >
 
                             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>

@@ -1,27 +1,24 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
     Dialog,
     DialogClose,
     DialogContent,
-    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ReactNode, useEffect, useState } from "react"
+import { ReactNode, useState } from "react"
 //import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { EStatus, useEntrepriseBonLivraisonStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
-import useGetBonLivraison from "../api/use-get-bon-livraison"
 import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
-import { Store } from "lucide-react"
+import useGenerateFactures from "../api/use-generate-factures"
+import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise"
 
 
 const months = [
@@ -82,23 +79,17 @@ const SelectYear = ({ year, onSetYear }: { year: string; onSetYear: (value: stri
     </Select>
 }
 
-export function DialogLoadBonLivraison({ children }: { children: ReactNode }) {
+export function DialogGenerateFacturesByEntrepriseID({ children }: { children: ReactNode }) {
 
     const store = useEntrepriseBonLivraisonStore()
-    const [year, setYear] = useState(store.periode[0])
-    const [month, setMonth] = useState(store.periode[1])
 
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
-
-
-
-    const { mutate } = useGetBonLivraisonDigital()
+    const { mutate } = useGenerateFacturesByEntreprise()
 
 
     const submitHandler = () => {
         setClose(false)
-        store.setPeriode(year, month)
 
 
         const id_toast = toast(() => {
@@ -119,13 +110,9 @@ export function DialogLoadBonLivraison({ children }: { children: ReactNode }) {
                 }
             });
 
-        console.log(year, month)
 
-        mutate({ json: { year, month } }, {
+        mutate({ json: { en_list: store.billCart, year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: (results: any) => {
-                store.clear()
-                store.setItems(results.results)
-                store.setFilter({ ...store.filter, status: EStatus.ALL })
                 store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })
@@ -141,15 +128,8 @@ export function DialogLoadBonLivraison({ children }: { children: ReactNode }) {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="mb-4">
-                        <DialogTitle>Chargement bon de livraisons </DialogTitle>
+                        <DialogTitle>Générer Factures  </DialogTitle>
                     </DialogHeader>
-                    <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between w-full ">
-                            <SelectMonth month={month} onSetMonth={setMonth} />
-                            <SelectYear year={year} onSetYear={setYear} />
-                        </div>
-                    </div>
-
                     <DialogFooter className="gap-4">
                         <DialogClose asChild>
                             <Button variant="outline">Annuler</Button>
