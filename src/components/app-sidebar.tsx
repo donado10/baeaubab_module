@@ -55,6 +55,12 @@ const data = {
       isActive: false,
     },
     {
+      title: "Facture",
+      endpoint: "bills",
+      url: "/m1/dashboard/bills",
+      isActive: false,
+    },
+    {
       title: "Ecritures Digitales",
       endpoint: 'ecritures-digitales',
       url: "/m1/dashboard/ecritures-digitales",

@@ -3,8 +3,10 @@ import { handle } from "hono/vercel";
 import auth from "@/features/auth/server/route";
 import ecritureDigitale from "@/features/digitale/ecritures/server/route";
 import bonLivraison from "@/features/digitale/bonLivraison/server/route";
+import facture from "@/features/digitale/bills/server/route";
 import ecritureDigitaleEvents from "@/features/digitale/ecritures/server/route_events";
 import bonLivraisonEvents from "@/features/digitale/bonLivraison/server/route_events";
+import factureEvents from "@/features/digitale/bills/server/route_events";
 import modules from "@/features/modules/server/route";
 export const runtime = "nodejs";
 
@@ -16,7 +18,9 @@ const routes = app
 	.route("/digitale/ecritures", ecritureDigitale)
 	.route("/digitale/ecritures/events", ecritureDigitaleEvents)
 	.route("/digitale/bonLivraison/events", bonLivraisonEvents)
-	.route("/digitale/bonLivraison", bonLivraison);
+	.route("/digitale/facture/events", factureEvents)
+	.route("/digitale/bonLivraison", bonLivraison)
+	.route("/digitale/facture", facture);
 
 export const GET = handle(app);
 export const POST = handle(app);

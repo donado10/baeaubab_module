@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { IDocumentBonLivraison, IEntrepriseBonLivraison } from "../interface";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { se } from "date-fns/locale";
+import { it } from "node:test";
 
 interface IEvent {
 	jobId: string;
@@ -117,9 +119,11 @@ export const useEntrepriseBonLivraisonStore =
 						billCart: [],
 						itemsBL: [],
 						selectedBonLivraison: null,
+						items: [],
 
 						filter: {
 							status: EStatus.ALL,
+							searchByBL: "",
 							search: { type: "Intitule", value: "" },
 							invalide: [],
 							ecart_conformite: 0,
