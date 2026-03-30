@@ -13,6 +13,14 @@ def get_entreprises(year, month):
     return [x[0] for x in results]
 
 
+def get_residences(year, month):
+    query = f"""
+    select  distinct client_id from TRANSIT.dbo.F_DOCENTETE_DIGITAL where year(created_at) = {year} and month(created_at) = {month} and do_type=3 and DO_Status != 2 and entreprise_id is null and do_valide != 1
+"""
+    results = execute_select_all(query)
+    return [x[0] for x in results]
+
+
 # get the details of the facture and insert into the database based on the company id
 def get_facture_entete_detail_by_company_id(company_id, year, month):
     query = f"""
@@ -22,9 +30,25 @@ def get_facture_entete_detail_by_company_id(company_id, year, month):
     return results
 
 
+def get_facture_entete_detail_by_residence_id(client_id, year, month):
+    query = f"""
+    select  * from TRANSIT.dbo.F_DOCENTETE_DIGITAL where year(created_at) = {year} and month(created_at) = {month} and do_type=3 and DO_Status != 2 and client_id={client_id} and DO_TotalHT is not null and do_valide != 1
+"""
+    results = execute_select_all(query)
+    return results
+
+
 def get_agence_dg_by_company_id(company_id):
     query = f"""
     SELECT * FROM [TRANSIT].[dbo].[F_COMPTET_DIGITAL] where CT_Entreprise = {company_id} and CT_DG=1
+"""
+    result = execute_select_one(query)
+    return result if result else None
+
+
+def get_agence_dg_by_residence_id(residence_id):
+    query = f"""
+    SELECT * FROM [TRANSIT].[dbo].[F_COMPTET_DIGITAL] where CT_No = {residence_id}
 """
     result = execute_select_one(query)
     return result if result else None
@@ -177,6 +201,8 @@ def main_process_factures(jobID, year, month):
     for entreprise in entreprises:
         entetes = get_facture_entete_detail_by_company_id(
             entreprise, year, month)
+        if not len(entetes):
+            continue
         agence_dg = get_agence_dg_by_company_id(entreprise)
         if agence_dg:
             build_facture(agence_dg, entetes, latest_fact_id, year, month)
@@ -207,7 +233,75 @@ def main_process_facture_detail(jobID, entreprises, year, month):
     for entreprise in entreprises:
         entetes = get_facture_entete_detail_by_company_id(
             entreprise, year, month)
+        if not len(entetes):
+            continue
         agence_dg = get_agence_dg_by_company_id(entreprise)
+        if agence_dg:
+            build_facture(agence_dg, entetes, latest_fact_id, year, month)
+            latest_fact_id += 1
+
+            count += 1
+
+            requests.post(
+                "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
+                json={
+                    "jobId": jobID,
+                    "status": "pending",
+                    "ec_total": len(entreprises),
+                    "ec_count": count
+                }
+            )
+
+
+def main_process_factures_residence(jobID, year, month):
+    year = int(year)
+    month = int(month)
+
+    # process_facture_detail(jobId, year, month, journal, database)
+    entreprises = get_residences(year, month)
+
+    latest_fact_id = get_latest_facture_id()
+
+    count = 0
+
+    for entreprise in entreprises:
+        entetes = get_facture_entete_detail_by_residence_id(
+            entreprise, year, month)
+        if not len(entetes):
+            continue
+        agence_dg = get_agence_dg_by_residence_id(entreprise)
+        if agence_dg:
+            build_facture(agence_dg, entetes, latest_fact_id, year, month)
+            latest_fact_id += 1
+
+            count += 1
+
+            requests.post(
+                "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
+                json={
+                    "jobId": jobID,
+                    "status": "pending",
+                    "ec_total": len(entreprises),
+                    "ec_count": count
+                }
+            )
+
+
+def main_process_residence_facture_detail(jobID, entreprises, year, month):
+    year = int(year)
+    month = int(month)
+
+    # process_facture_detail(jobId, year, month, journal, database)
+    latest_fact_id = get_latest_facture_id()
+
+    count = 0
+
+    for entreprise in entreprises:
+        entetes = get_facture_entete_detail_by_residence_id(
+            entreprise, year, month)
+        if not len(entetes):
+            continue
+        agence_dg = get_agence_dg_by_residence_id(entreprise)
         if agence_dg:
             build_facture(agence_dg, entetes, latest_fact_id, year, month)
             latest_fact_id += 1

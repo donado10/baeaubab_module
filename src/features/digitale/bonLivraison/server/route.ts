@@ -236,12 +236,13 @@ const app = new Hono()
 			"json",
 			z.object({
 				en_list: z.array(z.string()),
+				residence_list: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
 			})
 		),
 		async (c) => {
-			const { year, month, en_list } = c.req.valid("json");
+			const { year, month, en_list, residence_list } = c.req.valid("json");
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
@@ -258,6 +259,7 @@ const app = new Hono()
 						year: year,
 						month: month,
 						en_list: en_list,
+						residence_list: residence_list,
 						type: "byEntreprise",
 					})
 				)

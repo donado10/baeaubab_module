@@ -110,8 +110,12 @@ export function DialogGenerateFacturesByEntrepriseID({ children }: { children: R
                 }
             });
 
+        const en_list = store.billCart.filter((value) => store.items.some((item) => item.EN_No == value && item.EN_Type != 1))
+        const residence_list = store.billCart.filter((value) => store.items.some((item) => item.EN_No == value && item.EN_Type == 1))
 
-        mutate({ json: { en_list: store.billCart, year: store.periode[0], month: store.periode[1] } }, {
+
+
+        mutate({ json: { en_list, year: store.periode[0], month: store.periode[1], residence_list } }, {
             onSuccess: (results: any) => {
                 store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
