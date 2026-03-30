@@ -7,6 +7,7 @@ export const entrepriseBonLivraisonSchema = z.object({
 	EN_Agences: z.coerce.number(),
 	EN_TVA: z.coerce.number(),
 	EN_TotalHT: z.coerce.number(),
+	EN_Type: z.coerce.number().optional(),
 });
 
 export const bonLivraisonEnteteSchema = z.object({
@@ -71,4 +72,5 @@ export const agenceSchema = z.object({
 	CT_Addresse: z.string(),
 	CT_Email: z.string(),
 	created_at: z.string(),
+	type_client_id: z.number(),
 });

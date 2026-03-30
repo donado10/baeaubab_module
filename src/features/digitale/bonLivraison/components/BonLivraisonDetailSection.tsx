@@ -13,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import useGetEntrepriseDG from '../api/use-get-entreprise-dg';
 import { CiCircleChevLeft, CiCircleChevRight } from "react-icons/ci";
 import Link from 'next/link';
+import useGetEntrepriseResidence from '../api/use-get-entreprise-residence';
+import useGetEnterpriseResidenceBonLivraison from '../api/use-get-entreprise-residence-bls';
 
 
 const DocumentPDFView = dynamic(
@@ -96,6 +98,34 @@ const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClie
 const BonLivraisonListContainer = ({ onSetItemsBL, entreprise_id, month, year }: { onSetItemsBL: (items: IDocumentBonLivraison[]) => void, entreprise_id: string, month: string; year: string }) => {
 
     const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), year, month)
+
+    useEffect(() => {
+        if (isPending) {
+            return
+        }
+
+        if (!data) {
+            return
+        }
+        onSetItemsBL(data.result)
+
+    }, [entreprise_id, data])
+
+
+    if (isPending) {
+        return <></>
+    }
+
+    if (!data) {
+        return <></>
+    }
+
+
+    return <BonLivraisonList p_documents={data.result as IDocumentBonLivraison[]} />
+}
+const BonLivraisonResidenceListContainer = ({ onSetItemsBL, entreprise_id, month, year }: { onSetItemsBL: (items: IDocumentBonLivraison[]) => void, entreprise_id: string, month: string; year: string }) => {
+
+    const { data, isPending } = useGetEnterpriseResidenceBonLivraison(entreprise_id.toString(), year, month)
 
     useEffect(() => {
         if (isPending) {
@@ -233,13 +263,12 @@ const FactureResume = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAg
     </>
 }
 
-const BonLivraisonDetailSectionContainer = () => {
+export const BonLivraisonDetailSectionContainer = () => {
     const { entreprise_id } = useParams()
     const { data, isPending } = useGetEntrepriseDG(entreprise_id.toString())
     const store = useEntrepriseBonLivraisonStore()
 
     useEffect(() => {
-        store.clear()
         store.setItemsBL([])
     }, [entreprise_id])
 
@@ -252,15 +281,35 @@ const BonLivraisonDetailSectionContainer = () => {
         return <></>
 
     }
-    return <><BonLivraisonDetailSection agence={data.result} /></>
+    return <><BonLivraisonDetailSection agence={data.result} entreprise_id={entreprise_id.toString()} /></>
+}
+export const BonLivraisonResidenceDetailSectionContainer = () => {
+    const { residence_id } = useParams()
+    const { data, isPending } = useGetEntrepriseResidence(residence_id.toString())
+    const store = useEntrepriseBonLivraisonStore()
+
+    useEffect(() => {
+        store.setItemsBL([])
+    }, [residence_id])
+
+    if (isPending
+    ) {
+        return <></>
+
+    }
+    if (!data) {
+        return <></>
+
+    }
+    return <><BonLivraisonDetailSection agence={data.result} entreprise_id={residence_id.toString()} /></>
 }
 
-const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
+const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence, entreprise_id: string }) => {
     const store = useEntrepriseBonLivraisonStore()
-    const { entreprise_id } = useParams()
     const pathname = usePathname()
 
     const entreprise = store.items.find((en) => en.EN_No.toString() == entreprise_id.toString())
+
 
     const [nearEn, setNearEn] = useState<{ previous: IEntrepriseBonLivraison | null; next: IEntrepriseBonLivraison | null }>({ previous: null, next: null });
     useEffect(() => {
@@ -289,6 +338,10 @@ const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
 
 
 
+
+
+
+
     return (
         <main className='flex  w-full min-h-screen border border-gray-500  overflow-scroll'>
             <div className='w-2/7 h-screen overflow-scroll border-r border-gray-500  '>
@@ -312,7 +365,11 @@ const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
                 </div>
                 <div className='h-[80vh] overflow-y-scroll'>
 
-                    <BonLivraisonListContainer onSetItemsBL={(values: IDocumentBonLivraison[]) => store.setItemsBL(values)} month={store.periode[1]} year={store.periode[0]} entreprise_id={entreprise_id.toString()} />
+
+                    {agence.type_client_id != 1 && <BonLivraisonListContainer onSetItemsBL={(values: IDocumentBonLivraison[]) => store.setItemsBL(values)} month={store.periode[1]} year={store.periode[0]} entreprise_id={entreprise_id.toString()} />
+                    }
+                    {agence.type_client_id == 1 && <BonLivraisonResidenceListContainer onSetItemsBL={(values: IDocumentBonLivraison[]) => store.setItemsBL(values)} month={store.periode[1]} year={store.periode[0]} entreprise_id={entreprise_id.toString()} />
+                    }
                 </div>
             </div>
             <div className='w-5/7 flex flex-col h-screen overflow-scroll'>
@@ -326,4 +383,3 @@ const BonLivraisonDetailSection = ({ agence }: { agence: IAgence }) => {
 }
 
 
-export default BonLivraisonDetailSectionContainer

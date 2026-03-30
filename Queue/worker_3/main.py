@@ -49,9 +49,10 @@ def insert_new_clients(clients: list):
            ,[CT_Phone]
            ,[CT_Addresse]
            ,[CT_Email]
-           ,[created_at])
+           ,[created_at]
+           ,[type_client_id])
      VALUES
-           (?,?,?,?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?,?,?,?,?)
 """
     cursor_mssql.executemany(script, clients)
     conn_mssql.commit()
@@ -190,11 +191,11 @@ def handle_new_client():
 
     if len(result):
         script_mysql = f"""
-        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id,mobile,adresse,email ,created_at from clients where id not in ({','.join(result)})
+        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id,mobile,adresse,email ,created_at,type_client_id from clients where id not in ({','.join(result)})
     """
     else:
         script_mysql = """
-        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id,mobile,adresse,email ,created_at from clients 
+        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id,mobile,adresse,email ,created_at,type_client_id from clients 
     """
 
     result = mysql_execute_select_all(script_mysql)

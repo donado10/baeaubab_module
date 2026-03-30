@@ -235,7 +235,7 @@ export const columns: ColumnDef<IEntrepriseBonLivraison>[] = [
   {
     header: "Action",
     cell: ({ row }) => (
-      <DropdownMenuTable ref_enterprise={row.original.EN_No.toString()}>
+      <DropdownMenuTable ref_enterprise={row.original.EN_No.toString()} type={row.original.EN_Type}>
 
 
         <Button variant={"ghost"} type="button">

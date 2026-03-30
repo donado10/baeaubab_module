@@ -17,12 +17,32 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { en_no } = c.req.valid("query");
-			console.log(en_no);
 
 			const pool = await getConnection();
 
 			const query = `
 			select * from TRANSIT.dbo.F_COMPTET_DIGITAL where ct_dg=1 and ct_entreprise=${en_no}
+			`;
+			let result = await pool.request().query(query);
+
+			return c.json({ result: result.recordset[0] });
+		}
+	)
+	.get(
+		"/entreprise/residence",
+		zValidator(
+			"query",
+			z.object({
+				en_no: z.string(),
+			})
+		),
+		async (c) => {
+			const { en_no } = c.req.valid("query");
+
+			const pool = await getConnection();
+
+			const query = `
+			select * from TRANSIT.dbo.F_COMPTET_DIGITAL where  ct_no=${en_no}
 			`;
 			let result = await pool.request().query(query);
 
@@ -51,6 +71,48 @@ const app = new Hono()
 			const query_ligne = `
 			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} )
 			select lev1.*,art.Art_Design,art.Art_Code from lev1 inner join F_ARTICLE_DIGITAL art on lev1.ART_No= art.Art_No where lev1.EN_No = ${en_no}
+			`;
+			let result_entete = await pool.request().query(query_entete);
+			let result_ligne = await pool.request().query(query_ligne);
+
+			const entetes = [...result_entete.recordset];
+			const lignes = [...result_ligne.recordset];
+
+			const documents = entetes.map((entete) => {
+				const ligne = lignes.filter((li) => {
+					return entete.DO_No === li.DO_No;
+				});
+				return {
+					entete: entete,
+					lignes: ligne,
+				};
+			});
+
+			return c.json({ result: documents });
+		}
+	)
+	.get(
+		"/entreprise/residence/list",
+		zValidator(
+			"query",
+			z.object({
+				en_no: z.string(),
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { en_no, month, year } = c.req.valid("query");
+
+			const pool = await getConnection();
+
+			const query_entete = `
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} )
+			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.Client_ID = ${en_no}
+	`;
+			const query_ligne = `
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,entreprise_id as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} )
+			select lev1.*,art.Art_Design,art.Art_Code from lev1 inner join F_ARTICLE_DIGITAL art on lev1.ART_No= art.Art_No where lev1.Client_ID = ${en_no}
 			`;
 			let result_entete = await pool.request().query(query_entete);
 			let result_ligne = await pool.request().query(query_ligne);
@@ -228,10 +290,17 @@ const app = new Hono()
 
 
 `;
+			const query2 = `with lev1 as (select ct_num, COUNT(DO_No) as nbre_bls from F_DOCENTETE_DIGITAL where year(created_at) = ${year} and month(created_at) = ${month} and entreprise_id is null and DO_Status !=2 group by CT_Num),
+			lev2 as (select ct_num,sum(DO_TotalHT) as totalHT from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by CT_Num),
+			lev3 as (select lev1.ct_num as EN_CL,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT from lev1 inner join lev2 on lev1.ct_num = lev2.CT_Num )
+			select ct.CT_No as EN_No,ct.CT_TVA as EN_TVA,ct.type_client_id as EN_Type,lev3.EN_BonLivraisons,lev3.EN_TotalHT,CT_Intitule as EN_Intitule,1 as EN_Agences from lev3 inner join F_COMPTET_DIGITAL ct on lev3.EN_CL = ct.CT_Num
+			
+			`;
 
 			let result = await pool.request().query(query);
+			let result2 = await pool.request().query(query2);
 
-			return c.json({ result: result.recordset });
+			return c.json({ result: [...result.recordset, ...result2.recordset] });
 		}
 	);
 

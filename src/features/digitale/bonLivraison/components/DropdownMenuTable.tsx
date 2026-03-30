@@ -16,9 +16,11 @@ import { useEntrepriseBonLivraisonStore } from "../store/store";
 export function DropdownMenuTable({
   ref_enterprise,
   children,
+  type
 }: {
   ref_enterprise: string;
   children: ReactNode;
+  type: number
 }) {
   const store = useEntrepriseBonLivraisonStore()
   const pathname = usePathname()
@@ -28,14 +30,22 @@ export function DropdownMenuTable({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="start">
-          <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTable: [true, refpiece] }) }}>
+          {type !== 1 && <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTable: [true, ref_enterprise] }) }}>
             <Link href={`${pathname}/${ref_enterprise}`}>
               <span
               >
                 Voir
               </span>
             </Link>
-          </DropdownMenuItem>
+          </DropdownMenuItem>}
+          {type === 1 && <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTable: [true, ref_enterprise] }) }}>
+            <Link href={`${pathname}/residence/${ref_enterprise}`}>
+              <span
+              >
+                Voir
+              </span>
+            </Link>
+          </DropdownMenuItem>}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

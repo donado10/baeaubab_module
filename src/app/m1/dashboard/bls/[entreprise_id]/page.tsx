@@ -1,5 +1,4 @@
-import BonLivraisonDetailSectionContainer from '@/features/digitale/bonLivraison/components/BonLivraisonDetailSection';
-import BonLivraisonDetailSection from '@/features/digitale/bonLivraison/components/BonLivraisonDetailSection';
+import { BonLivraisonDetailSectionContainer } from '@/features/digitale/bonLivraison/components/BonLivraisonDetailSection';
 import BonLivraisonSection from '@/features/digitale/bonLivraison/components/BonLivraisonSection';
 import React from 'react'
 
