@@ -229,7 +229,7 @@ def handle_client_price():
     insert_new_client_prices(result)
 
 
-def update_entreprise_tva():
+def update_entreprise_tva(year, month):
     conn_mssql, cursor_mssql = dbo_mssql()
     script_mssql = """
         update en
@@ -238,14 +238,25 @@ def update_entreprise_tva():
 """
 
     cursor_mssql.execute(script_mssql)
+    script_mssql = f"""
+        with lev1 as (select entreprise_id from transit.dbo.F_DOCENTETE_DIGITAL where year(created_at)={year} and month(created_at)={month} and
+        entreprise_id not in (select  CT_Entreprise from transit.dbo.F_COMPTET_DIGITAL where CT_DG = 1 and CT_Entreprise is not null) 
+        and entreprise_id is not null and DO_Status !=2 group by entreprise_id),
+        lev2 as (select lev1.*,ct.CT_TVA from lev1 inner join transit.dbo.F_COMPTET_DIGITAL ct on lev1.entreprise_id = ct.CT_Entreprise)
+        update en
+        set en.EN_TVA = lev2.CT_TVA
+        from transit.dbo.f_entreprise_digital en inner join lev2 on en.EN_No = lev2.entreprise_id
+
+        """
+    cursor_mssql.execute(script_mssql)
     conn_mssql.commit()
 
 
-def handle_clients():
+def handle_clients(year, month):
     handle_entreprise()
     handle_client_price()
     handle_new_client()
-    update_entreprise_tva()
+    update_entreprise_tva(year, month)
 
 
 def get_bls(year, month):
@@ -501,7 +512,7 @@ def main_process_bl_detail(jobID, year, month):
 
     # process_facture_detail(jobId, year, month, journal, database)
     handle_new_articles()
-    handle_clients()
+    handle_clients(year, month)
     handle_livreurs()
     handle_bl_documents(jobID, year, month)
     update_entreprise_id()

@@ -43,6 +43,12 @@ def get_agence_dg_by_company_id(company_id):
     SELECT * FROM [TRANSIT].[dbo].[F_COMPTET_DIGITAL] where CT_Entreprise = {company_id} and CT_DG=1
 """
     result = execute_select_one(query)
+    if result:
+        return result
+    query = f"""
+        SELECT top 1 * FROM [TRANSIT].[dbo].[F_COMPTET_DIGITAL] where CT_Entreprise = {company_id} 
+    """
+    result = execute_select_one(query)
     return result if result else None
 
 

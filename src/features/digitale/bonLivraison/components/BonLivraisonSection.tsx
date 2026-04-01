@@ -17,6 +17,8 @@ import TableBonLivraisonDigitalContainer from './TableContainer'
 import useGetBillStats from '../api/use-get-bl-stats'
 import { DialogGenerateFactures } from './DialogGenerateFactures'
 import { DialogGenerateFacturesByEntrepriseID } from './DialogGenerateFacturesByEntrepriseID'
+import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls'
+import useGetBonLivraison from '../api/use-get-bon-livraison'
 
 
 
@@ -133,9 +135,26 @@ const BonLivraisonSection = () => {
 
     const store = useEntrepriseBonLivraisonStore()
 
+    const { mutate, isPending } = useGetBonLivraison()
+
     useEffect(() => {
+
+        if (store.periode.length <= 0) return
+
+        console.log(store.event)
+        if (store.event) return
+
+        console.log("fetching bls with periode ", store.periode)
+        console.log(store.event)
+
         store.setEvent(null)
-    }, [])
+        mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
+            onSuccess: (results: any) => {
+                store.setItems(results.result)
+                store.setEvent(null)
+            }
+        })
+    }, [JSON.stringify(store.periode)])
 
 
     useEffect(() => {
@@ -143,6 +162,8 @@ const BonLivraisonSection = () => {
             setDialogBonLivraison(true)
         }
     }, [store.event?.status])
+
+
 
 
 
@@ -192,7 +213,7 @@ const BonLivraisonSection = () => {
                 <FilterSection />
                 <FilterResume />
                 <div>
-                    <TableBonLivraisonDigitalContainer />
+                    {!isPending && <TableBonLivraisonDigitalContainer />}
                 </div>
             </Card>
         </section>

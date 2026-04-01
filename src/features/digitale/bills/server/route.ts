@@ -233,11 +233,19 @@ const app = new Hono()
 
 `;
 
+			const query2 = `with lev1 as (select ct_num, COUNT(DO_No) as nbre_bls from F_DOCENTETE_DIGITAL where year(DO_Date) = ${year} and month(DO_Date) = ${month} and entreprise_id is null and DO_Status !=2 and do_type = 6 group by CT_Num),
+			lev2 as (select ct_num,sum(DO_TotalHT) as totalHT,sum(DO_TotalTVA) as totalTVA,sum(DO_TotalTTC) as totalTTC from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(DO_Date)=${year} and month(DO_Date)=${month} and do_type = 6 group by CT_Num),
+			lev3 as (select lev1.ct_num as EN_CL,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT,totalTTC as EN_TotalTTC,totalTVA as EN_TotalTVA  from lev1 inner join lev2 on lev1.ct_num = lev2.CT_Num )
+			select ct.CT_No as EN_No,ct.CT_TVA as EN_TVA,ct.type_client_id as EN_Type,lev3.EN_BonLivraisons,lev3.EN_TotalHT,lev3.EN_TotalTVA,lev3.EN_TotalTTC,CT_Intitule as EN_Intitule,1 as EN_Agences from lev3 inner join F_COMPTET_DIGITAL ct on lev3.EN_CL = ct.CT_Num
+
+			`;
+
 			let result = await pool.request().query(query);
+			let result2 = await pool.request().query(query2);
 
 			console.log(result.recordset);
 
-			return c.json({ result: result.recordset });
+			return c.json({ result: [...result.recordset, ...result2.recordset] });
 		}
 	);
 

@@ -13,7 +13,6 @@ const useGetBonLivraison = () => {
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["get_bon_livraison"],
         mutationFn: async ({ json }) => {
-            console.log(json)
             const res = await client.api.digitale.bonLivraison.$post({ json });
 
             if (!res.ok) {

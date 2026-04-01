@@ -96,9 +96,16 @@ export function DialogLoadBonLivraison({ children }: { children: ReactNode }) {
     const { mutate } = useGetBonLivraisonDigital()
 
 
+    useEffect(() => {
+        if (store.periode.length === 2) {
+            setYear(store.periode[0])
+            setMonth(store.periode[1])
+        }
+    }, [JSON.stringify(store.periode)])
+
     const submitHandler = () => {
         setClose(false)
-        store.setPeriode(year, month)
+
 
 
         const id_toast = toast(() => {
@@ -119,7 +126,6 @@ export function DialogLoadBonLivraison({ children }: { children: ReactNode }) {
                 }
             });
 
-        console.log(year, month)
 
         mutate({ json: { year, month } }, {
             onSuccess: (results: any) => {
@@ -127,8 +133,10 @@ export function DialogLoadBonLivraison({ children }: { children: ReactNode }) {
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EStatus.ALL })
                 store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+                store.setPeriode(year, month)
             }
         })
+
 
 
     }
