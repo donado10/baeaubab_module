@@ -279,6 +279,33 @@ def get_bls(year, month):
     return [x[0] for x in results]
 
 
+def get_one_company_bls(year, month, en_no):
+    script_mssql_do = f"""
+    SELECT  DO_No
+  FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL where entreprise_id = {en_no}
+"""
+    result_do = execute_select_all(script_mssql_do)
+    result_do = [str(x[0]) for x in result_do]
+
+    script_mssql_en = f"""
+    SELECT  CT_No
+  FROM TRANSIT.dbo.F_COMPTET_DIGITAL where CT_Entreprise = {en_no}
+"""
+    result_en = execute_select_all(script_mssql_en)
+    result_en = [str(x[0]) for x in result_en]
+
+    script_mysql = ""
+
+    if len(result_do):
+        script_mysql = f"select id from distribution_lines where year(created_at)={year} and month(created_at)={month} and client_id in ({','.join(result_en)}) and id not in ({','.join(result_do)})"
+
+    else:
+        script_mysql = f"select id from distribution_lines where year(created_at)={year} and month(created_at)={month} and client_id in ({','.join(result_en)})"
+
+    results = mysql_execute_select_all(script_mysql)
+    return [x[0] for x in results]
+
+
 def get_bl(bl: int):
     script = f"""SELECT dl.id,3 as do_type,client_id,cl.code_compta,qte,article_ids,date,dl.created_at,dl.status,dl.livreur_id FROM distribution_lines dl inner join clients cl
     on dl.client_id = cl.id
@@ -490,6 +517,24 @@ def handle_bl_documents(jobID, year, month):
         )
 
 
+def handle_some_bl_document(jobID, year, month, en_list):
+    for en_no in en_list:
+        results = get_one_company_bls(year, month, en_no)
+        count = 0
+        for bl in results:
+            count = count + 1
+            handle_bl(bl)
+            requests.post(
+                "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
+                json={
+                    "jobId": jobID,
+                    "status": "pending",
+                    "ec_total": len(results),
+                    "ec_count": count
+                }
+            )
+
+
 def update_entreprise_id():
     conn_mssql, cursor_mssql = dbo_mssql()
     script = f"""
@@ -515,6 +560,14 @@ def main_process_bl_detail(jobID, year, month):
     handle_clients(year, month)
     handle_livreurs()
     handle_bl_documents(jobID, year, month)
+    update_entreprise_id()
+
+
+def main_process_bl_one(jobID, year, month, en_list):
+    handle_new_articles()
+    handle_clients(year, month)
+    handle_livreurs()
+    handle_some_bl_document(jobID, year, month, en_list)
     update_entreprise_id()
 
 

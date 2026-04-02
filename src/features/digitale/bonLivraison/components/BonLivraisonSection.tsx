@@ -19,6 +19,7 @@ import { DialogGenerateFactures } from './DialogGenerateFactures'
 import { DialogGenerateFacturesByEntrepriseID } from './DialogGenerateFacturesByEntrepriseID'
 import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls'
 import useGetBonLivraison from '../api/use-get-bon-livraison'
+import { DialogActualiserBonLivraison } from './DialogActualiserBonLivraison'
 
 
 
@@ -143,7 +144,6 @@ const BonLivraisonSection = () => {
 
         if (store.event) return
 
-        console.log("fetching bls with periode ", store.periode)
 
         store.setEvent(null)
         mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
@@ -180,6 +180,13 @@ const BonLivraisonSection = () => {
                     </div>
                     <div className='flex items-center gap-4'>
 
+                        {store.billCart.length > 0 && <DialogActualiserBonLivraison  >
+
+                            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
+                                <span><MdCloudDownload />
+                                </span><span>Actualiser</span>
+                            </Button>
+                        </DialogActualiserBonLivraison>}
                         {store.billCart.length > 0 && <DialogGenerateFacturesByEntrepriseID  >
 
                             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>

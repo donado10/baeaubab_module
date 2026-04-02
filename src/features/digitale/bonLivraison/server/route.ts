@@ -198,6 +198,50 @@ const app = new Hono()
 						jobId: jobId,
 						year: year,
 						month: month,
+						type: "all",
+					})
+				)
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		}
+	)
+	.post(
+		"/updateBonLivraisonDigitalByEntreprise",
+		zValidator(
+			"json",
+			z.object({
+				en_list: z.array(z.string()),
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month, en_list } = c.req.valid("json");
+
+			const pool = await getConnection();
+			const query = `delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where entreprise_id in (${en_list.join(",")});
+			delete from TRANSIT.dbo.F_DOCligne_DIGITAL where entreprise_id in (${en_list.join(",")})
+			`;
+
+			await pool.request().query(query);
+
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("get_digital_bl_jobs");
+
+			const jobId = ID.unique();
+
+			channel.sendToQueue(
+				"get_digital_bl_jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						en_list: en_list,
+						type: "bl_some",
 					})
 				)
 			);

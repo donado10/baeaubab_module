@@ -6,7 +6,7 @@ import { use } from "react";
 const useGetBillStats = (year: string, month: string) => {
     const pathname = usePathname()
     const query = useQuery({
-        queryKey: ["bill_stats", year, month, pathname],
+        queryKey: ["bill_stats", year, month],
         queryFn: async ({ }) => {
             const response = await client.api.digitale.bonLivraison[":year"][":month"].$get({
                 param: {

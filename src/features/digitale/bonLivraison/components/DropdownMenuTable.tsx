@@ -9,6 +9,11 @@ import { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEntrepriseBonLivraisonStore } from "../store/store";
+import useUpdateBonLivraison from "../api/use-update-bls";
+import { toast } from "sonner";
+import JobWatcher from "./JobWatcher";
+import { useQueryClient } from "@tanstack/react-query";
+import { ID } from "node-appwrite";
 
 
 
@@ -24,6 +29,42 @@ export function DropdownMenuTable({
 }) {
   const store = useEntrepriseBonLivraisonStore()
   const pathname = usePathname()
+  const { mutate } = useUpdateBonLivraison()
+
+
+  const entreprise = store.items.find((item) => item.EN_No.toString() === ref_enterprise)
+
+  const submitHandler = () => {
+    const id_toast = toast(() => {
+      const store = useEntrepriseBonLivraisonStore()
+
+
+      return (
+        <div className="text-white">
+          <h1 >En cours</h1>
+          {store.event && <JobWatcher jobId={store.event.jobId} />}
+        </div >
+      )
+    },
+      {
+        duration: Infinity,
+        style: {
+          background: 'green'
+        }
+      });
+
+
+
+
+
+    if (entreprise) {
+      mutate({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1] } }, {
+        onSuccess: (results: any) => {
+          store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+        }
+      })
+    }
+  }
 
   return (
     <>
@@ -45,6 +86,12 @@ export function DropdownMenuTable({
                 Voir
               </span>
             </Link>
+          </DropdownMenuItem>}
+          {entreprise?.EN_Valide === 0 && <DropdownMenuItem className="text-blue-600" onClick={submitHandler}>
+            <span
+            >
+              Actualiser
+            </span>
           </DropdownMenuItem>}
         </DropdownMenuContent>
       </DropdownMenu>

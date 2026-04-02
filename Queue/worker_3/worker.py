@@ -3,7 +3,7 @@ import json
 import time
 import requests
 
-from main import main_process_bl_detail
+from main import main_process_bl_detail, main_process_bl_one
 
 
 def connect_with_retry(host="rabbitmq", tries=30, delay=2):
@@ -38,8 +38,13 @@ def handle(ch, method, properties, body):
             "ec_count": ""
         }
     )
-    main_process_bl_detail(
-        data["jobId"], data["year"], data["month"])
+
+    if data["type"] == "all":
+        main_process_bl_detail(
+            data["jobId"], data["year"], data["month"])
+    if data["type"] == "bl_some":
+        main_process_bl_one(
+            data["jobId"], data["year"], data["month"], data["en_list"])
 
     requests.post(
         "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",

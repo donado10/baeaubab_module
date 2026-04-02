@@ -19,11 +19,15 @@ import { ReactNode, useState } from "react"
 import useGetBonLivraison from "../api/use-get-bon-livraison"
 import { useEntrepriseBonLivraisonStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
+import { useQueryClient } from "@tanstack/react-query"
+import { ID } from "node-appwrite"
 
 export function DialogGetBonLivraison({ open, onOpen }: { open: boolean, onOpen: (value: boolean) => void }) {
 
     const store = useEntrepriseBonLivraisonStore()
     const { mutate } = useGetBonLivraison()
+    const queryClient = useQueryClient();
+
 
 
 
@@ -33,10 +37,12 @@ export function DialogGetBonLivraison({ open, onOpen }: { open: boolean, onOpen:
             onSuccess: (results: any) => {
                 store.setItems(results.result)
                 store.setEvent(null)
+                queryClient.invalidateQueries({ queryKey: ["bill_stats", store.periode[0], store.periode[1]], exact: true })
+
+                onOpen(false)
             }
         })
 
-        onOpen(false)
 
     }
 
