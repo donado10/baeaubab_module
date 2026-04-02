@@ -281,6 +281,7 @@ export const BonLivraisonDetailSectionContainer = () => {
         return <></>
 
     }
+    console.log(data.result)
     return <><BonLivraisonDetailSection agence={data.result} entreprise_id={entreprise_id.toString()} /></>
 }
 export const BonLivraisonResidenceDetailSectionContainer = () => {

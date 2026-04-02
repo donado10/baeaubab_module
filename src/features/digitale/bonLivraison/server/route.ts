@@ -20,11 +20,20 @@ const app = new Hono()
 
 			const pool = await getConnection();
 
-			const query = `
+			let query = `
 			select * from TRANSIT.dbo.F_COMPTET_DIGITAL where ct_dg=1 and ct_entreprise=${en_no}
 			`;
 			let result = await pool.request().query(query);
 
+			if (result.recordset.length > 0) {
+				return c.json({ result: result.recordset[0] });
+			}
+
+			query = `
+			select top 1 * from TRANSIT.dbo.F_COMPTET_DIGITAL where ct_dg=0 and ct_entreprise=${en_no}
+			`;
+
+			result = await pool.request().query(query);
 			return c.json({ result: result.recordset[0] });
 		}
 	)
@@ -282,22 +291,8 @@ const app = new Hono()
 
 			const pool = await getConnection();
 
-			const query = `with lev1 as (select entreprise_id,count(do_no) as nbre_bls from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by entreprise_id),
-			lev2 as (select entreprise_id,sum(DO_TotalHT) as totalHT from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by entreprise_id),
-			lev3 as (select lev1.entreprise_id as EN_No,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT 
-			from lev1 inner join lev2 on lev1.entreprise_id = lev2.entreprise_id ),
-			lev4 as (select lev3.*,en.EN_Intitule,en.EN_TVA from lev3 inner join F_ENTREPRISE_DIGITAL en on lev3.EN_No = en.EN_No),
-			lev5 as (select CT_Entreprise,count(CT_Entreprise) as EN_Agences from F_COMPTET_DIGITAL  group by CT_Entreprise)
-			select lev4.*,lev5.EN_Agences from lev4 inner join lev5 on lev4.EN_No = lev5.CT_Entreprise order by en_no
-
-
-`;
-			const query2 = `with lev1 as (select ct_num, COUNT(DO_No) as nbre_bls from F_DOCENTETE_DIGITAL where year(created_at) = ${year} and month(created_at) = ${month} and entreprise_id is null and DO_Status !=2 group by CT_Num),
-			lev2 as (select ct_num,sum(DO_TotalHT) as totalHT from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(created_at)=${year} and month(created_at)=${month} group by CT_Num),
-			lev3 as (select lev1.ct_num as EN_CL,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT from lev1 inner join lev2 on lev1.ct_num = lev2.CT_Num )
-			select ct.CT_No as EN_No,ct.CT_TVA as EN_TVA,ct.type_client_id as EN_Type,lev3.EN_BonLivraisons,lev3.EN_TotalHT,CT_Intitule as EN_Intitule,1 as EN_Agences from lev3 inner join F_COMPTET_DIGITAL ct on lev3.EN_CL = ct.CT_Num
-			
-			`;
+			const query = `select * from TRANSIT.dbo.fnc_GetCompanyMonthDetails(${year},${month})`;
+			const query2 = `select * from fnc_GetResidenceMonthDetails(${year},${month})`;
 
 			let result = await pool.request().query(query);
 			let result2 = await pool.request().query(query2);

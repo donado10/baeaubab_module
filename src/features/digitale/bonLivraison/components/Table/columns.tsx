@@ -211,6 +211,28 @@ export const columns: ColumnDef<IEntrepriseBonLivraison>[] = [
     ),
   },
   {
+    accessorKey: "EN_Valide",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <span>
+            Valide
+          </span>
+          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
+        </Button>
+      )
+    },
+    cell: ({ row }) => (
+      <>
+        <div className="capitalize">{row.getValue("EN_Valide")}</div>
+      </>
+    ),
+  },
+  {
     accessorKey: "EN_TotalHT",
     header: ({ column }) => {
       return (

@@ -8,6 +8,7 @@ export const entrepriseBonLivraisonSchema = z.object({
 	EN_TVA: z.coerce.number(),
 	EN_TotalHT: z.coerce.number(),
 	EN_Type: z.coerce.number().optional(),
+	EN_Valide: z.coerce.number(),
 });
 
 export const bonLivraisonEnteteSchema = z.object({

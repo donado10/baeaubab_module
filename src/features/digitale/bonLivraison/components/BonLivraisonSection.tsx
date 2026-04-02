@@ -141,11 +141,9 @@ const BonLivraisonSection = () => {
 
         if (store.periode.length <= 0) return
 
-        console.log(store.event)
         if (store.event) return
 
         console.log("fetching bls with periode ", store.periode)
-        console.log(store.event)
 
         store.setEvent(null)
         mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
