@@ -247,6 +247,60 @@ const app = new Hono()
 
 			return c.json({ result: [...result.recordset, ...result2.recordset] });
 		}
+	)
+	.delete(
+		"/all",
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month } = c.req.valid("json");
+
+			const pool = await getConnection();
+
+			const query = `
+			delete from transit.dbo.f_docentete_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6;
+			delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6;
+			update transit.dbo.f_docentete_digital
+			set do_valide=0
+			where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=3
+			`;
+			await pool.request().query(query);
+
+			return c.json({ result: "done" });
+		}
+	)
+	.delete(
+		"/some",
+		zValidator(
+			"json",
+			z.object({
+				en_list: z.array(z.string()),
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month, en_list } = c.req.valid("json");
+			console.log(year, month, en_list);
+
+			const pool = await getConnection();
+
+			const query = `
+			delete from transit.dbo.f_docentete_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and entreprise_id in (${en_list.join(",")});
+			delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and entreprise_id in (${en_list.join(",")});
+			update transit.dbo.f_docentete_digital
+			set do_valide=0
+			where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and entreprise_id in (${en_list.join(",")});
+			`;
+			await pool.request().query(query);
+
+			return c.json({ result: "done" });
+		}
 	);
 
 export default app;

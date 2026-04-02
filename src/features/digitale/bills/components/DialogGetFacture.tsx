@@ -31,7 +31,6 @@ export function DialogGetFacture({ open, onOpen }: { open: boolean, onOpen: (val
 
         mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: (results: any) => {
-                console.log(results.result)
                 store.setItems(results.result)
                 store.setEvent(null)
             }
