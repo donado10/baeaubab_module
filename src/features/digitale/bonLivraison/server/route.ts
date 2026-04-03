@@ -211,20 +211,24 @@ const app = new Hono()
 		zValidator(
 			"json",
 			z.object({
-				en_list: z.array(z.string()),
+				en_list_valid: z.array(z.string()),
+				en_list_invalid: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
 			})
 		),
 		async (c) => {
-			const { year, month, en_list } = c.req.valid("json");
+			const { year, month, en_list_valid, en_list_invalid } =
+				c.req.valid("json");
 
-			const pool = await getConnection();
-			const query = `delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where entreprise_id in (${en_list.join(",")});
-			delete from TRANSIT.dbo.F_DOCligne_DIGITAL where entreprise_id in (${en_list.join(",")})
-			`;
+			if (en_list_invalid.length > 0) {
+				const pool = await getConnection();
+				const query = `delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where entreprise_id in (${en_list_invalid.join(",")});
+				delete from TRANSIT.dbo.F_DOCligne_DIGITAL where entreprise_id in (${en_list_invalid.join(",")})
+				`;
 
-			await pool.request().query(query);
+				await pool.request().query(query);
+			}
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
@@ -232,6 +236,8 @@ const app = new Hono()
 			await channel.assertQueue("get_digital_bl_jobs");
 
 			const jobId = ID.unique();
+
+			const en_list = [...en_list_valid, ...en_list_invalid];
 
 			channel.sendToQueue(
 				"get_digital_bl_jobs",

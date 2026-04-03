@@ -61,7 +61,7 @@ export function DropdownMenuTable({
 
 
     if (entreprise) {
-      mutate({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1] } }, {
+      mutate({ json: { en_list_invalid: entreprise.EN_Valide === 0 ? [ref_enterprise] : [], en_list_valid: entreprise.EN_Valide === 1 ? [ref_enterprise] : [], year: store.periode[0], month: store.periode[1] } }, {
         onSuccess: (results: any) => {
           store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
         }
@@ -93,7 +93,6 @@ export function DropdownMenuTable({
 
     if (entreprise) {
 
-      console.log("entreprise", entreprise.EN_Type)
 
       entreprise.EN_Type != 1 &&
         mutateGenerateBill({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1], residence_list: [] } }, {
@@ -133,7 +132,7 @@ export function DropdownMenuTable({
               </span>
             </Link>
           </DropdownMenuItem>}
-          {entreprise?.EN_Valide === 0 && <DropdownMenuItem className="text-blue-600" onClick={submitHandler}>
+          {<DropdownMenuItem className="text-blue-600" onClick={submitHandler}>
             <span
             >
               Actualiser

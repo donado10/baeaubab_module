@@ -112,9 +112,12 @@ export function DialogActualiserBonLivraison({ children }: { children: ReactNode
             });
 
 
+        const en_list_valid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 1).map((item) => item.EN_No)
+        const en_list_invalid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 0).map((item) => item.EN_No)
 
 
-        mutate({ json: { en_list: store.billCart, year: store.periode[0], month: store.periode[1] } }, {
+
+        mutate({ json: { en_list_valid, en_list_invalid, year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: (results: any) => {
                 store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
