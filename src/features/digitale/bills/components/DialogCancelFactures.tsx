@@ -18,6 +18,9 @@ import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
 import useGenerateFactures from "../api/use-generate-factures"
+import useDeleteFactures from "../api/use-delete-factures"
+import { useQueryClient } from "@tanstack/react-query"
+import useGetFacture from "../api/use-get-facture"
 
 
 const months = [
@@ -78,44 +81,43 @@ const SelectYear = ({ year, onSetYear }: { year: string; onSetYear: (value: stri
     </Select>
 }
 
-export function DialogGenerateFactures({ children }: { children: ReactNode }) {
+export function DialogCancelFactures({ children }: { children: ReactNode }) {
 
     const store = useEntrepriseFactureStore()
 
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
+    const queryClient = useQueryClient()
+    const { mutate: mutateGetFacture } = useGetFacture()
 
 
-
-    const { mutate } = useGenerateFactures()
+    const { mutate } = useDeleteFactures()
 
 
     const submitHandler = () => {
-        setClose(false)
 
-
-        const id_toast = toast(() => {
-            const store = useEntrepriseFactureStore()
-
-
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
-                }
-            });
 
 
         mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: (results: any) => {
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+
+                toast.success("Factures annulées avec succès !", {
+                    style: {
+                        background: 'green',
+                        color: 'white'
+                    }
+                })
+
+                mutateGetFacture({ json: { year: store.periode[0], month: store.periode[1] } }, {
+                    onSuccess: (results: any) => {
+                        store.setItems(results.result)
+                        store.setEvent(null)
+                        queryClient.invalidateQueries({ queryKey: ["document_stats_facture", store.periode[0], store.periode[1]], exact: true })
+                        setClose(false)
+                    }
+                })
+
+
             }
         })
 
@@ -130,7 +132,7 @@ export function DialogGenerateFactures({ children }: { children: ReactNode }) {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="mb-4">
-                        <DialogTitle>Générer Factures  </DialogTitle>
+                        <DialogTitle>Annuler Factures  </DialogTitle>
                     </DialogHeader>
                     <DialogFooter className="gap-4">
                         <DialogClose asChild>

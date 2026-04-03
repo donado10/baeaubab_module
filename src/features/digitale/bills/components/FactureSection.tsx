@@ -14,9 +14,10 @@ import { PopoverFilterButton } from './FilterSection'
 import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import TableFactureDigitalContainer from './TableContainer'
-import useGetBillStats from '../api/use-get-bl-stats'
-import { DialogGenerateFactures } from './DialogGenerateFactures'
-import { DialogGenerateFacturesByEntrepriseID } from './DialogGenerateFacturesByEntrepriseID'
+import useGetBillStats from '../api/use-get-bill-stats'
+import { DialogCancelFactures } from './DialogCancelFactures'
+import { DialogCancelFacturesByEntrepriseID } from './DialogCancelFacturesByEntrepriseID'
+import useGetFacture from '../api/use-get-facture'
 
 
 
@@ -133,10 +134,24 @@ const FactureSection = () => {
 
     const store = useEntrepriseFactureStore()
 
+    const { mutate, isPending } = useGetFacture()
+
     useEffect(() => {
+
+        if (store.periode.length <= 0) return
+
+        if (store.event) return
+
+
         store.setEvent(null)
-        store.clear()
-    }, [])
+        mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
+            onSuccess: (results: any) => {
+                store.setItems(results.result)
+                store.setEvent(null)
+            }
+        })
+    }, [JSON.stringify(store.periode)])
+
 
 
     useEffect(() => {
@@ -144,9 +159,6 @@ const FactureSection = () => {
             setDialogFacture(true)
         }
     }, [store.event?.status])
-
-
-
 
 
     return (
@@ -163,6 +175,13 @@ const FactureSection = () => {
                     <div className='flex items-center gap-4'>
 
 
+                        {store.items.length > 0 && <DialogCancelFactures >
+
+                            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
+                                <span><MdCloudDownload />
+                                </span><span>Annuler Factures</span>
+                            </Button>
+                        </DialogCancelFactures>}
                         <DialogLoadFacture >
 
                             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>

@@ -297,6 +297,8 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, en_list, residence_list } = c.req.valid("json");
 
+			console.log(en_list, residence_list);
+
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 

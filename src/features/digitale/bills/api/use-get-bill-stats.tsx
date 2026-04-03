@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 
 const useGetBillStats = (year: string, month: string) => {
-    const pathname = usePathname()
     const query = useQuery({
-        queryKey: ["bill_stats", year, month, pathname],
+        queryKey: ["document_stats_facture", year, month],
         queryFn: async ({ }) => {
             const response = await client.api.digitale.facture[":year"][":month"].$get({
                 param: {

@@ -79,7 +79,7 @@ const SelectYear = ({ year, onSetYear }: { year: string; onSetYear: (value: stri
     </Select>
 }
 
-export function DialogGenerateFacturesByEntrepriseID({ children }: { children: ReactNode }) {
+export function DialogCancelFacturesByEntrepriseID({ children }: { children: ReactNode }) {
 
     const store = useEntrepriseFactureStore()
 

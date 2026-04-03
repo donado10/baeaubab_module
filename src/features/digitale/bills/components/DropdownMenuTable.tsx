@@ -73,7 +73,7 @@ export function DropdownMenuTable({
           <DropdownMenuItem className="text-red-600" onClick={submitHandler}>
             <span
             >
-              Supprimer
+              Annuler
             </span>
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import JobWatcher from "./JobWatcher";
 import { useQueryClient } from "@tanstack/react-query";
 import { ID } from "node-appwrite";
+import useGenerateFactures from "../api/use-generate-factures";
+import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise";
 
 
 
@@ -30,6 +32,7 @@ export function DropdownMenuTable({
   const store = useEntrepriseBonLivraisonStore()
   const pathname = usePathname()
   const { mutate } = useUpdateBonLivraison()
+  const { mutate: mutateGenerateBill } = useGenerateFacturesByEntreprise()
 
 
   const entreprise = store.items.find((item) => item.EN_No.toString() === ref_enterprise)
@@ -66,6 +69,49 @@ export function DropdownMenuTable({
     }
   }
 
+  const generateBillHandler = () => {
+    const id_toast = toast(() => {
+      const store = useEntrepriseBonLivraisonStore()
+
+
+      return (
+        <div className="text-white">
+          <h1 >En cours</h1>
+          {store.event && <JobWatcher jobId={store.event.jobId} />}
+        </div >
+      )
+    },
+      {
+        duration: Infinity,
+        style: {
+          background: 'green'
+        }
+      });
+
+
+
+
+    if (entreprise) {
+
+      console.log("entreprise", entreprise.EN_Type)
+
+      entreprise.EN_Type != 1 &&
+        mutateGenerateBill({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1], residence_list: [] } }, {
+          onSuccess: (results: any) => {
+            store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+          }
+        })
+
+
+      entreprise.EN_Type == 1 &&
+        mutateGenerateBill({ json: { en_list: [], year: store.periode[0], month: store.periode[1], residence_list: [ref_enterprise] } }, {
+          onSuccess: (results: any) => {
+            store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+          }
+        })
+    }
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -91,6 +137,12 @@ export function DropdownMenuTable({
             <span
             >
               Actualiser
+            </span>
+          </DropdownMenuItem>}
+          {entreprise?.EN_Valide === 0 && <DropdownMenuItem className="text-blue-600" onClick={generateBillHandler}>
+            <span
+            >
+              Générer Facture
             </span>
           </DropdownMenuItem>}
         </DropdownMenuContent>

@@ -91,11 +91,6 @@ const app = new Hono()
 		let result_total = await pool.request().query(query_total);
 		let result_taxable = await pool.request().query(query_taxable);
 		let result_exo = await pool.request().query(query_exo);
-		console.log(
-			result_total.recordset[0].total,
-			result_taxable.recordset[0].taxable,
-			result_exo.recordset[0].exo
-		);
 
 		return c.json({
 			results: {
@@ -243,8 +238,6 @@ const app = new Hono()
 			let result = await pool.request().query(query);
 			let result2 = await pool.request().query(query2);
 
-			console.log(result.recordset);
-
 			return c.json({ result: [...result.recordset, ...result2.recordset] });
 		}
 	)
@@ -267,7 +260,7 @@ const app = new Hono()
 			delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6;
 			update transit.dbo.f_docentete_digital
 			set do_valide=0
-			where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=3
+			where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3
 			`;
 			await pool.request().query(query);
 
@@ -286,7 +279,6 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month, en_list } = c.req.valid("json");
-			console.log(year, month, en_list);
 
 			const pool = await getConnection();
 
