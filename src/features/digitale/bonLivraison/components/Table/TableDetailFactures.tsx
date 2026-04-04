@@ -14,14 +14,13 @@ import { convertDate, formatDate } from "@/lib/utils";
 
 
 export function TableFactureDetail({ details }: { details: IDocumentFacture[] }) {
-    console.log(details)
     return (
         <Table >
             <TableHeader>
-                <TableRow className="border-b border-[#101010]">
+                <TableRow className="border-2 border-[#101010]">
                     <TableHead className="w-[100px]">Facture</TableHead>
                     <TableHead>Bon de Livraison</TableHead>
-                    <TableHead>Date de création</TableHead>
+                    <TableHead>Date Facture</TableHead>
                     <TableHead>TotalHT</TableHead>
                     <TableHead>TotalTVA</TableHead>
                     <TableHead>TotalTTC</TableHead>
@@ -30,8 +29,8 @@ export function TableFactureDetail({ details }: { details: IDocumentFacture[] })
             </TableHeader>
             <TableBody>
                 {details.map((detail, index) => (
-                    <TableRow key={index} className="text-xs border-b border-[#101010]">
-                        <TableCell className="font-medium ">{detail.entete.DO_No}</TableCell>
+                    <TableRow key={index} className="text-xs border-2 border-[#101010]">
+                        <TableCell className="font-medium  ">{detail.entete.DO_No}</TableCell>
                         <TableCell className="font-medium">{detail.lignes.length}</TableCell>
                         <TableCell className="font-medium">{formatDate(detail.entete.DO_Date)}</TableCell>
                         <TableCell>{detail.entete.DO_TotalHT}</TableCell>

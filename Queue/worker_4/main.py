@@ -62,10 +62,10 @@ def get_agence_dg_by_residence_id(residence_id):
 
 def get_latest_facture_id():
     query = f"""
-    SELECT MAX(id) FROM factures
+    SELECT MAX(DO_No) FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL where do_type=6
 """
-    result = mysql_execute_select_all(query)
-    return result[0][0] if result and result[0][0] else 0
+    result = execute_select_all(query)
+    return result[0][0] if result and result[0][0] else 127311
 
 
 def handle_fact_entete(entete: list) -> list:

@@ -17,6 +17,8 @@ import useGetEntrepriseResidence from '../api/use-get-entreprise-residence';
 import useGetEnterpriseResidenceBonLivraison from '../api/use-get-entreprise-residence-bls';
 import { TableFactureDetail } from './Table/TableDetailFactures';
 import useGetEnterpriseFactures from '../../bills/api/use-get-entreprise-bls';
+import { DataTable } from "./TableEntrepriseDetail/table";
+
 
 
 const DocumentPDFView = dynamic(
@@ -292,8 +294,8 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
 
             </div>
         </div>
-        <div>
-            <TableFactureDetail details={data.result} />
+        <div className='w-full  p-2'>
+            <DataTable data={data.result} />
 
         </div>
         {/* {instance.loading ? 'loading...' :
