@@ -281,7 +281,6 @@ export const BonLivraisonDetailSectionContainer = () => {
         return <></>
 
     }
-    console.log(data.result)
     return <><BonLivraisonDetailSection agence={data.result} entreprise_id={entreprise_id.toString()} /></>
 }
 export const BonLivraisonResidenceDetailSectionContainer = () => {
@@ -336,12 +335,6 @@ const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence,
     }, [entreprise_id])
 
     const new_path = pathname.split('/').slice(0, -1).join('/')
-
-
-
-
-
-
 
     return (
         <main className='flex  w-full min-h-screen border border-gray-500  overflow-scroll'>
