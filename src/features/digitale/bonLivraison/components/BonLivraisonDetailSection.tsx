@@ -15,6 +15,8 @@ import { CiCircleChevLeft, CiCircleChevRight } from "react-icons/ci";
 import Link from 'next/link';
 import useGetEntrepriseResidence from '../api/use-get-entreprise-residence';
 import useGetEnterpriseResidenceBonLivraison from '../api/use-get-entreprise-residence-bls';
+import { TableFactureDetail } from './Table/TableDetailFactures';
+import useGetEnterpriseFactures from '../../bills/api/use-get-entreprise-bls';
 
 
 const DocumentPDFView = dynamic(
@@ -263,6 +265,47 @@ const FactureResume = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAg
     </>
 }
 
+const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgence, documentsBL: IDocumentBonLivraison[], month: string, year: string }) => {
+
+
+    const { data, isPending } = useGetEnterpriseFactures(agence_dg.CT_Entreprise.toString(), year, month)
+
+    if (isPending) {
+        return <></>
+    }
+    if (!data) {
+        return <></>
+    }
+
+    console.log(data)
+    return <>
+
+        <div className='  border-b border-gray-500 h-[15vh] p-8 '>
+            <div className='flex items-center justify-between'>
+
+                <div className='flex flex-col '>
+                    <span className='text-normal font-semibold'>{agence_dg.CT_Intitule}</span>
+                    <span className='text-xs font-semibold'>{agence_dg.CT_No}</span>
+                    <div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div>
+            <TableFactureDetail details={data.result} />
+
+        </div>
+        {/* {instance.loading ? 'loading...' :
+            <div className='bg-gray-500/20  flex items-center justify-center'>
+
+                <DocumentPDFView fileUrl={instance.url} />
+
+            </div>
+        } */}
+    </>
+}
+
 export const BonLivraisonDetailSectionContainer = () => {
     const { entreprise_id } = useParams()
     const { data, isPending } = useGetEntrepriseDG(entreprise_id.toString())
@@ -369,7 +412,7 @@ const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence,
             <div className='w-5/7 flex flex-col h-screen overflow-scroll'>
 
                 {store.selectedBonLivraison && <BonLivraisonSelected document={store.selectedBonLivraison} />}
-                {!store.selectedBonLivraison && store.itemsBL.length > 0 && <FactureResume month={store.periode[1]} year={store.periode[0]} agence_dg={agence} documentsBL={store.itemsBL.filter((bl) => bl.entete.DO_Status != 2)} />}
+                {!store.selectedBonLivraison && store.itemsBL.length > 0 && <FactureList month={store.periode[1]} year={store.periode[0]} agence_dg={agence} documentsBL={store.itemsBL.filter((bl) => bl.entete.DO_Status != 2)} />}
 
             </div>
         </main>
