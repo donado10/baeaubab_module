@@ -30,6 +30,14 @@ def get_facture_entete_detail_by_company_id(company_id, year, month):
     return results
 
 
+def get_facture_entete_detail_by_company_id_and_bl(company_id, bls, year, month):
+    query = f"""
+    select  * from TRANSIT.dbo.F_DOCENTETE_DIGITAL where do_no in ({','.join(bls)}) and year(created_at) = {year} and month(created_at) = {month} and do_type=3 and DO_Status != 2 and entreprise_id={company_id} and DO_TotalHT is not null and do_valide != 1
+"""
+    results = execute_select_all(query)
+    return results
+
+
 def get_facture_entete_detail_by_residence_id(client_id, year, month):
     query = f"""
     select  * from TRANSIT.dbo.F_DOCENTETE_DIGITAL where year(created_at) = {year} and month(created_at) = {month} and do_type=3 and DO_Status != 2 and client_id={client_id} and DO_TotalHT is not null and do_valide != 1
@@ -191,6 +199,39 @@ def build_facture(agence_dg: tuple, entetes: list, latest_fact_id, year, month):
 
     conn_mssql, _ = dbo_mssql()
     conn_mssql.commit()
+
+
+def main_process_factures_from_bl(jobID, year, month, entreprises: list, bls: list):
+    year = int(year)
+    month = int(month)
+
+    # process_facture_detail(jobId, year, month, journal, database)
+
+    latest_fact_id = get_latest_facture_id()
+
+    count = 0
+
+    for entreprise in entreprises:
+        entetes = get_facture_entete_detail_by_company_id_and_bl(
+            entreprise, bls, year, month)
+        if not len(entetes):
+            continue
+        agence_dg = get_agence_dg_by_company_id(entreprise)
+        if agence_dg:
+            build_facture(agence_dg, entetes, latest_fact_id, year, month)
+            latest_fact_id += 1
+
+            count += 1
+
+            requests.post(
+                "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
+                json={
+                    "jobId": jobID,
+                    "status": "pending",
+                    "ec_total": len(entreprises),
+                    "ec_count": count
+                }
+            )
 
 
 def main_process_factures(jobID, year, month):

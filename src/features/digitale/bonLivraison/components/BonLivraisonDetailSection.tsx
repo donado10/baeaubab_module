@@ -18,6 +18,14 @@ import useGetEnterpriseResidenceBonLivraison from '../api/use-get-entreprise-res
 import { TableFactureDetail } from './Table/TableDetailFactures';
 import useGetEnterpriseFactures from '../../bills/api/use-get-entreprise-bls';
 import { DataTable } from "./TableEntrepriseDetail/table";
+import { useEntrepriseDetailStore } from '../store/entreprise-store';
+import { GrRadial, GrRadialSelected } from "react-icons/gr";
+import useGenerateFacturesFromBonLivraison from '../api/use-generate-facture-from-bls';
+import { toast } from 'sonner';
+import JobWatcher from './JobWatcher';
+import { DialogCancelFactures } from '../../bills/components/DialogCancelFactures';
+import { MdCloudDownload } from 'react-icons/md';
+
 
 
 
@@ -69,9 +77,18 @@ const Search = ({ onSetFilter }: { onSetFilter: (value: string) => void }) => {
 
 const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClient, isActive, setActive }: { date: string, status: string, totalht: number, ref: string, idClient: string, intituleClient: string, isActive: string, setActive: (ref: string) => void }) => {
 
+    const store = useEntrepriseDetailStore()
 
     return <li onClick={() => {
+        if (store.selectedOption) {
+            if (store.cart.includes(ref)) {
+                store.setRemoveCart(ref)
+                return
+            }
+            store.setAddCart(ref)
+            return
 
+        }
         if (isActive === ref) {
             setActive(null)
             return
@@ -79,7 +96,12 @@ const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClie
         setActive(ref)
     }}
 
-        className={cn('w-full h-40  border-b border-gray-500 p-8 flex flex-col', 'hover:cursor-pointer hover:bg-gray-500/20', isActive === ref && 'bg-gray-500/20')}>
+        className={cn('w-full h-40 relative  border-b border-gray-500 p-8 flex flex-col', 'hover:cursor-pointer hover:bg-gray-500/20', isActive === ref && 'bg-gray-500/20', store.selectedOption && store.cart.includes(ref) && 'bg-gray-500/20')}>
+        {store.selectedOption && <div className='absolute top-0 left-0 p-2'><GrRadial />
+        </div>}
+        {store.selectedOption && store.cart.includes(ref) && <div className='absolute top-0 left-0 p-2'><GrRadialSelected />
+
+        </div>}
         <div className='flex items-center justify-between mb-4'>
             <StatusDisplay value={status} />
             <span className='font-bold'>{formatNumberToFrenchStandard(totalht)} FCFA</span>
@@ -269,8 +291,22 @@ const FactureResume = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAg
 
 const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgence, documentsBL: IDocumentBonLivraison[], month: string, year: string }) => {
 
-
+    const entrepriseStore = useEntrepriseDetailStore()
     const { data, isPending } = useGetEnterpriseFactures(agence_dg.CT_Entreprise.toString(), year, month)
+    const { mutate } = useGenerateFacturesFromBonLivraison()
+
+    const [instance, updateInstance] = usePDF({
+        document: <DocumentPDFFactureResume agence={agence_dg} documents={documentsBL.filter((bl) => entrepriseStore.cart.includes(bl.entete
+            .DO_No)
+        ) ?? []
+        } />
+    });
+
+    useEffect(() => {
+        updateInstance(<DocumentPDFFactureResume agence={agence_dg} documents={documentsBL.filter((bl) => entrepriseStore.cart.includes(bl.entete
+            .DO_No)
+        ) ?? []} />);
+    }, [JSON.stringify(agence_dg), JSON.stringify(entrepriseStore.cart)]);
 
     if (isPending) {
         return <></>
@@ -279,7 +315,37 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
         return <></>
     }
 
-    console.log(data)
+    const submitHandler = () => {
+
+
+        const id_toast = toast(() => {
+
+            const store = useEntrepriseDetailStore()
+
+            return (
+                <div className="text-white">
+                    <h1 >En cours</h1>
+                    {store.event && <JobWatcher jobId={store.event.jobId} />}
+                </div >
+            )
+        },
+            {
+                duration: Infinity,
+                style: {
+                    background: 'green'
+                }
+            });
+
+
+        mutate({ json: { en_list: [agence_dg.CT_Entreprise.toString()], year, month, bl_list: entrepriseStore.cart } }, {
+            onSuccess: (results: any) => {
+                entrepriseStore.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+            }
+        })
+
+
+    }
+
     return <>
 
         <div className='  border-b border-gray-500 h-[15vh] p-8 '>
@@ -291,20 +357,34 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
                     <div>
                     </div>
                 </div>
+                <div>
+
+                    {entrepriseStore.billCart.length > 0 && <DialogCancelFactures >
+
+                        <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
+                            <span><MdCloudDownload />
+                            </span><span>Annuler Factures</span>
+                        </Button>
+                    </DialogCancelFactures>}
+
+                    {entrepriseStore.cart.length > 0 && <Button variant='outline' onClick={submitHandler}>
+                        Générer Facture
+                    </Button>}
+                </div>
 
             </div>
         </div>
         <div className='w-full  p-2'>
-            <DataTable data={data.result} />
+            {!entrepriseStore.selectedOption && <DataTable data={data.result} />}
 
+            {entrepriseStore.selectedOption && (instance.loading ? 'loading...' :
+                <div className='bg-gray-500/20  flex items-center justify-center'>
+
+                    <DocumentPDFView fileUrl={instance.url} />
+
+                </div>)
+            }
         </div>
-        {/* {instance.loading ? 'loading...' :
-            <div className='bg-gray-500/20  flex items-center justify-center'>
-
-                <DocumentPDFView fileUrl={instance.url} />
-
-            </div>
-        } */}
     </>
 }
 
@@ -351,6 +431,7 @@ export const BonLivraisonResidenceDetailSectionContainer = () => {
 
 const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence, entreprise_id: string }) => {
     const store = useEntrepriseBonLivraisonStore()
+    const entrepriseStore = useEntrepriseDetailStore()
     const pathname = usePathname()
 
     const entreprise = store.items.find((en) => en.EN_No.toString() == entreprise_id.toString())
@@ -384,7 +465,7 @@ const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence,
     return (
         <main className='flex  w-full min-h-screen border border-gray-500  overflow-scroll'>
             <div className='w-2/7 h-screen overflow-scroll border-r border-gray-500  '>
-                <div className='border-b border-gray-500 p-8 h-[25vh]'>
+                <div className='border-b border-gray-500 p-8 h-[30vh]'>
                     <div className='mb-4'>
                         <h1 className='text-2xl font-bold mb-2'>Bon de Livraisons (<span className='text-xl font-light'>{store.itemsBL.length}</span>)</h1>
                         <div className='flex items-center gap-2'>
@@ -398,8 +479,20 @@ const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence,
                             </Link>}
                         </div>
                     </div>
-                    <div>
+                    <div className='mb-4'>
                         <Search onSetFilter={(value) => store.setFilter({ ...store.filter, searchByBL: value })} />
+                    </div>
+                    <div>
+                        <Button onClick={() => {
+                            entrepriseStore.setSelectedOption(!entrepriseStore.selectedOption)
+                        }}>
+                            {entrepriseStore.selectedOption && <span><GrRadialSelected /></span>}
+                            {!entrepriseStore.selectedOption && <span><GrRadial /></span>}
+                            <span>
+
+                                Select
+                            </span>
+                        </Button>
                     </div>
                 </div>
                 <div className='h-[80vh] overflow-y-scroll'>

@@ -12,6 +12,7 @@ import { useEntrepriseBonLivraisonStore } from "../../store/store";
 import { useEffect } from "react";
 import { GoDotFill } from "react-icons/go";
 import { IDocumentFacture } from "@/features/digitale/bills/interface";
+import { useEntrepriseDetailStore } from "../../store/entreprise-store";
 
 
 const StatusDisplay = ({ value }: { value: string }) => {
@@ -56,12 +57,12 @@ export const columns: ColumnDef<IDocumentFacture>[] = [
     id: "select",
     header: ({ table }) => {
       // console.log(table.getRowModel().rows);
-      const store = useEntrepriseBonLivraisonStore()
+      const store = useEntrepriseDetailStore()
 
       useEffect(() => {
         table.toggleAllRowsSelected(false)
         store.setRemoveAllBillCart()
-      }, [JSON.stringify(store.filter?.status), JSON.stringify(store.items)])
+      }, [JSON.stringify(store.items)])
 
       return (
         <Checkbox
@@ -72,7 +73,7 @@ export const columns: ColumnDef<IDocumentFacture>[] = [
           onCheckedChange={(value) => {
             table.toggleAllRowsSelected(!!value);
             if (!!value) {
-              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.EN_No))
+              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.entete.EN_No.toString()))
             } else {
               store.setRemoveAllBillCart()
             }
@@ -83,7 +84,7 @@ export const columns: ColumnDef<IDocumentFacture>[] = [
     },
     cell: ({ row }) => {
 
-      const store = useEntrepriseBonLivraisonStore()
+      const store = useEntrepriseDetailStore()
 
       return (
         <Checkbox
@@ -91,9 +92,9 @@ export const columns: ColumnDef<IDocumentFacture>[] = [
           onCheckedChange={(value) => {
             row.toggleSelected(!!value);
             if (!!value) {
-              store.setAddBillCart(Number(row.original.entete.EN_No))
+              store.setAddBillCart(row.original.entete.EN_No)
             } else {
-              store.setRemoveBillCart(Number(row.original.entete.EN_No))
+              store.setRemoveBillCart(row.original.entete.EN_No)
 
             }
           }}

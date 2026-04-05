@@ -4,6 +4,7 @@ import z, { string } from "zod";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 import amqp from "amqplib";
+import { en } from "zod/v4/locales";
 
 const app = new Hono()
 
@@ -282,6 +283,44 @@ const app = new Hono()
 						year: year,
 						month: month,
 						type: "all",
+					})
+				)
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		}
+	)
+	.post(
+		"/generateFacturesDigitalFromBonLivraison",
+		zValidator(
+			"json",
+			z.object({
+				en_list: z.array(z.string()),
+				bl_list: z.array(z.string()),
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month, en_list, bl_list } = c.req.valid("json");
+
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("generate_digital_fact_jobs");
+
+			const jobId = ID.unique();
+
+			channel.sendToQueue(
+				"generate_digital_fact_jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						type: "fromBonLivraison",
+						en_list: en_list,
+						bl_list: bl_list,
 					})
 				)
 			);

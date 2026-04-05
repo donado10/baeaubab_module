@@ -108,14 +108,14 @@ export function DialogCancelFactures({ children }: { children: ReactNode }) {
                     }
                 })
 
-                mutateGetFacture({ json: { year: store.periode[0], month: store.periode[1] } }, {
+                /* mutateGetFacture({ json: { year: store.periode[0], month: store.periode[1] } }, {
                     onSuccess: (results: any) => {
                         store.setItems(results.result)
                         store.setEvent(null)
                         queryClient.invalidateQueries({ queryKey: ["document_stats_facture", store.periode[0], store.periode[1]], exact: true })
                         setClose(false)
                     }
-                })
+                }) */
 
 
             }

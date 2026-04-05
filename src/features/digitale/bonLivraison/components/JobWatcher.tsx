@@ -2,10 +2,11 @@
 import { useEffect, useState } from "react";
 import { useEntrepriseBonLivraisonStore } from "../store/store";
 import { toast } from "sonner";
+import { useEntrepriseDetailStore } from "../store/entreprise-store";
 
 export default function JobWatcher({ jobId }: { jobId: string }) {
     const [status, setStatus] = useState("waiting...");
-    const store = useEntrepriseBonLivraisonStore()
+    const store = useEntrepriseDetailStore()
 
 
     useEffect(() => {
@@ -13,7 +14,7 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
 
 
 
-        const es = new EventSource(`${process.env.NEXT_PUBLIC_APP_URL!}/api/digitale/bonLivraison/events/jobId/${store.event.jobId}`);
+        const es = new EventSource(`${process.env.NEXT_PUBLIC_APP_URL!}/api/digitale/bonLivraison/events/jobId/${store.event?.jobId}`);
         console.log(es)
 
         es.addEventListener("connected", () => {

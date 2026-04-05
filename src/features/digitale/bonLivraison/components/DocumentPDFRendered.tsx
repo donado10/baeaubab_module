@@ -118,7 +118,7 @@ export function DocumentPDFFactureResume({ agence, documents }: { agence: IAgenc
             totalHT: documents.reduce((prev, next) => prev + next.entete.DO_TotalHT, 0),
             TVA: Math.round((documents.reduce((prev, next) => prev + next.entete.DO_TotalHT, 0)) * 0.18),
         })
-    }, [JSON.stringify(agence)])
+    }, [JSON.stringify(agence), JSON.stringify(documents)])
 
     console.log(agence)
 
