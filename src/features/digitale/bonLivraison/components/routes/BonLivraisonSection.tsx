@@ -184,14 +184,15 @@ const BonLivraisonSectionContainer = () => {
     useEffect(() => {
 
         if (store.event?.status === 'done' && store.periode.length > 0) {
-            console.log(store.periode)
-            queryClient.invalidateQueries({ queryKey: ["get_bon_livraison", store.periode[0], store.periode[1]], exact: true })
+            queryClient.invalidateQueries({ queryKey: ["get-bon-livraison-stats-by-company", store.periode[0], store.periode[1]], exact: true })
+            queryClient.invalidateQueries({ queryKey: ["get-bon-livraison-stats", store.periode[0], store.periode[1]], exact: true })
             return
         }
     }, [JSON.stringify(store.event)])
 
 
     useEffect(() => {
+
         if (store.periode.length === 0) {
             return
         }
@@ -208,6 +209,7 @@ const BonLivraisonSectionContainer = () => {
     }, [searchParams.get('year'), searchParams.get('month')])
 
     useEffect(() => {
+
 
         if (isPending) {
 

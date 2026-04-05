@@ -23,7 +23,8 @@ const routes = app
 	.route("/digitale/bonLivraison/events", bonLivraisonEvents)
 	.route("/digitale/facture/events", factureEvents)
 	.route("/digitale/bonLivraison", bonLivraison2)
-	.route("/digitale/facture", facture);
+	.route("/digitale/facture", facture)
+	.route("/modules", modules);
 
 export const GET = handle(app);
 export const POST = handle(app);

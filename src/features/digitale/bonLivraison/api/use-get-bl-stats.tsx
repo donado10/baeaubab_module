@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const useGetBonLivraisonStats = (year: string, month: string) => {
     const query = useQuery({
-        queryKey: ["bill_stats", year, month],
+        queryKey: ["get-bon-livraison-stats", year, month],
         queryFn: async ({ }) => {
             const response = await client.api["bon-livraison"].stats[":year"][":month"].$get({
                 param: {

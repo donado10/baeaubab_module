@@ -51,8 +51,6 @@ const app = new Hono()
 		let result_valid = await pool.request().query(query_valid);
 		let result_deleted = await pool.request().query(query_deleted);
 
-		console.log(result_total_clients);
-
 		return c.json({
 			results: {
 				clients: result_total_clients.rowsAffected[0],
