@@ -21,6 +21,7 @@ import { IDocumentBonLivraison, IEntrepriseBonLivraison } from '../../interface'
 import useGetBonLivraisonStatsByCompany from '../../api/use-get-bon-livraison'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useGetBonLivraisonStats from '../../api/use-get-bl-stats'
+import { useQueryClient } from '@tanstack/react-query'
 
 
 
@@ -177,6 +178,17 @@ const BonLivraisonSectionContainer = () => {
     const searchParams = useSearchParams()
     const { data, isPending } = useGetBonLivraisonStatsByCompany(store.periode[0], store.periode[1])
     const router = useRouter()
+    const queryClient = useQueryClient()
+
+
+    useEffect(() => {
+
+        if (store.event?.status === 'done' && store.periode.length > 0) {
+            console.log(store.periode)
+            queryClient.invalidateQueries({ queryKey: ["get_bon_livraison", store.periode[0], store.periode[1]], exact: true })
+            return
+        }
+    }, [JSON.stringify(store.event)])
 
 
     useEffect(() => {
@@ -194,6 +206,20 @@ const BonLivraisonSectionContainer = () => {
             store.setPeriode(searchParams.get('year')!, searchParams.get('month')!)
         }
     }, [searchParams.get('year'), searchParams.get('month')])
+
+    useEffect(() => {
+
+        if (isPending) {
+
+            return
+        }
+        if (!data) {
+            return
+        }
+
+        store.setItems(data.result)
+
+    }, [JSON.stringify(data)])
 
 
     if (isPending) {

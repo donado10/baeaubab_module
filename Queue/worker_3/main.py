@@ -260,13 +260,10 @@ def split_souche(souche):
         return None, None
 
 
-def set_entreprise_sage():
+def set_entreprise_sage(script: str):
     conn_mssql, cursor_mssql = dbo_mssql()
 
-    script_mssql = """
-        select EN_No_digital from transit.dbo.F_entreprise_digital where EN_No_digital is not null and EN_No_Sage is null order by EN_No_digital asc
-"""
-    result = execute_select_all(script_mssql)
+    result = execute_select_all(script)
 
     for res in result:
         souche = latest_souche_number()
@@ -318,7 +315,11 @@ def build_entreprise_residence():
 
 def update_entreprise(year, month):
     build_entreprise_residence()
-    set_entreprise_sage()
+    set_entreprise_sage(
+        'select EN_No_digital from transit.dbo.F_entreprise_digital where EN_No_digital is not null and EN_No_Sage is null and en_no_digital > 0 order by EN_No_digital asc')
+    set_entreprise_sage(
+        'select EN_No_digital from transit.dbo.F_entreprise_digital where EN_No_digital is not null and EN_No_Sage is null and en_no_digital < 0 order by EN_No_digital asc')
+
     update_comptet_digital_entreprise()
     update_entreprise_tva(year, month)
 
@@ -376,14 +377,14 @@ def get_bls(year, month):
 def get_one_company_bls(year, month, en_no):
     script_mssql_do = f"""
     SELECT  DO_No
-  FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL where entreprise_id = {en_no}
+  FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Entreprise_Sage = '{en_no}'
 """
     result_do = execute_select_all(script_mssql_do)
     result_do = [str(x[0]) for x in result_do]
 
     script_mssql_en = f"""
     SELECT  CT_No
-  FROM TRANSIT.dbo.F_COMPTET_DIGITAL where CT_Entreprise = {en_no}
+  FROM TRANSIT.dbo.F_COMPTET_DIGITAL where CT_Entreprise_Sage = '{en_no}'
 """
     result_en = execute_select_all(script_mssql_en)
     result_en = [str(x[0]) for x in result_en]
@@ -461,7 +462,6 @@ def get_price(client_id, art: str):
     select [Art_price] from [TRANSIT].[dbo].[F_ARTICLE_DIGITAL]
       where  art_no = '{art}' 
       """
-        print(script_mssql)
 
         result = execute_select_one(script_mssql)
         return result[0]
@@ -573,6 +573,8 @@ def update_ligne(bl):
     """
     cursor_mssql.execute(script)
 
+    print(bl, flush=True)
+
     script = f"""
         update ligne1
         set ligne1.DO_PrixUnitaire = ligne2.DO_TotalHT / ligne2.ART_Qte
@@ -602,7 +604,7 @@ def handle_bl_documents(jobID, year, month):
     for bl in results:
         count = count + 1
         handle_bl(bl)
-        """ requests.post(
+        requests.post(
             "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
             json={
                 "jobId": jobID,
@@ -610,7 +612,7 @@ def handle_bl_documents(jobID, year, month):
                 "ec_total": len(results),
                 "ec_count": count
             }
-        ) """
+        )
 
 
 def handle_some_bl_document(jobID, year, month, en_list):
@@ -660,13 +662,13 @@ def main_process_bl_detail(jobID, year, month):
 
 
 def main_process_bl_one(jobID, year, month, en_list):
-    handle_new_articles()
+    # handle_new_articles()
     handle_clients(year, month)
     handle_livreurs()
     handle_some_bl_document(jobID, year, month, en_list)
     update_entreprise_id()
 
 
-main_process_bl_detail('', 2026, 1)
+# main_process_bl_detail('', 2026, 1)
 
 # main_process_bl_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')

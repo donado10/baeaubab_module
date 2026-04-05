@@ -4,7 +4,6 @@ import z, { string } from "zod";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 import amqp from "amqplib";
-import { en } from "zod/v4/locales";
 
 const app = new Hono()
 
@@ -341,8 +340,6 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month, en_list, residence_list } = c.req.valid("json");
-
-			console.log(en_list, residence_list);
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();

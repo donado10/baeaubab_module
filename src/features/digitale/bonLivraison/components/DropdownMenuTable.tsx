@@ -5,20 +5,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEntrepriseBonLivraisonStore } from "../store/store";
-import useUpdateBonLivraison from "../api/use-update-bls";
+import useUpdateBonLivraison from "../api/use-update-bon-livraison";
 import { toast } from "sonner";
 import JobWatcher from "./JobWatcher";
-import { useQueryClient } from "@tanstack/react-query";
-import { ID } from "node-appwrite";
-import useGenerateFactures from "../api/use-generate-factures";
 import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise";
-
-
-
 
 export function DropdownMenuTable({
   ref_enterprise,
@@ -38,14 +32,15 @@ export function DropdownMenuTable({
   const entreprise = store.items.find((item) => item.EN_No.toString() === ref_enterprise)
 
   const submitHandler = () => {
+
     const id_toast = toast(() => {
-      const store = useEntrepriseBonLivraisonStore()
+      const entrepriseStore = useEntrepriseBonLivraisonStore()
 
 
       return (
         <div className="text-white">
           <h1 >En cours</h1>
-          {store.event && <JobWatcher jobId={store.event.jobId} />}
+          {entrepriseStore.event && <JobWatcher jobId={entrepriseStore.event.jobId} />}
         </div >
       )
     },
@@ -56,14 +51,12 @@ export function DropdownMenuTable({
         }
       });
 
-
-
-
-
     if (entreprise) {
+
       mutate({ json: { en_list_invalid: entreprise.EN_Valide === 0 ? [ref_enterprise] : [], en_list_valid: entreprise.EN_Valide === 1 ? [ref_enterprise] : [], year: store.periode[0], month: store.periode[1] } }, {
         onSuccess: (results: any) => {
           store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+
         }
       })
     }
@@ -88,12 +81,7 @@ export function DropdownMenuTable({
         }
       });
 
-
-
-
     if (entreprise) {
-
-
       entreprise.EN_Type != 1 &&
         mutateGenerateBill({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1], residence_list: [] } }, {
           onSuccess: (results: any) => {
@@ -132,12 +120,12 @@ export function DropdownMenuTable({
               </span>
             </Link>
           </DropdownMenuItem>}
-          {<DropdownMenuItem className="text-blue-600" onClick={submitHandler}>
+          <DropdownMenuItem className="text-blue-600" onClick={submitHandler}>
             <span
             >
               Actualiser
             </span>
-          </DropdownMenuItem>}
+          </DropdownMenuItem>
           {entreprise?.EN_Valide === 0 && <DropdownMenuItem className="text-blue-600" onClick={generateBillHandler}>
             <span
             >

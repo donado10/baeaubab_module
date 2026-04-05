@@ -3,6 +3,7 @@ import { handle } from "hono/vercel";
 import auth from "@/features/auth/server/route";
 import ecritureDigitale from "@/features/digitale/ecritures/server/route";
 import bonLivraison2 from "@/features/digitale/bonLivraison/server/route";
+import bonLivraison from "@/features/server/bon-livraison/bon-livraison";
 import bonLivraisonStats from "@/features/server/bon-livraison/stats";
 import facture from "@/features/digitale/bills/server/route";
 import ecritureDigitaleEvents from "@/features/digitale/ecritures/server/route_events";
@@ -15,6 +16,7 @@ const app = new Hono().basePath("api");
 
 const routes = app
 	.route("/auth", auth)
+	.route("/bon-livraison", bonLivraison)
 	.route("/bon-livraison/stats", bonLivraisonStats)
 	.route("/digitale/ecritures", ecritureDigitale)
 	.route("/digitale/ecritures/events", ecritureDigitaleEvents)

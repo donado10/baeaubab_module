@@ -15,26 +15,6 @@ services:
         ipv4_address: 172.30.0.10
       default: {}
 
-  worker:
-    restart: on-failure
-    build: ./worker
-    depends_on:
-      - rabbitmq
-    environment:
-      RABBITMQ_HOST: rabbitmq
-    volumes:
-      - ./worker:/worker
-
-  worker_2:
-    restart: on-failure
-    build: ./worker_2
-    depends_on:
-      - rabbitmq
-    environment:
-      RABBITMQ_HOST: rabbitmq
-    volumes:
-      - ./worker_2:/worker_2
-
   worker_3:
     restart: on-failure
     build: ./worker_3

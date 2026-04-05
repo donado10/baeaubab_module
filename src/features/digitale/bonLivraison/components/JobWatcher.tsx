@@ -6,7 +6,7 @@ import { useEntrepriseDetailStore } from "../store/entreprise-store";
 
 export default function JobWatcher({ jobId }: { jobId: string }) {
     const [status, setStatus] = useState("waiting...");
-    const store = useEntrepriseDetailStore()
+    const store = useEntrepriseBonLivraisonStore()
 
 
     useEffect(() => {
@@ -14,7 +14,7 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
 
 
 
-        const es = new EventSource(`${process.env.NEXT_PUBLIC_APP_URL!}/api/digitale/bonLivraison/events/jobId/${store.event?.jobId}`);
+        const es = new EventSource(`${process.env.NEXT_PUBLIC_APP_URL!}/api/digitale/bonLivraison/events/jobId/${jobId}`);
         console.log(es)
 
         es.addEventListener("connected", () => {
@@ -29,6 +29,7 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
             if (msg.status === "done") {
                 console.log("RESULT:", msg.jobId);
                 setStatus(`Job ${msg.jobId}: ${msg.status}`);
+                console.log(store.event)
                 store.event && store.setEvent({ ...store.event, jobId: msg.jobId, status: msg.status })
                 toast.dismiss(store.event?.id_toast_job);
                 es.close();

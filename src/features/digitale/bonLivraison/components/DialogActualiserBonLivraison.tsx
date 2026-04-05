@@ -19,7 +19,7 @@ import { toast } from "sonner"
 import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
 import useGenerateFactures from "../api/use-generate-factures"
 import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise"
-import useUpdateBonLivraison from "../api/use-update-bls"
+import useUpdateBonLivraison from "../api/use-update-bon-livraison"
 
 
 const months = [
