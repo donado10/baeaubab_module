@@ -2,7 +2,8 @@ import { Hono } from "hono";
 import { handle } from "hono/vercel";
 import auth from "@/features/auth/server/route";
 import ecritureDigitale from "@/features/digitale/ecritures/server/route";
-import bonLivraison from "@/features/digitale/bonLivraison/server/route";
+import bonLivraison2 from "@/features/digitale/bonLivraison/server/route";
+import bonLivraisonStats from "@/features/server/bon-livraison/stats";
 import facture from "@/features/digitale/bills/server/route";
 import ecritureDigitaleEvents from "@/features/digitale/ecritures/server/route_events";
 import bonLivraisonEvents from "@/features/digitale/bonLivraison/server/route_events";
@@ -14,12 +15,12 @@ const app = new Hono().basePath("api");
 
 const routes = app
 	.route("/auth", auth)
-	.route("/modules", modules)
+	.route("/bon-livraison/stats", bonLivraisonStats)
 	.route("/digitale/ecritures", ecritureDigitale)
 	.route("/digitale/ecritures/events", ecritureDigitaleEvents)
 	.route("/digitale/bonLivraison/events", bonLivraisonEvents)
 	.route("/digitale/facture/events", factureEvents)
-	.route("/digitale/bonLivraison", bonLivraison)
+	.route("/digitale/bonLivraison", bonLivraison2)
 	.route("/digitale/facture", facture);
 
 export const GET = handle(app);

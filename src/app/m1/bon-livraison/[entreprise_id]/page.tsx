@@ -1,5 +1,5 @@
-import { BonLivraisonDetailSectionContainer } from '@/features/digitale/bonLivraison/components/BonLivraisonDetailSection';
-import BonLivraisonSection from '@/features/digitale/bonLivraison/components/BonLivraisonSection';
+import { BonLivraisonDetailSectionContainer } from '@/features/digitale/bonLivraison/components/routes/BonLivraisonDetailSection';
+import BonLivraisonSection from '@/features/digitale/bonLivraison/components/routes/BonLivraisonSection';
 import React from 'react'
 
 type Props = {}

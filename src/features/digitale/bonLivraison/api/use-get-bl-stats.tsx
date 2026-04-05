@@ -1,14 +1,11 @@
 import { client } from "@/lib/rpc";
 import { useQuery } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
-import { use } from "react";
 
-const useGetBillStats = (year: string, month: string) => {
-    const pathname = usePathname()
+const useGetBonLivraisonStats = (year: string, month: string) => {
     const query = useQuery({
         queryKey: ["bill_stats", year, month],
         queryFn: async ({ }) => {
-            const response = await client.api.digitale.bonLivraison[":year"][":month"].$get({
+            const response = await client.api["bon-livraison"].stats[":year"][":month"].$get({
                 param: {
                     month: month,
                     year: year
@@ -26,4 +23,4 @@ const useGetBillStats = (year: string, month: string) => {
     return query;
 };
 
-export default useGetBillStats;
+export default useGetBonLivraisonStats;

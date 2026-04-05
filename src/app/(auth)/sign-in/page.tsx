@@ -10,7 +10,7 @@ const page = async () => {
   const user = await getCurrent()
 
   if (user) {
-    return redirect('/m1/dashboard/ecritures-digitales')
+    return redirect('/m1/reporting')
   }
 
   return <SignInCard />;

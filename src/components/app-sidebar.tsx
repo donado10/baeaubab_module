@@ -1,34 +1,15 @@
 "use client";
 
 import * as React from "react";
-import {
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  LifeBuoy,
-  Map,
-  PieChart,
-  Send,
-  Settings2,
-  SquareTerminal,
-} from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import Image from "next/image";
-import Logo from "@/assets/images/logo.png";
 import { ModuleSwitcher, ModuleSwitcherContainer } from "./module-switcher";
 import { usePathname } from "next/navigation";
 
@@ -45,25 +26,25 @@ const data = {
     {
       title: "Analyse",
       endpoint: "reporting",
-      url: "/m1/dashboard/reporting",
+      url: "/m1/reporting",
       isActive: false,
     },
     {
       title: "Bon de Livraison",
-      endpoint: "bls",
-      url: "/m1/dashboard/bls",
+      endpoint: "bon-livraison",
+      url: "/m1/bon-livraison",
       isActive: false,
     },
     {
       title: "Facture",
-      endpoint: "bills",
-      url: "/m1/dashboard/bills",
+      endpoint: "facture",
+      url: "/m1/facture",
       isActive: false,
     },
     {
       title: "Ecritures Digitales",
       endpoint: 'ecritures-digitales',
-      url: "/m1/dashboard/ecritures-digitales",
+      url: "/m1/ecritures-digitales",
       isActive: false,
     },]
 };
@@ -81,7 +62,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   React.useEffect(() => {
 
     const newNavigation = navigation.map((nav) => {
-      if (pathname.split('/')[3] === nav.endpoint) {
+      if (pathname.split('/')[2] === nav.endpoint) {
         nav.isActive = true;
         return nav
       }

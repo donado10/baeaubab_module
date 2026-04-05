@@ -14,7 +14,8 @@ def insert_new_articles(articles: list):
            ,[Art_Design]
            ,[Art_Price]
            ,[CG_Num_exo]
-           ,[CG_Num_non_exo])
+           ,[CG_Num_non_exo]
+           ,[created_at])
      VALUES
            (?,?,?,?,?,?)
 """
@@ -26,9 +27,9 @@ def insert_new_enterprises(enterprises: list):
     conn_mssql, cursor_mssql = dbo_mssql()
     script = """
         INSERT INTO [TRANSIT].[dbo].[F_ENTREPRISE_DIGITAL]
-           ([EN_No]
+           ([EN_No_Digital]
            ,[EN_Intitule]
-           ,[creation_at])
+           ,[created_at])
      VALUES
            (?,?,?)
 """
@@ -45,7 +46,7 @@ def insert_new_clients(clients: list):
            ,[CT_Num]
            ,[CT_TVA]
            ,[CT_DG]
-           ,[CT_Entreprise]
+           ,[CT_Entreprise_Digital]
            ,[CT_Phone]
            ,[CT_Addresse]
            ,[CT_Email]
@@ -95,13 +96,13 @@ def handle_new_articles():
 
     if len(result):
         script_mysql = f"""
-        select art.id as id,code,art.name as name,prices.valeur,code_exo,code_non_exo from articles art inner join prices
+        select art.id as id,code,art.name as name,prices.valeur,code_exo,code_non_exo,art.created_at as created_at from articles art inner join prices
         on art.id = prices.article_id 
         where art.id not in ({','.join(result)})
     """
     else:
         script_mysql = """
-        select art.id as id,code,art.name as name,prices.valeur,code_exo,code_non_exo from articles art inner join prices
+        select art.id as id,code,art.name as name,prices.valeur,code_exo,code_non_exo,art.created_at as created_at from articles art inner join prices
         on art.id = prices.article_id 
     """
 
@@ -113,8 +114,8 @@ def handle_new_articles():
 
 def handle_entreprise():
     script_mssql = """
-    SELECT  EN_No
-  FROM TRANSIT.dbo.F_ENTREPRISE_DIGITAL
+    SELECT  EN_No_Digital
+  FROM TRANSIT.dbo.F_ENTREPRISE_DIGITAL where EN_No_Digital is not null
 """
     result = execute_select_all(script_mssql)
     result = [str(x[0]) for x in result]
@@ -229,23 +230,116 @@ def handle_client_price():
     insert_new_client_prices(result)
 
 
+def increase_souche_number(souche_number):
+    number = int(souche_number)
+    number += 1
+    return str(number).zfill(6)
+
+
+def latest_souche_number():
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script_mssql = f"""
+        select top 1 EN_No_Sage from transit.dbo.F_ENTREPRISE_DIGITAL order by en_no_sage desc
+    """
+    result = execute_select_one(script_mssql)
+    if result and result[0]:
+        return result[0]
+    else:
+        return "EN000000"
+
+# function to split the souche into letters and numbers
+
+
+def split_souche(souche):
+    match = re.match(r"([a-zA-Z]+)(\d+)", souche)
+    if match:
+        letters = match.group(1)
+        numbers = match.group(2)
+        return letters, numbers
+    else:
+        return None, None
+
+
+def set_entreprise_sage():
+    conn_mssql, cursor_mssql = dbo_mssql()
+
+    script_mssql = """
+        select EN_No_digital from transit.dbo.F_entreprise_digital where EN_No_digital is not null and EN_No_Sage is null order by EN_No_digital asc
+"""
+    result = execute_select_all(script_mssql)
+
+    for res in result:
+        souche = latest_souche_number()
+        souche_letters, souche_numbers = split_souche(souche)
+
+        script_mssql = f"""
+            update transit.dbo.F_ENTREPRISE_DIGITAL
+            set EN_No_Sage = '{souche_letters}{increase_souche_number(souche_numbers)}'
+            where EN_No_Digital = {res[0]}
+        """
+
+        cursor_mssql.execute(script_mssql)
+        conn_mssql.commit()
+
+
+def update_comptet_digital_entreprise():
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script_mssql = f"""
+            update ct
+            set CT_ENTREPRISE_SAGE = en.EN_No_Sage
+            from transit.dbo.F_COMPTET_DIGITAL ct inner join transit.dbo.F_ENTREPRISE_DIGITAL en on ct.CT_Entreprise_Digital = en.EN_No_Digital
+        """
+    cursor_mssql.execute(script_mssql)
+    conn_mssql.commit()
+
+    script_mssql = f"""
+            update ct
+            set CT_ENTREPRISE_SAGE = en.EN_No_Sage,ct_Entreprise_Digital = -ct.ct_no
+            from transit.dbo.F_COMPTET_DIGITAL ct inner join transit.dbo.F_ENTREPRISE_DIGITAL en on -ct.CT_No = en.EN_No_Digital
+        """
+    cursor_mssql.execute(script_mssql)
+    conn_mssql.commit()
+
+
+def build_entreprise_residence():
+    conn_mssql, cursor_mssql = dbo_mssql()
+
+    script_mssql = """
+
+    insert into [TRANSIT].[dbo].[F_ENTREPRISE_DIGITAL] ([EN_No_Digital]
+      ,[EN_Intitule]
+      ,[EN_TVA]
+      ,[created_at])
+    select -CT_No as CT_No,CT_Intitule,CT_TVA,created_at from transit.dbo.F_COMPTET_DIGITAL where CT_Entreprise_digital is null and type_client_id=1
+"""
+    cursor_mssql.execute(script_mssql)
+    conn_mssql.commit()
+
+
+def update_entreprise(year, month):
+    build_entreprise_residence()
+    set_entreprise_sage()
+    update_comptet_digital_entreprise()
+    update_entreprise_tva(year, month)
+
+
 def update_entreprise_tva(year, month):
     conn_mssql, cursor_mssql = dbo_mssql()
     script_mssql = """
         update en
   set en.EN_TVA = ct.CT_TVA
-  from transit.dbo.f_entreprise_digital en inner join transit.dbo.f_comptet_digital ct on en.EN_No = ct.CT_Entreprise where ct_dg = 1 
+  from transit.dbo.f_entreprise_digital en inner join transit.dbo.f_comptet_digital ct on en.EN_No_Digital = ct.CT_Entreprise_Digital where ct_dg = 1 
 """
 
     cursor_mssql.execute(script_mssql)
     script_mssql = f"""
-        with lev1 as (select entreprise_id from transit.dbo.F_DOCENTETE_DIGITAL where year(created_at)={year} and month(created_at)={month} and
-        entreprise_id not in (select  CT_Entreprise from transit.dbo.F_COMPTET_DIGITAL where CT_DG = 1 and CT_Entreprise is not null) 
-        and entreprise_id is not null and DO_Status !=2 group by entreprise_id),
-        lev2 as (select lev1.*,ct.CT_TVA from lev1 inner join transit.dbo.F_COMPTET_DIGITAL ct on lev1.entreprise_id = ct.CT_Entreprise)
+        with lev1 as (select DO_Entreprise_Digital from transit.dbo.F_DOCENTETE_DIGITAL where year(created_at)={year} and month(created_at)={month} and
+        DO_Entreprise_Digital not in (select  CT_Entreprise_Digital from transit.dbo.F_COMPTET_DIGITAL where CT_DG = 1 and CT_Entreprise_Digital is not null) 
+        and DO_Entreprise_Digital is not null and DO_Status !=2 group by DO_Entreprise_Digital),
+        lev2 as (select lev1.*,ct.CT_TVA from lev1 inner join transit.dbo.F_COMPTET_DIGITAL ct on lev1.DO_Entreprise_Digital = ct.CT_Entreprise_Digital)
         update en
         set en.EN_TVA = lev2.CT_TVA
-        from transit.dbo.f_entreprise_digital en inner join lev2 on en.EN_No = lev2.entreprise_id
+        from transit.dbo.f_entreprise_digital en inner join lev2 on en.EN_No_Digital = lev2.DO_Entreprise_Digital
 
         """
     cursor_mssql.execute(script_mssql)
@@ -256,7 +350,7 @@ def handle_clients(year, month):
     handle_entreprise()
     handle_client_price()
     handle_new_client()
-    update_entreprise_tva(year, month)
+    update_entreprise(year, month)
 
 
 def get_bls(year, month):
@@ -367,6 +461,8 @@ def get_price(client_id, art: str):
     select [Art_price] from [TRANSIT].[dbo].[F_ARTICLE_DIGITAL]
       where  art_no = '{art}' 
       """
+        print(script_mssql)
+
         result = execute_select_one(script_mssql)
         return result[0]
 
@@ -506,7 +602,7 @@ def handle_bl_documents(jobID, year, month):
     for bl in results:
         count = count + 1
         handle_bl(bl)
-        requests.post(
+        """ requests.post(
             "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
             json={
                 "jobId": jobID,
@@ -514,7 +610,7 @@ def handle_bl_documents(jobID, year, month):
                 "ec_total": len(results),
                 "ec_count": count
             }
-        )
+        ) """
 
 
 def handle_some_bl_document(jobID, year, month, en_list):
@@ -539,12 +635,12 @@ def update_entreprise_id():
     conn_mssql, cursor_mssql = dbo_mssql()
     script = f"""
         update ent
-        set entreprise_id =ct.CT_Entreprise
+        set DO_Entreprise_Digital =ct.CT_Entreprise_Digital,DO_entreprise_sage = ct.CT_Entreprise_Sage
         from transit.dbo.F_DOCENTETE_DIGITAL ent inner join transit.dbo.F_COMPTET_DIGITAL ct on ent.Client_ID = ct.CT_No 
 """
     script2 = f"""
         update ligne
-        set entreprise_id =ct.CT_Entreprise
+        set DO_Entreprise_Digital =ct.CT_Entreprise_Digital,DO_entreprise_sage = ct.CT_Entreprise_Sage
         from transit.dbo.F_DOCLiGNE_DIGITAL ligne inner join transit.dbo.F_COMPTET_DIGITAL ct on ligne.Client_ID = ct.CT_No 
 """
 
@@ -556,7 +652,7 @@ def update_entreprise_id():
 def main_process_bl_detail(jobID, year, month):
 
     # process_facture_detail(jobId, year, month, journal, database)
-    handle_new_articles()
+    # handle_new_articles()
     handle_clients(year, month)
     handle_livreurs()
     handle_bl_documents(jobID, year, month)
@@ -571,6 +667,6 @@ def main_process_bl_one(jobID, year, month, en_list):
     update_entreprise_id()
 
 
-# main_process_bl_detail(2026, 1)
+main_process_bl_detail('', 2026, 1)
 
 # main_process_bl_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')

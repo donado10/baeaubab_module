@@ -1,36 +1,36 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { useEntrepriseBonLivraisonStore } from '../store/store'
+import { useEntrepriseBonLivraisonStore } from '../../store/store'
 import { Input } from '@/components/ui/input'
 import { cn, formatDate, formatNumberToFrenchStandard } from '@/lib/utils';
-import useGetEnterpriseBonLivraison from '../api/use-get-entreprise-bls';
+import useGetEnterpriseBonLivraison from '../../api/use-get-entreprise-bls';
 import { useParams, usePathname } from 'next/navigation';
-import { IAgence, IDocumentBonLivraison, IEntrepriseBonLivraison } from '../interface';
-import { DocumentPDFBonLivraison, DocumentPDFFactureResume } from './DocumentPDFRendered';
+import { IAgence, IDocumentBonLivraison, IEntrepriseBonLivraison } from '../../interface';
+import { DocumentPDFBonLivraison, DocumentPDFFactureResume } from '../DocumentPDFRendered';
 import { usePDF } from '@react-pdf/renderer';
 import dynamic from "next/dynamic";
 import { Button } from '@/components/ui/button';
-import useGetEntrepriseDG from '../api/use-get-entreprise-dg';
+import useGetEntrepriseDG from '../../api/use-get-entreprise-dg';
 import { CiCircleChevLeft, CiCircleChevRight } from "react-icons/ci";
 import Link from 'next/link';
-import useGetEntrepriseResidence from '../api/use-get-entreprise-residence';
-import useGetEnterpriseResidenceBonLivraison from '../api/use-get-entreprise-residence-bls';
-import { TableFactureDetail } from './Table/TableDetailFactures';
-import useGetEnterpriseFactures from '../../bills/api/use-get-entreprise-bls';
-import { DataTable } from "./TableEntrepriseDetail/table";
-import { useEntrepriseDetailStore } from '../store/entreprise-store';
+import useGetEntrepriseResidence from '../../api/use-get-entreprise-residence';
+import useGetEnterpriseResidenceBonLivraison from '../../api/use-get-entreprise-residence-bls';
+import { TableFactureDetail } from '../Table/TableDetailFactures';
+import useGetEnterpriseFactures from '../../../bills/api/use-get-entreprise-bls';
+import { DataTable } from "../TableEntrepriseDetail/table";
+import { useEntrepriseDetailStore } from '../../store/entreprise-store';
 import { GrRadial, GrRadialSelected } from "react-icons/gr";
-import useGenerateFacturesFromBonLivraison from '../api/use-generate-facture-from-bls';
+import useGenerateFacturesFromBonLivraison from '../../api/use-generate-facture-from-bls';
 import { toast } from 'sonner';
-import JobWatcher from './JobWatcher';
-import { DialogCancelFactures } from '../../bills/components/DialogCancelFactures';
+import JobWatcher from '../JobWatcher';
+import { DialogCancelFactures } from '../../../bills/components/DialogCancelFactures';
 import { MdCloudDownload } from 'react-icons/md';
 
 
 
 
 const DocumentPDFView = dynamic(
-    () => import("./DocumentPDFViewer").then(m => m.DocumentPDFView),
+    () => import("../DocumentPDFViewer").then(m => m.DocumentPDFView),
     { ssr: false }
 );
 

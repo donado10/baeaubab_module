@@ -1,4 +1,4 @@
-import { BonLivraisonResidenceDetailSectionContainer } from '@/features/digitale/bonLivraison/components/BonLivraisonDetailSection';
+import { BonLivraisonResidenceDetailSectionContainer } from '@/features/digitale/bonLivraison/components/routes/BonLivraisonDetailSection';
 
 import React from 'react'
 

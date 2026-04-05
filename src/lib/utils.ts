@@ -110,5 +110,12 @@ export function dateToMilliseconds(dateStr: string): number {
 	return date.getTime();
 }
 
+export const getCurrentYearMonth = (): { year: string; month: string } => {
+	const now = new Date();
+	const year = now.getFullYear().toString();
+	const month = String(now.getMonth() + 1).padStart(2, "0");
+	return { year, month };
+};
+
 // Example:
 //console.log(formatDate("2025-12-10T00:00:00.000Z")); // "10/12/2025"
