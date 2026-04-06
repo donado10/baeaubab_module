@@ -5,6 +5,7 @@ import ecritureDigitale from "@/features/digitale/ecritures/server/route";
 import bonLivraison2 from "@/features/digitale/bonLivraison/server/route";
 import bonLivraison from "@/features/server/bon-livraison/bon-livraison";
 import facture from "@/features/server/facture/facture";
+import factureStats from "@/features/server/facture/stats";
 import bonLivraisonStats from "@/features/server/bon-livraison/stats";
 import facture2 from "@/features/digitale/bills/server/route";
 import ecritureDigitaleEvents from "@/features/digitale/ecritures/server/route_events";
@@ -20,6 +21,7 @@ const routes = app
 	.route("/bon-livraison", bonLivraison)
 	.route("/bon-livraison/stats", bonLivraisonStats)
 	.route("/facture", facture)
+	.route("/facture", factureStats)
 	.route("/digitale/ecritures", ecritureDigitale)
 	.route("/digitale/ecritures/events", ecritureDigitaleEvents)
 	.route("/digitale/bonLivraison/events", bonLivraisonEvents)

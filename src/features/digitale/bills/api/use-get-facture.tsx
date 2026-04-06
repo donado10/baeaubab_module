@@ -1,33 +1,27 @@
-"use client"
-
 import { client } from "@/lib/rpc";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { InferRequestType, InferResponseType } from "hono";
+import { useQuery } from "@tanstack/react-query";
 
-type RequestType = InferRequestType<(typeof client.api.digitale.facture)["$post"]>;
-type ResponseType = InferResponseType<(typeof client.api.digitale.facture)["$post"]>;
+const useGetFactureStatsByCompany = (year: string, month: string) => {
+    const query = useQuery({
+        queryKey: ["get-facture-stats-by-company", year, month],
+        queryFn: async ({ }) => {
+            const response = await client.api["facture"].stats.$get({
+                query: {
+                    month: month,
+                    year: year
+                }
+            });
 
-const useGetFactureStatsByCompany = () => {
-    const mutation = useMutation<ResponseType, Error, RequestType>({
-        mutationKey: ["get_facture"],
-        mutationFn: async ({ json }) => {
-            console.log(json)
-            const res = await client.api.digitale.facture.$post({ json });
-
-            if (!res.ok) {
-                throw new Error("Failed to load bls!");
+            if (!response.ok) {
+                throw new Error("error when fetching piece");
             }
 
-
-
-            const res_ = await res.json();
-
-
-            return res_
-        }
+            return await response.json();
+        },
+        enabled: !!year && !!month,
     });
 
-    return mutation;
+    return query;
 };
 
 export default useGetFactureStatsByCompany;

@@ -6,19 +6,15 @@ import { DataTable } from "./Table/table";
 import { EStatus, useEntrepriseFactureStore } from "../store/store";
 
 
-const TableBonLivraisonDigitalContainer = () => {
+const TableFactureDigitalContainer = () => {
 
   const store = useEntrepriseFactureStore()
-  const blMapByStatus = new Map<number, EStatus>([[1, EStatus.TAXABLE], [2, EStatus.EXONORE]])
-  const [blivraison, setBlivraison] = useState(store.items)
+  const blMapByStatus = new Map<number, EStatus>([[1, EStatus.VALID], [2, EStatus.WAITING]])
+  const [factures, setFactures] = useState(store.items)
 
   useEffect(() => {
 
-    const filterByStatus = store.filter?.status !== EStatus.ALL ? store.items.filter((bl) => {
-      if (blMapByStatus.get(Number(bl.EN_TVA)) === store.filter?.status) {
-        return bl
-      }
-    }) : [...store.items]
+    const filterByStatus = [...store.items]
 
     const filterBySearch = store.filter.search?.value ? filterByStatus.filter((value) => {
       if (store.filter.search.type === 'Intitule') {
@@ -27,16 +23,18 @@ const TableBonLivraisonDigitalContainer = () => {
       }
       if (store.filter.search.type === 'entreprise_id') {
 
-        return value.EN_No.toString() == store.filter.search.value
+        return value.DO_No.toString() == store.filter.search.value
       }
     }) : [...filterByStatus]
 
 
 
-    setBlivraison(filterBySearch)
+    setFactures(filterBySearch)
   }, [JSON.stringify(store.filter), JSON.stringify(store.items)])
 
-  console.log(blivraison)
+
+  console.log(factures)
+
 
 
   return (
@@ -44,11 +42,11 @@ const TableBonLivraisonDigitalContainer = () => {
 
       <DataTable
         data={
-          blivraison
+          factures
         }
       />
     </div>
   );
 };
 
-export default TableBonLivraisonDigitalContainer;
+export default TableFactureDigitalContainer;

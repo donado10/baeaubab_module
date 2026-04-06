@@ -71,7 +71,7 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           onCheckedChange={(value) => {
             table.toggleAllRowsSelected(!!value);
             if (!!value) {
-              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.EN_No))
+              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.DO_No))
             } else {
               store.setRemoveAllBillCart()
             }
@@ -90,9 +90,9 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           onCheckedChange={(value) => {
             row.toggleSelected(!!value);
             if (!!value) {
-              store.setAddBillCart(row.original.EN_No)
+              store.setAddBillCart(row.original.DO_No)
             } else {
-              store.setRemoveBillCart(row.original.EN_No)
+              store.setRemoveBillCart(row.original.DO_No)
 
             }
           }}
@@ -104,7 +104,28 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "EN_No",
+    accessorKey: "DO_No",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <span>
+            Numéro Facture
+          </span>
+          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
+        </Button>
+      )
+    },
+
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("DO_No")}</div>
+    ),
+  },
+  {
+    accessorKey: "DO_Entreprise_Sage",
     header: ({ column }) => {
       return (
         <Button
@@ -119,10 +140,13 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
         </Button>
       )
     },
+    cell: ({ row }) => {
 
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("EN_No")}</div>
-    ),
+      return (
+        <div className="capitalize">{row.getValue("DO_Entreprise_Sage")}</div>
+      )
+
+    },
   },
   {
     accessorKey: "EN_Intitule",
@@ -134,42 +158,18 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-            Intitulé
-          </span>
-          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-
-      return (
-        <div className="capitalize">{row.getValue("EN_Intitule")}</div>
-      )
-
-    },
-  },
-  {
-    accessorKey: "EN_TotalTTC",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          <span>
-            TotalTTC
+            Intitule
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("EN_TotalTTC")}</div>
+      <div className="capitalize">{row.getValue("EN_Intitule")}</div>
     ),
   },
   {
-    accessorKey: "EN_TotalTVA",
+    accessorKey: "DO_TotalTVA",
     header: ({ column }) => {
       return (
         <Button
@@ -185,11 +185,11 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
       )
     },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("EN_TotalTVA")}</div>
+      <div className="capitalize">{row.getValue("DO_TotalTVA")}</div>
     ),
   },
   {
-    accessorKey: "EN_TotalHT",
+    accessorKey: "DO_TotalHT",
     header: ({ column }) => {
       return (
         <Button
@@ -206,12 +206,12 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
     },
     cell: ({ row }) => (
       <>
-        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("EN_TotalHT")))}</div>
+        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("DO_TotalHT")))}</div>
       </>
     ),
   },
   {
-    accessorKey: "EN_TVA",
+    accessorKey: "DO_TotalTTC",
     header: ({ column }) => {
       return (
         <Button
@@ -220,7 +220,7 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-            Status
+            TotalTTC
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
@@ -228,21 +228,8 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
     },
     cell: ({ row }) => (
       <>
-        <div className="capitalize"><StatusDisplay value={row.getValue("EN_TVA")} /></div>
+        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("DO_TotalTTC")))}</div>
       </>
-    ),
-  },
-
-  {
-    header: "Action",
-    cell: ({ row }) => (
-      <DropdownMenuTable ref_enterprise={row.original.EN_No.toString()}>
-
-
-        <Button variant={"ghost"} type="button">
-          <Image src={DotsIcon} alt="" width={16} height={16} />{" "}
-        </Button>
-      </DropdownMenuTable>
     ),
   },
 ];

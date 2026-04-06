@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
-import { cn, getCurrentYearMonth, getFrenchMonthName } from '@/lib/utils'
+import { cn, formatNumberToFrenchStandard, getFrenchMonthName } from '@/lib/utils'
 import { DialogLoadFacture } from '../DialogLoadFacture'
 import { EStatus, useEntrepriseFactureStore } from '../../store/store'
 import { DialogGetFacture } from '../DialogGetFacture'
@@ -16,10 +16,11 @@ import { IEntrepriseFacture } from '../../interface'
 import useGetFactureStatsByCompany from '../../api/use-get-facture'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
+import useGetFactureStats from '../../api/use-get-facture-stats'
 
 
 
-const FactureStatCard = ({ title, count, background, text = 'text-gray-700' }: { title: string, count: number, background: string, text?: string }) => {
+const FactureStatCard = ({ title, count, background, text = 'text-gray-700' }: { title: string, count: number | string, background: string, text?: string }) => {
     return <Card className={cn('shadow-none p-4 gap-4 flex flex-row items-center justify-between', background)}>
         <div className='flex flex-col gap-4'>
 
@@ -123,10 +124,10 @@ const FactureStatsContainer = () => {
 
 
     return <>
-        <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Clients' count={data.results.clients} />
-        <FactureStatCard background='bg-yellow-200' title="Chiffre d'Affaire Total" count={data.results.total} />
-        <FactureStatCard background='bg-green-200' title="Chiffre d'Affaire Taxables" count={data.results.valid} />
-        <FactureStatCard background='bg-gray-200' title="Chiffre d'Affaire Exonorés" count={data.results.waiting} />
+        <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Clients' count={data.results.factures} />
+        <FactureStatCard background='bg-yellow-200' title="Chiffre d'Affaire Total" count={formatNumberToFrenchStandard(data.results.total)} />
+        <FactureStatCard background='bg-green-200' title="Chiffre d'Affaire Taxables" count={formatNumberToFrenchStandard(data.results.taxable)} />
+        <FactureStatCard background='bg-gray-200' title="Chiffre d'Affaire Exonorés" count={formatNumberToFrenchStandard(data.results.exonore)} />
     </>
 }
 
@@ -135,27 +136,7 @@ const FactureButtonContainer = () => {
     const store = useEntrepriseFactureStore()
     return <div className='flex items-center gap-4'>
 
-        {store.billCart.length > 0 && <DialogActualiserFacture  >
 
-            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
-                <span><MdCloudDownload />
-                </span><span>Actualiser</span>
-            </Button>
-        </DialogActualiserFacture>}
-        {store.billCart.length > 0 && <DialogGenerateFacturesByEntreprise  >
-
-            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
-                <span><MdCloudDownload />
-                </span><span>Générer Factures Selectionnées</span>
-            </Button>
-        </DialogGenerateFacturesByEntreprise>}
-        {!store.billCart.length && <DialogGenerateFactures  >
-
-            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
-                <span><MdCloudDownload />
-                </span><span>Générer Factures</span>
-            </Button>
-        </DialogGenerateFactures>}
         <DialogLoadFacture >
 
             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
@@ -232,10 +213,9 @@ const FactureSection = ({ documents }: { documents: IEntrepriseFacture[] }) => {
 
     const [dialogFacture, setDialogFacture] = useState(false)
 
+    console.log(documents)
+
     const store = useEntrepriseFactureStore()
-
-
-
 
     return (
         <section className='p-4 text-gray-700'>
@@ -245,7 +225,7 @@ const FactureSection = ({ documents }: { documents: IEntrepriseFacture[] }) => {
                 <div className='flex items-center justify-between mb-8 '>
                     <div>
 
-                        <h1 className='text-2xl text-[#101010] font-bold'>Bon de Livraison</h1>
+                        <h1 className='text-2xl text-[#101010] font-bold'>Facture</h1>
                         {store.periode.length > 0 && <h2 className='text-xs'>{getFrenchMonthName(Number(store.periode[1]))} {store.periode[0]}</h2>}
                     </div>
                     <div>
@@ -263,7 +243,7 @@ const FactureSection = ({ documents }: { documents: IEntrepriseFacture[] }) => {
                 </div>
 
                 <div>
-                    <FactureTableContainer documents={documents} />
+                    <FactureTableContainer />
                 </div>
             </Card>
         </section>

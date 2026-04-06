@@ -28,7 +28,6 @@ import { usePathname } from "next/navigation";
 import { columns } from "./columns";
 import { IEntrepriseBonLivraison } from "../../interface";
 import { Card } from "@/components/ui/card";
-import { DialogTableDetail } from "../DialogTableDetail";
 import { useEntrepriseBonLivraisonStore } from "../../store/store";
 
 export function DataTable({ data }: { data: IEntrepriseBonLivraison[] }) {

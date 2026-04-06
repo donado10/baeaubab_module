@@ -2,11 +2,11 @@ import { client } from "@/lib/rpc";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 
-const useGetBillStats = (year: string, month: string) => {
+const useGetFactureStats = (year: string, month: string) => {
     const query = useQuery({
-        queryKey: ["document_stats_facture", year, month],
+        queryKey: ["get-facture-stats", year, month],
         queryFn: async ({ }) => {
-            const response = await client.api.digitale.facture[":year"][":month"].$get({
+            const response = await client.api.facture[":year"][":month"].$get({
                 param: {
                     month: month,
                     year: year
@@ -24,4 +24,4 @@ const useGetBillStats = (year: string, month: string) => {
     return query;
 };
 
-export default useGetBillStats;
+export default useGetFactureStats;
