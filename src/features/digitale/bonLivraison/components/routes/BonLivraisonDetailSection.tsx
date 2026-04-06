@@ -23,10 +23,11 @@ import { GrRadial, GrRadialSelected } from "react-icons/gr";
 import useGenerateFacturesFromBonLivraison from '../../api/use-generate-facture-from-bls';
 import { toast } from 'sonner';
 import JobWatcher from '../JobWatcher';
-import { DialogCancelFactures } from '../../../bills/components/DialogCancelFactures';
+import { DialogCancelFactures } from '../DialogCancelFactures';
 import { MdCloudDownload } from 'react-icons/md';
-import { is } from 'date-fns/locale';
+import { fi, is, se } from 'date-fns/locale';
 import { useQueryClient } from '@tanstack/react-query';
+import JobWatcherEntrepriseDetail from '../JobWatcherEntrepriseDetail';
 
 
 
@@ -40,18 +41,22 @@ const DocumentPDFView = dynamic(
 
 const StatusDisplay = ({ value }: { value: string }) => {
     const MStatusDisplay = new Map<string, string>([
+        ["0", "bg-gray-600/20 border-2 border-gray-600 "],
         ["1", "bg-green-600/20 border-2 border-green-600 "],
         ["2", "bg-red-600/20  border-2 border-red-600"],
     ]);
     const MStatusDisplayColor = new Map<string, string>([
+        ["0", "#4a5565"],
         ["1", "#00a63e"],
         ["2", "#e7000b"],
     ]);
     const MStatusDisplayTextColor = new Map<string, string>([
+        ["0", "text-gray-600"],
         ["1", "text-green-600"],
         ["2", "text-[#e7000b]"],
     ]);
     const MStatusText = new Map<string, string>([
+        ["0", "En Attente"],
         ["1", "Valide"],
         ["2", "Supprimé"],
     ]);
@@ -77,7 +82,7 @@ const Search = ({ onSetFilter }: { onSetFilter: (value: string) => void }) => {
     </div>
 }
 
-const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClient, isActive, setActive }: { date: string, status: string, totalht: number, ref: string, idClient: string, intituleClient: string, isActive: string, setActive: (ref: string) => void }) => {
+const BonLivraisonResume = ({ date, status, deleted, totalht, ref, idClient, intituleClient, isActive, setActive }: { deleted: boolean, date: string, status: string, totalht: number, ref: string, idClient: string, intituleClient: string, isActive: string, setActive: (ref: string) => void }) => {
 
     const store = useEntrepriseDetailStore()
 
@@ -105,7 +110,7 @@ const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClie
 
         </div>}
         <div className='flex items-center justify-between mb-4'>
-            <StatusDisplay value={status} />
+            <StatusDisplay value={deleted ? '2' : status} />
             <span className='font-bold'>{formatNumberToFrenchStandard(totalht)} FCFA</span>
         </div>
         <div className='flex flex-col gap-2'>
@@ -127,8 +132,20 @@ const BonLivraisonListContainer = () => {
 
     const store = useEntrepriseDetailStore()
 
+    const [documents, setDocuments] = useState<IDocumentBonLivraison[]>(store.documents)
 
-    return <BonLivraisonList p_documents={store.documents as IDocumentBonLivraison[]} />
+    useEffect(() => {
+        if (store.selectedOption) {
+            const filterDocuments = store.documents.filter((doc) => doc.entete.DO_Status != 2 && doc.entete.DO_Valide != 1)
+            setDocuments(filterDocuments)
+
+        } else {
+            setDocuments(store.documents)
+        }
+    }, [store.selectedOption, JSON.stringify(store.documents)])
+
+
+    return <BonLivraisonList p_documents={documents} />
 }
 
 const BonLivraisonList = ({ p_documents }: { p_documents: IDocumentBonLivraison[] }) => {
@@ -142,13 +159,18 @@ const BonLivraisonList = ({ p_documents }: { p_documents: IDocumentBonLivraison[
     }, [isActive])
 
     useEffect(() => {
+        setIsActive(null)
+    }, [store.selectedOption])
+
+    useEffect(() => {
         const filterBySearch = store.filter.searchByBL ? p_documents.filter((doc) => doc.entete.DO_No.includes(store.filter.searchByBL)) : [...p_documents]
         setDocuments(filterBySearch)
-    }, [JSON.stringify(store.filter)])
+    }, [JSON.stringify(store.filter), JSON.stringify(p_documents)])
+
 
     return <ul className='overflow-y-scroll'>
         {documents.map((document) => document.entete).map((document) =>
-            <BonLivraisonResume key={document.DO_No} date={document.created_at} isActive={isActive} setActive={(ref) => setIsActive(ref)} idClient={document.CT_No} intituleClient={document.CT_Intitule} ref={document.DO_No} status={document.DO_Status.toString()} totalht={document.DO_TotalHT} />
+            <BonLivraisonResume key={document.DO_No} deleted={document.DO_Status == 2} date={document.created_at} isActive={isActive} setActive={(ref) => setIsActive(ref)} idClient={document.CT_No} intituleClient={document.CT_Intitule} ref={document.DO_No} status={document.DO_Valide.toString()} totalht={document.DO_TotalHT} />
         )}
     </ul>
 }
@@ -279,7 +301,7 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
             return (
                 <div className="text-white">
                     <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
+                    {store.event && <JobWatcherEntrepriseDetail jobId={store.event.jobId} />}
                 </div >
             )
         },
@@ -313,7 +335,7 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
                 </div>
                 <div>
 
-                    {entrepriseStore.billCart.length > 0 && <DialogCancelFactures >
+                    {entrepriseStore.billCart.length > 0 && !entrepriseStore.selectedOption && <DialogCancelFactures >
 
                         <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
                             <span><MdCloudDownload />
@@ -347,6 +369,17 @@ export const BonLivraisonDetailSectionContainer = () => {
     const searchParams = useSearchParams()
     const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), searchParams.get('year') ?? '', searchParams.get('month') ?? '')
     const store = useEntrepriseDetailStore()
+    const queryClient = useQueryClient()
+
+    useEffect(() => {
+
+        if (store.event?.status === 'done' && store.periode.length > 0) {
+            store.clear()
+            queryClient.invalidateQueries({ queryKey: ["entreprise_bls", entreprise_id, store.periode[0], store.periode[1]], exact: true })
+            queryClient.invalidateQueries({ queryKey: ["entreprise_factures", entreprise_id, store.periode[0], store.periode[1]], exact: true })
+            return
+        }
+    }, [JSON.stringify(store.event)])
 
 
     useEffect(() => {

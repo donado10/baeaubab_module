@@ -73,7 +73,7 @@ export const columns: ColumnDef<IDocumentFacture>[] = [
           onCheckedChange={(value) => {
             table.toggleAllRowsSelected(!!value);
             if (!!value) {
-              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.entete.EN_No.toString()))
+              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.entete.DO_No))
             } else {
               store.setRemoveAllBillCart()
             }
@@ -92,9 +92,9 @@ export const columns: ColumnDef<IDocumentFacture>[] = [
           onCheckedChange={(value) => {
             row.toggleSelected(!!value);
             if (!!value) {
-              store.setAddBillCart(row.original.entete.EN_No)
+              store.setAddBillCart(row.original.entete.DO_No)
             } else {
-              store.setRemoveBillCart(row.original.entete.EN_No)
+              store.setRemoveBillCart(row.original.entete.DO_No)
 
             }
           }}

@@ -38,6 +38,7 @@ export const documentEnteteSchema = z.object({
 	CT_Num: z.string(),
 	DO_TotalHT: z.number(),
 	DO_Status: z.number(),
+	DO_Valide: z.number(),
 	EN_No: z.string(),
 	CT_No: z.string(),
 	CT_Intitule: z.string(),

@@ -169,6 +169,71 @@ const app = new Hono()
 
 			return c.json({ results: [], jobId: jobId });
 		}
+	)
+	.delete(
+		"/cancel",
+		zValidator(
+			"json",
+			z.object({
+				en_list: z.array(z.string()),
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month, en_list } = c.req.valid("json");
+
+			const pool = await getConnection();
+
+			const query = `
+				delete from transit.dbo.f_docentete_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and do_entreprise_sage in (${en_list.map((en) => `'${en}'`).join(",")});
+				delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and do_entreprise_sage in (${en_list.map((en) => `'${en}'`).join(",")});
+				update transit.dbo.f_docentete_digital
+				set do_valide=0,DO_FactureReference=NULL
+				where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and do_entreprise_sage in (${en_list.map((en) => `'${en}'`).join(",")});
+				update transit.dbo.f_docligne_digital
+				set DO_FactureReference=NULL
+				where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and do_entreprise_sage in (${en_list.map((en) => `'${en}'`).join(",")});
+				
+				`;
+			await pool.request().query(query);
+
+			return c.json({ result: "done" });
+		}
+	)
+	.delete(
+		"/cancelByDocument",
+		zValidator(
+			"json",
+			z.object({
+				fact_list: z.array(z.string()),
+				en_no: z.string(),
+				year: z.string(),
+				month: z.string(),
+			})
+		),
+		async (c) => {
+			const { year, month, fact_list, en_no } = c.req.valid("json");
+
+			const pool = await getConnection();
+
+			const query = `
+				delete from transit.dbo.f_docentete_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and do_entreprise_sage in ('${en_no}') and DO_No in (${fact_list.map((bl) => `'${bl}'`).join(",")});
+				delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and do_entreprise_sage in ('${en_no}') and DO_No in (${fact_list.map((bl) => `'${bl}'`).join(",")});
+				update transit.dbo.f_docentete_digital
+				set do_valide=0,DO_FactureReference=NULL
+				where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and do_entreprise_sage in ('${en_no}') and DO_FactureReference in (${fact_list.map((bl) => `'${bl}'`).join(",")});
+				update transit.dbo.f_docligne_digital
+				set DO_FactureReference=NULL
+				where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and do_entreprise_sage in ('${en_no}') and DO_FactureReference in (${fact_list.map((bl) => `'${bl}'`).join(",")});
+				
+				`;
+
+			console.log(query);
+			await pool.request().query(query);
+
+			return c.json({ result: "done" });
+		}
 	);
 
 export default app;

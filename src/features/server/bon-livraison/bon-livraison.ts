@@ -69,7 +69,7 @@ const getBonLivraisonEntreprise = async (
 	const pool = await getConnection();
 
 	const query_entete = `
-		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_Status,created_at,DO_ENTREPRISE_SAGE as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} and DO_Type=3 and DO_Entreprise_Sage='${entreprise_id}' )
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_Status,DO_Valide,created_at,DO_ENTREPRISE_SAGE as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} and DO_Type=3 and DO_Entreprise_Sage='${entreprise_id}' )
 			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No 
 	`;
 	const query_ligne = `

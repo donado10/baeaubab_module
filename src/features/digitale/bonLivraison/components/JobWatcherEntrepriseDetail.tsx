@@ -4,9 +4,9 @@ import { useEntrepriseBonLivraisonStore } from "../store/store";
 import { toast } from "sonner";
 import { useEntrepriseDetailStore } from "../store/entreprise-store";
 
-export default function JobWatcher({ jobId }: { jobId: string }) {
+export default function JobWatcherEntrepriseDetail({ jobId }: { jobId: string }) {
     const [status, setStatus] = useState("waiting...");
-    const store = useEntrepriseBonLivraisonStore()
+    const store = useEntrepriseDetailStore()
 
 
     useEffect(() => {
