@@ -21,8 +21,8 @@ interface IDialogEcritures {
 
 export enum EStatus {
 	ALL = "Tout",
-	EXONORE = 2,
-	TAXABLE = 1,
+	VALID = 1,
+	WAITING = 0,
 }
 interface IFilter {
 	status: EStatus;

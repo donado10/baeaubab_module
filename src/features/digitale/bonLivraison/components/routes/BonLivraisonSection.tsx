@@ -75,8 +75,8 @@ const BonLivraisonFilterSection = () => {
 
             <div className=' border-gray-200 flex items-center gap-8'>
                 <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-primary font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
-                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.TAXABLE ? 'text-green-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.TAXABLE })} disabled={store.items.length <= 0}>Taxable</Button>
-                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.EXONORE ? ' text-yellow-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.EXONORE })} disabled={store.items.length <= 0}>Exonoré</Button>
+                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALID ? 'text-green-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.VALID })} disabled={store.items.length <= 0}>Valide</Button>
+                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.WAITING ? ' text-yellow-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.WAITING })} disabled={store.items.length <= 0}>Attente</Button>
             </div>
             <div className='flex items-center gap-4'>
                 <BonLivraisonSearch />
@@ -113,7 +113,7 @@ const BonLivraisonStatsContainer = () => {
             <BonLivraisonStatCard background='bg-primary text-white' text='text-white' title='Total Clients' count={0} />
             <BonLivraisonStatCard background='bg-yellow-200' title='Total BL' count={0} />
             <BonLivraisonStatCard background='bg-green-200' title='BL Valides' count={0} />
-            <BonLivraisonStatCard background='bg-red-200' title='BL Supprimés' count={0} />
+            <BonLivraisonStatCard background='bg-gray-200' title='BL En Attente' count={0} />
         </>
     }
 
@@ -122,7 +122,7 @@ const BonLivraisonStatsContainer = () => {
             <BonLivraisonStatCard background='bg-primary text-white' text='text-white' title='Total Clients' count={0} />
             <BonLivraisonStatCard background='bg-yellow-200' title='Total BL' count={0} />
             <BonLivraisonStatCard background='bg-green-200' title='BL Valides' count={0} />
-            <BonLivraisonStatCard background='bg-red-200' title='BL Supprimés' count={0} />
+            <BonLivraisonStatCard background='bg-gray-200' title='BL En Attente' count={0} />
         </>
     }
 
@@ -132,7 +132,7 @@ const BonLivraisonStatsContainer = () => {
         <BonLivraisonStatCard background='bg-primary text-white' text='text-white' title='Total Clients' count={data.results.clients} />
         <BonLivraisonStatCard background='bg-yellow-200' title='Total BL' count={data.results.total} />
         <BonLivraisonStatCard background='bg-green-200' title='BL Valides' count={data.results.valid} />
-        <BonLivraisonStatCard background='bg-red-200' title='BL Supprimés' count={data.results.deleted} />
+        <BonLivraisonStatCard background='bg-gray-200' title='BL En Attente' count={data.results.waiting} />
     </>
 }
 

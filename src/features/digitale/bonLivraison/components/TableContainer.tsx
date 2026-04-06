@@ -10,13 +10,13 @@ import { IDocumentBonLivraison, IEntrepriseBonLivraison } from "../interface";
 const BonLivraisonTableContainer = ({ documents }: { documents: IEntrepriseBonLivraison[] }) => {
 
   const store = useEntrepriseBonLivraisonStore()
-  const blMapByStatus = new Map<number, EStatus>([[1, EStatus.TAXABLE], [2, EStatus.EXONORE]])
+  const blMapByStatus = new Map<number, EStatus>([[1, EStatus.VALID], [0, EStatus.WAITING]])
   const [blivraison, setBlivraison] = useState(store.items)
 
   useEffect(() => {
 
     const filterByStatus = store.filter?.status !== EStatus.ALL ? documents.filter((bl) => {
-      if (blMapByStatus.get(Number(bl.EN_TVA)) === store.filter?.status) {
+      if (blMapByStatus.get(Number(bl.EN_Valide)) === store.filter?.status) {
         return bl
       }
     }) : [...documents]
