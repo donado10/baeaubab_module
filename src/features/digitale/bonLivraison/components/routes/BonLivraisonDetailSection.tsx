@@ -4,8 +4,8 @@ import { useEntrepriseBonLivraisonStore } from '../../store/store'
 import { Input } from '@/components/ui/input'
 import { cn, formatDate, formatNumberToFrenchStandard } from '@/lib/utils';
 import useGetEnterpriseBonLivraison from '../../api/use-get-entreprise-bls';
-import { useParams, usePathname } from 'next/navigation';
-import { IAgence, IDocumentBonLivraison, IEntrepriseBonLivraison } from '../../interface';
+import { useParams, usePathname, useSearchParams } from 'next/navigation';
+import { IAgence, IDocumentBonLivraison, IEntreprise, IEntrepriseBonLivraison } from '../../interface';
 import { DocumentPDFBonLivraison, DocumentPDFFactureResume } from '../DocumentPDFRendered';
 import { usePDF } from '@react-pdf/renderer';
 import dynamic from "next/dynamic";
@@ -16,7 +16,7 @@ import Link from 'next/link';
 import useGetEntrepriseResidence from '../../api/use-get-entreprise-residence';
 import useGetEnterpriseResidenceBonLivraison from '../../api/use-get-entreprise-residence-bls';
 import { TableFactureDetail } from '../Table/TableDetailFactures';
-import useGetEnterpriseFactures from '../../../bills/api/use-get-entreprise-bls';
+import useGetEnterpriseFactures from '../../api/use-get-entreprise-factures';
 import { DataTable } from "../TableEntrepriseDetail/table";
 import { useEntrepriseDetailStore } from '../../store/entreprise-store';
 import { GrRadial, GrRadialSelected } from "react-icons/gr";
@@ -25,6 +25,8 @@ import { toast } from 'sonner';
 import JobWatcher from '../JobWatcher';
 import { DialogCancelFactures } from '../../../bills/components/DialogCancelFactures';
 import { MdCloudDownload } from 'react-icons/md';
+import { is } from 'date-fns/locale';
+import { useQueryClient } from '@tanstack/react-query';
 
 
 
@@ -121,65 +123,17 @@ const BonLivraisonResume = ({ date, status, totalht, ref, idClient, intituleClie
 
 
 
-const BonLivraisonListContainer = ({ onSetItemsBL, entreprise_id, month, year }: { onSetItemsBL: (items: IDocumentBonLivraison[]) => void, entreprise_id: string, month: string; year: string }) => {
+const BonLivraisonListContainer = () => {
 
-    const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), year, month)
-
-    useEffect(() => {
-        if (isPending) {
-            return
-        }
-
-        if (!data) {
-            return
-        }
-        onSetItemsBL(data.result)
-
-    }, [entreprise_id, data])
+    const store = useEntrepriseDetailStore()
 
 
-    if (isPending) {
-        return <></>
-    }
-
-    if (!data) {
-        return <></>
-    }
-
-
-    return <BonLivraisonList p_documents={data.result as IDocumentBonLivraison[]} />
+    return <BonLivraisonList p_documents={store.documents as IDocumentBonLivraison[]} />
 }
-const BonLivraisonResidenceListContainer = ({ onSetItemsBL, entreprise_id, month, year }: { onSetItemsBL: (items: IDocumentBonLivraison[]) => void, entreprise_id: string, month: string; year: string }) => {
 
-    const { data, isPending } = useGetEnterpriseResidenceBonLivraison(entreprise_id.toString(), year, month)
-
-    useEffect(() => {
-        if (isPending) {
-            return
-        }
-
-        if (!data) {
-            return
-        }
-        onSetItemsBL(data.result)
-
-    }, [entreprise_id, data])
-
-
-    if (isPending) {
-        return <></>
-    }
-
-    if (!data) {
-        return <></>
-    }
-
-
-    return <BonLivraisonList p_documents={data.result as IDocumentBonLivraison[]} />
-}
 const BonLivraisonList = ({ p_documents }: { p_documents: IDocumentBonLivraison[] }) => {
     const [isActive, setIsActive] = useState(null)
-    const store = useEntrepriseBonLivraisonStore()
+    const store = useEntrepriseDetailStore()
     const [documents, setDocuments] = useState<IDocumentBonLivraison[]>(p_documents)
 
     useEffect(() => {
@@ -292,7 +246,7 @@ const FactureResume = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAg
 const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgence, documentsBL: IDocumentBonLivraison[], month: string, year: string }) => {
 
     const entrepriseStore = useEntrepriseDetailStore()
-    const { data, isPending } = useGetEnterpriseFactures(agence_dg.CT_Entreprise.toString(), year, month)
+    const { data, isPending } = useGetEnterpriseFactures(agence_dg.CT_Entreprise_Sage.toString(), year, month)
     const { mutate } = useGenerateFacturesFromBonLivraison()
 
     const [instance, updateInstance] = usePDF({
@@ -337,7 +291,7 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
             });
 
 
-        mutate({ json: { en_list: [agence_dg.CT_Entreprise.toString()], year, month, bl_list: entrepriseStore.cart } }, {
+        mutate({ json: { en_list: [agence_dg.CT_Entreprise_Sage.toString()], year, month, bl_list: entrepriseStore.cart } }, {
             onSuccess: (results: any) => {
                 entrepriseStore.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
@@ -375,7 +329,7 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
             </div>
         </div>
         <div className='w-full  p-2'>
-            {!entrepriseStore.selectedOption && <DataTable data={data.result} />}
+            {!entrepriseStore.selectedOption && <DataTable data={data.results.documents} />}
 
             {entrepriseStore.selectedOption && (instance.loading ? 'loading...' :
                 <div className='bg-gray-500/20  flex items-center justify-center'>
@@ -390,75 +344,53 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
 
 export const BonLivraisonDetailSectionContainer = () => {
     const { entreprise_id } = useParams()
-    const { data, isPending } = useGetEntrepriseDG(entreprise_id.toString())
-    const store = useEntrepriseBonLivraisonStore()
+    const searchParams = useSearchParams()
+    const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), searchParams.get('year') ?? '', searchParams.get('month') ?? '')
+    const store = useEntrepriseDetailStore()
+
 
     useEffect(() => {
-        store.setItemsBL([])
-    }, [entreprise_id])
-
-    if (isPending
-    ) {
-        return <></>
-
-    }
-    if (!data) {
-        return <></>
-
-    }
-    return <><BonLivraisonDetailSection agence={data.result} entreprise_id={entreprise_id.toString()} /></>
-}
-export const BonLivraisonResidenceDetailSectionContainer = () => {
-    const { residence_id } = useParams()
-    const { data, isPending } = useGetEntrepriseResidence(residence_id.toString())
-    const store = useEntrepriseBonLivraisonStore()
+        const year = searchParams.get('year') ?? ''
+        const month = searchParams.get('month') ?? ''
+        store.setPeriode(year, month)
+    }, [JSON.stringify(searchParams)])
 
     useEffect(() => {
-        store.setItemsBL([])
-    }, [residence_id])
-
-    if (isPending
-    ) {
-        return <></>
-
-    }
-    if (!data) {
-        return <></>
-
-    }
-    return <><BonLivraisonDetailSection agence={data.result} entreprise_id={residence_id.toString()} /></>
-}
-
-const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence, entreprise_id: string }) => {
-    const store = useEntrepriseBonLivraisonStore()
-    const entrepriseStore = useEntrepriseDetailStore()
-    const pathname = usePathname()
-
-    const entreprise = store.items.find((en) => en.EN_No.toString() == entreprise_id.toString())
-
-
-    const [nearEn, setNearEn] = useState<{ previous: IEntrepriseBonLivraison | null; next: IEntrepriseBonLivraison | null }>({ previous: null, next: null });
-    useEffect(() => {
-
-        for (let item = 0; item < store.items.length; item++) {
-            if (store.items[item].EN_No.toString() !== entreprise_id.toString()) {
-                continue
-            }
-            if (item === 0) {
-                setNearEn({ previous: null, next: store.items[item + 1] })
-                break
-            }
-            if (item !== 0) {
-                setNearEn({ previous: store.items[item - 1], next: store.items[item + 1] })
-                break
-            }
-            if (item === store.items.length - 1) {
-                setNearEn({ previous: store.items[item - 1], next: null })
-                break
-            }
+        if (isPending) {
+            store.clear()
+            return
         }
 
-    }, [entreprise_id])
+        if (!data) {
+            return
+        }
+        store.setDocuments(data.results.documents)
+        store.setEntreprise(data.results.entreprise)
+        store.setAgence(data.results.entrepriseDG)
+        store.setAdjacent(data.results.adjacent)
+    }, [isPending, data?.results])
+
+    if (isPending
+    ) {
+        return <></>
+
+    }
+    if (!data) {
+        return <></>
+
+
+    }
+    return <>{store.documents.length > 0 && <BonLivraisonDetailSection />} </>
+}
+
+
+const BonLivraisonDetailSection = () => {
+    const store = useEntrepriseDetailStore()
+    const pathname = usePathname()
+
+
+    const [adjacentEN, setAdjacentEn] = useState<{ previous: IEntreprise | null; next: IEntreprise | null }>({ previous: store.adjacent?.previous ?? null, next: store.adjacent?.next ?? null });
+
 
     const new_path = pathname.split('/').slice(0, -1).join('/')
 
@@ -467,13 +399,13 @@ const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence,
             <div className='w-2/7 h-screen overflow-scroll border-r border-gray-500  '>
                 <div className='border-b border-gray-500 p-8 h-[30vh]'>
                     <div className='mb-4'>
-                        <h1 className='text-2xl font-bold mb-2'>Bon de Livraisons (<span className='text-xl font-light'>{store.itemsBL.length}</span>)</h1>
+                        <h1 className='text-2xl font-bold mb-2'>Bon de Livraisons (<span className='text-xl font-light'>{store.documents.length}</span>)</h1>
                         <div className='flex items-center gap-2'>
-                            {nearEn?.previous && <Link href={new_path + '/' + nearEn.previous.EN_No}>
+                            {adjacentEN?.previous && <Link onClick={() => store.clear()} href={new_path + '/' + adjacentEN.previous.EN_No_Sage + '?year=' + store.periode[0] + '&month=' + store.periode[1]}>
                                 <CiCircleChevLeft />
                             </Link>}
-                            <span className='text-xs italic'>{entreprise.EN_Intitule}</span>
-                            {nearEn?.next && <Link href={new_path + '/' + nearEn.next.EN_No}>
+                            <span className='text-xs italic'>{store.entreprise.EN_Intitule}</span>
+                            {adjacentEN?.next && <Link onClick={() => store.clear()} href={new_path + '/' + adjacentEN.next.EN_No_Sage + '?year=' + store.periode[0] + '&month=' + store.periode[1]}>
                                 <CiCircleChevRight
                                 />
                             </Link>}
@@ -484,10 +416,10 @@ const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence,
                     </div>
                     <div>
                         <Button onClick={() => {
-                            entrepriseStore.setSelectedOption(!entrepriseStore.selectedOption)
+                            store.setSelectedOption(!store.selectedOption)
                         }}>
-                            {entrepriseStore.selectedOption && <span><GrRadialSelected /></span>}
-                            {!entrepriseStore.selectedOption && <span><GrRadial /></span>}
+                            {store.selectedOption && <span><GrRadialSelected /></span>}
+                            {!store.selectedOption && <span><GrRadial /></span>}
                             <span>
 
                                 Select
@@ -498,16 +430,14 @@ const BonLivraisonDetailSection = ({ agence, entreprise_id }: { agence: IAgence,
                 <div className='h-[80vh] overflow-y-scroll'>
 
 
-                    {agence.type_client_id != 1 && <BonLivraisonListContainer onSetItemsBL={(values: IDocumentBonLivraison[]) => store.setItemsBL(values)} month={store.periode[1]} year={store.periode[0]} entreprise_id={entreprise_id.toString()} />
-                    }
-                    {agence.type_client_id == 1 && <BonLivraisonResidenceListContainer onSetItemsBL={(values: IDocumentBonLivraison[]) => store.setItemsBL(values)} month={store.periode[1]} year={store.periode[0]} entreprise_id={entreprise_id.toString()} />
-                    }
+                    <BonLivraisonListContainer />
+
                 </div>
             </div>
             <div className='w-5/7 flex flex-col h-screen overflow-scroll'>
 
                 {store.selectedBonLivraison && <BonLivraisonSelected document={store.selectedBonLivraison} />}
-                {!store.selectedBonLivraison && store.itemsBL.length > 0 && <FactureList month={store.periode[1]} year={store.periode[0]} agence_dg={agence} documentsBL={store.itemsBL.filter((bl) => bl.entete.DO_Status != 2)} />}
+                {!store.selectedBonLivraison && store.documents.length > 0 && <FactureList month={store.periode[1]} year={store.periode[0]} agence_dg={store.agence} documentsBL={store.documents.filter((bl) => bl.entete.DO_Status != 2)} />}
 
             </div>
         </main>

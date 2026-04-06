@@ -32,8 +32,7 @@ import { IDocumentFacture } from "@/features/digitale/bills/interface";
 
 export function DataTable({ data }: { data: IDocumentFacture[] }) {
 
-  const store = useEntrepriseBonLivraisonStore()
-
+  console.log(data)
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

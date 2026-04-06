@@ -11,6 +11,14 @@ export const entrepriseBonLivraisonSchema = z.object({
 	EN_Valide: z.coerce.number(),
 });
 
+export const entrepriseSchema = z.object({
+	EN_No_Sage: z.coerce.string(),
+	EN_No_Digital: z.coerce.number(),
+	EN_Intitule: z.coerce.string(),
+	EN_TVA: z.coerce.number(),
+	created_at: z.string(),
+});
+
 export const bonLivraisonEnteteSchema = z.object({
 	EN_No: z.coerce.number(),
 	EN_Intitule: z.coerce.string(),
@@ -68,7 +76,7 @@ export const agenceSchema = z.object({
 	CT_Num: z.string(),
 	CT_TVA: z.string(),
 	CT_DG: z.string(),
-	CT_Entreprise: z.string(),
+	CT_Entreprise_Sage: z.string(),
 	CT_Phone: z.string(),
 	CT_Addresse: z.string(),
 	CT_Email: z.string(),

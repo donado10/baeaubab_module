@@ -97,22 +97,15 @@ export function DropdownMenuTable({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="start">
-          {type !== 1 && <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTable: [true, ref_enterprise] }) }}>
-            <Link href={`${pathname}/${ref_enterprise}`}>
+
+          <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTable: [true, ref_enterprise] }) }}>
+            <Link href={`${pathname}/entreprise/${ref_enterprise}?year=${store.periode[0]}&month=${store.periode[1]}`}>
               <span
               >
                 Voir
               </span>
             </Link>
-          </DropdownMenuItem>}
-          {type === 1 && <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTable: [true, ref_enterprise] }) }}>
-            <Link href={`${pathname}/residence/${ref_enterprise}`}>
-              <span
-              >
-                Voir
-              </span>
-            </Link>
-          </DropdownMenuItem>}
+          </DropdownMenuItem>
           <DropdownMenuItem className="text-blue-600" onClick={submitHandler}>
             <span
             >

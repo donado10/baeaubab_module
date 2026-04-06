@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { IDocumentBonLivraison } from "../interface";
-import { ID } from "node-appwrite";
+import { IAgence, IDocumentBonLivraison, IEntreprise } from "../interface";
+import { EStatus } from "./store";
 
 interface IEvent {
 	jobId: string;
@@ -10,18 +10,41 @@ interface IEvent {
 	id_toast_job: string;
 }
 
+interface IAdjacent {
+	previous: IEntreprise | null;
+	current: IEntreprise | null;
+	next: IEntreprise | null;
+}
+
+interface IFilter {
+	status: EStatus;
+	searchByBL: string;
+}
+
 interface IDocumentBonLivraisonState {
-	items: IDocumentBonLivraison[];
+	entreprise: IEntreprise | null;
+	agence: IAgence | null;
+	adjacent: IAdjacent | null;
+	documents: IDocumentBonLivraison[];
 	selectedOption: boolean;
 	event: IEvent | null;
-
+	filter: IFilter;
+	selectedBonLivraison: IDocumentBonLivraison | null;
 	cart: string[];
 	billCart: string[];
+	periode: string[];
+	setPeriode: (year: string, month: string) => void;
+	setFilter: (filter: IFilter) => void;
+	setSelectedBonLivraison: (bl: IDocumentBonLivraison | null) => void;
+
+	setAdjacent: (adjacent: IAdjacent | null) => void;
+	setAgence: (agence: IAgence | null) => void;
+	setEntreprise: (entreprise: IEntreprise | null) => void;
 	setAddBillCart: (item: string) => void;
 	setRemoveBillCart: (item: string) => void;
 	setRemoveAllBillCart: () => void;
-	setAddAllBillCart: (items: string[]) => void;
-	setItems: (items: IDocumentBonLivraison[]) => void;
+	setAddAllBillCart: (documents: string[]) => void;
+	setDocuments: (documents: IDocumentBonLivraison[]) => void;
 	setEvent: (event: IEvent) => void;
 	setAddCart: (item: string) => void;
 	setRemoveCart: (item: string) => void;
@@ -32,11 +55,31 @@ interface IDocumentBonLivraisonState {
 
 export const useEntrepriseDetailStore = create<IDocumentBonLivraisonState>()(
 	(set) => ({
-		items: [],
+		documents: [],
+		entreprise: null,
 		cart: [],
 		event: null,
 		billCart: [],
-		setAddAllBillCart: (items: string[]) => set({ billCart: [...items] }),
+		filter: {
+			status: EStatus.ALL,
+			searchByBL: "",
+		},
+
+		adjacent: null,
+		agence: null,
+		selectedBonLivraison: null,
+		periode: [],
+		setPeriode: (year: string, month: string) =>
+			set({ periode: [year, month] }),
+		setSelectedBonLivraison: (bl: IDocumentBonLivraison | null) =>
+			set({ selectedBonLivraison: bl }),
+		setFilter: (filter: IFilter) => set({ filter: filter }),
+		setAdjacent: (adjacent: IAdjacent | null) => set({ adjacent: adjacent }),
+		setAgence: (agence: IAgence | null) => set({ agence: agence }),
+		setEntreprise: (entreprise: IEntreprise | null) =>
+			set({ entreprise: entreprise }),
+		setAddAllBillCart: (documents: string[]) =>
+			set({ billCart: [...documents] }),
 		setRemoveAllBillCart: () => set({ billCart: [] }),
 		setAddBillCart: (item: string) =>
 			set((state) => ({ billCart: [...state.billCart, item] })),
@@ -44,7 +87,8 @@ export const useEntrepriseDetailStore = create<IDocumentBonLivraisonState>()(
 			set((state) => ({
 				billCart: state.billCart.filter((cartItem) => cartItem !== item),
 			})),
-		setItems: (items: IDocumentBonLivraison[]) => set({ items: [...items] }),
+		setDocuments: (documents: IDocumentBonLivraison[]) =>
+			set({ documents: [...documents] }),
 		setAddCart: (item: string) =>
 			set((state) => {
 				return { cart: [...state.cart, item] };
@@ -59,7 +103,19 @@ export const useEntrepriseDetailStore = create<IDocumentBonLivraisonState>()(
 
 		clear: () =>
 			set({
-				items: [],
+				documents: [],
+				entreprise: null,
+				cart: [],
+				event: null,
+				billCart: [],
+				filter: {
+					status: EStatus.ALL,
+					searchByBL: "",
+				},
+				adjacent: null,
+				agence: null,
+				selectedBonLivraison: null,
+				selectedOption: false,
 			}),
 	})
 );
