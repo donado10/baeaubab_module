@@ -70,7 +70,7 @@ export const agenceSchema = z.object({
 	CT_Num: z.string(),
 	CT_TVA: z.string(),
 	CT_DG: z.string(),
-	CT_Entreprise: z.string(),
+	CT_Entreprise_Digital: z.string(),
 	CT_Phone: z.string(),
 	CT_Addresse: z.string(),
 	CT_Email: z.string(),

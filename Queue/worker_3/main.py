@@ -84,6 +84,16 @@ from [TRANSIT].[dbo].[F_ARTPRIX_DIGITAL] artprix inner join [TRANSIT].[dbo].F_CO
     cursor_mssql.execute(script)
 
 
+def update_new_client_prices():
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        update art
+        set CT_Num = ct.ct_num
+        from [TRANSIT].[dbo].[F_ARTPRIX_DIGITAL] art inner join [TRANSIT].[dbo].F_comptet_digital ct on art.CT_No = ct.CT_No
+"""
+    cursor_mssql.execute(script)
+
+
 def handle_new_articles():
     script_mssql = """
     SELECT  [Art_No]
@@ -228,6 +238,7 @@ def handle_client_price():
     if not len(result):
         return
     insert_new_client_prices(result)
+    update_new_client_prices()
 
 
 def increase_souche_number(souche_number):

@@ -1,7 +1,9 @@
 import { create } from "zustand";
 import { IDocumentFacture, IEntrepriseFacture } from "../interface";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { se } from "date-fns/locale";
 import { it } from "node:test";
+import { getCurrentYearMonth } from "@/lib/utils";
 
 interface IEvent {
 	jobId: string;
@@ -19,8 +21,8 @@ interface IDialogEcritures {
 
 export enum EStatus {
 	ALL = "Tout",
-	EXONORE = 2,
-	TAXABLE = 1,
+	VALID = 1,
+	WAITING = 0,
 }
 interface IFilter {
 	status: EStatus;
@@ -119,15 +121,15 @@ export const useEntrepriseFactureStore = create<IEntrepriseFactureState>()(
 
 					filter: {
 						status: EStatus.ALL,
-						search: { type: "Intitule", value: "" },
 						searchByBL: "",
+						search: { type: "Intitule", value: "" },
 						invalide: [],
 						ecart_conformite: 0,
 					},
 				}),
 		}),
 		{
-			name: "bon-livraison-storage", // unique name
+			name: "facture-storage", // unique name
 			storage: createJSONStorage(() => localStorage), // default
 		}
 	)

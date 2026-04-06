@@ -7,7 +7,7 @@ import { InferRequestType, InferResponseType } from "hono";
 type RequestType = InferRequestType<(typeof client.api.digitale.facture)["$post"]>;
 type ResponseType = InferResponseType<(typeof client.api.digitale.facture)["$post"]>;
 
-const useGetFacture = () => {
+const useGetFactureStatsByCompany = () => {
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["get_facture"],
         mutationFn: async ({ json }) => {
@@ -30,4 +30,4 @@ const useGetFacture = () => {
     return mutation;
 };
 
-export default useGetFacture;
+export default useGetFactureStatsByCompany;
