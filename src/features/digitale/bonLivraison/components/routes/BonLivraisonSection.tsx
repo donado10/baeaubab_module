@@ -14,7 +14,7 @@ import { IoDocumentTextOutline } from "react-icons/io5";
 import BonLivraisonTableContainer from '../TableContainer'
 import useGetBillStats from '../../api/use-get-bl-stats'
 import { DialogGenerateFactures } from '../DialogGenerateFactures'
-import { DialogGenerateFacturesByEntrepriseID } from '../DialogGenerateFacturesByEntrepriseID'
+import { DialogGenerateFacturesByEntreprise } from '../DialogGenerateFacturesByEntreprise'
 import useGetBonLivraison from '../../api/use-get-bon-livraison'
 import { DialogActualiserBonLivraison } from '../DialogActualiserBonLivraison'
 import { IDocumentBonLivraison, IEntrepriseBonLivraison } from '../../interface'
@@ -148,13 +148,13 @@ const BonLivraisonButtonContainer = () => {
                 </span><span>Actualiser</span>
             </Button>
         </DialogActualiserBonLivraison>}
-        {store.billCart.length > 0 && <DialogGenerateFacturesByEntrepriseID  >
+        {store.billCart.length > 0 && <DialogGenerateFacturesByEntreprise  >
 
             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
                 <span><MdCloudDownload />
                 </span><span>Générer Factures Selectionnées</span>
             </Button>
-        </DialogGenerateFacturesByEntrepriseID>}
+        </DialogGenerateFacturesByEntreprise>}
         {!store.billCart.length && <DialogGenerateFactures  >
 
             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>

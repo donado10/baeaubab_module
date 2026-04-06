@@ -4,8 +4,9 @@ import auth from "@/features/auth/server/route";
 import ecritureDigitale from "@/features/digitale/ecritures/server/route";
 import bonLivraison2 from "@/features/digitale/bonLivraison/server/route";
 import bonLivraison from "@/features/server/bon-livraison/bon-livraison";
+import facture from "@/features/server/facture/facture";
 import bonLivraisonStats from "@/features/server/bon-livraison/stats";
-import facture from "@/features/digitale/bills/server/route";
+import facture2 from "@/features/digitale/bills/server/route";
 import ecritureDigitaleEvents from "@/features/digitale/ecritures/server/route_events";
 import bonLivraisonEvents from "@/features/digitale/bonLivraison/server/route_events";
 import factureEvents from "@/features/digitale/bills/server/route_events";
@@ -18,12 +19,13 @@ const routes = app
 	.route("/auth", auth)
 	.route("/bon-livraison", bonLivraison)
 	.route("/bon-livraison/stats", bonLivraisonStats)
+	.route("/facture", facture)
 	.route("/digitale/ecritures", ecritureDigitale)
 	.route("/digitale/ecritures/events", ecritureDigitaleEvents)
 	.route("/digitale/bonLivraison/events", bonLivraisonEvents)
 	.route("/digitale/facture/events", factureEvents)
 	.route("/digitale/bonLivraison", bonLivraison2)
-	.route("/digitale/facture", facture)
+	.route("/digitale/facture", facture2)
 	.route("/modules", modules);
 
 export const GET = handle(app);

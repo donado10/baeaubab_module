@@ -42,6 +42,7 @@ def handle(ch, method, properties, body):
     if data["type"] == "all":
         main_process_bl_detail(
             data["jobId"], data["year"], data["month"])
+
     if data["type"] == "bl_some":
         main_process_bl_one(
             data["jobId"], data["year"], data["month"], data["en_list"])

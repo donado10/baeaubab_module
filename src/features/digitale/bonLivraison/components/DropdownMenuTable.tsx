@@ -82,20 +82,13 @@ export function DropdownMenuTable({
       });
 
     if (entreprise) {
-      entreprise.EN_Type != 1 &&
-        mutateGenerateBill({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1], residence_list: [] } }, {
-          onSuccess: (results: any) => {
-            store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
-          }
-        })
 
 
-      entreprise.EN_Type == 1 &&
-        mutateGenerateBill({ json: { en_list: [], year: store.periode[0], month: store.periode[1], residence_list: [ref_enterprise] } }, {
-          onSuccess: (results: any) => {
-            store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
-          }
-        })
+      mutateGenerateBill({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1] } }, {
+        onSuccess: (results: any) => {
+          store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+        }
+      })
     }
   }
 

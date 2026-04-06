@@ -10,15 +10,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
 //import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
-import { EStatus, useEntrepriseBonLivraisonStore } from "../store/store"
+import { useEntrepriseBonLivraisonStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
-import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
-import useGenerateFactures from "../api/use-generate-factures"
-import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise"
+import useUpdateBonLivraison from "../api/use-update-bon-livraison"
 
 
 const months = [
@@ -36,56 +33,14 @@ const months = [
     { month: "décembre", value: 12 }
 ];
 
-const SelectMonth = ({ month, onSetMonth }: { month: string, onSetMonth: (value: string) => void }) => {
-    const store = useEntrepriseBonLivraisonStore()
 
-    return <Select value={month} onValueChange={(value) => { onSetMonth(value) }}>
-        <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Mois" />
-        </SelectTrigger>
-        <SelectContent >
-            <SelectGroup>
-                {months.map((m) =>
-                    <SelectItem key={m.value} value={m.value.toString()}>{m.month}</SelectItem>
-                )}
-            </SelectGroup>
-        </SelectContent>
-    </Select>
-}
-
-const SelectYear = ({ year, onSetYear }: { year: string; onSetYear: (value: string) => void }) => {
-
-    const currentYear = new Date().getFullYear();
-    const store = useEntrepriseBonLivraisonStore()
-    let years: number[] = []
-
-    for (let year = 2020; year < currentYear; year++) {
-        years = [...years, year + 1]
-
-    }
-
-
-    return <Select value={year} onValueChange={(value) => { onSetYear(value) }}>
-        <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Année" />
-        </SelectTrigger>
-        <SelectContent>
-            <SelectGroup>
-                {years.map((y) =>
-                    <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
-                )}
-            </SelectGroup>
-        </SelectContent>
-    </Select>
-}
-
-export function DialogGenerateFacturesByEntrepriseID({ children }: { children: ReactNode }) {
+export function DialogActualiserBonLivraison({ children }: { children: ReactNode }) {
 
     const store = useEntrepriseBonLivraisonStore()
 
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
-    const { mutate } = useGenerateFacturesByEntreprise()
+    const { mutate } = useUpdateBonLivraison()
 
 
     const submitHandler = () => {
@@ -110,12 +65,13 @@ export function DialogGenerateFacturesByEntrepriseID({ children }: { children: R
                 }
             });
 
-        const en_list = store.billCart.filter((value) => store.items.some((item) => item.EN_No == value && item.EN_Type != 1))
-        const residence_list = store.billCart.filter((value) => store.items.some((item) => item.EN_No == value && item.EN_Type == 1))
+
+        const en_list_valid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 1).map((item) => item.EN_No)
+        const en_list_invalid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 0).map((item) => item.EN_No)
 
 
 
-        mutate({ json: { en_list, year: store.periode[0], month: store.periode[1], residence_list } }, {
+        mutate({ json: { en_list_valid, en_list_invalid, year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: (results: any) => {
                 store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
@@ -132,7 +88,7 @@ export function DialogGenerateFacturesByEntrepriseID({ children }: { children: R
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="mb-4">
-                        <DialogTitle>Générer Factures  </DialogTitle>
+                        <DialogTitle>Actualiser Bon de livraison  </DialogTitle>
                     </DialogHeader>
                     <DialogFooter className="gap-4">
                         <DialogClose asChild>

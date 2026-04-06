@@ -3,7 +3,7 @@ import json
 import time
 import requests
 
-from main import main_process_facture_detail, main_process_factures, main_process_factures_from_bl, main_process_factures_residence, main_process_residence_facture_detail
+from main import main_process_facture_by_entreprise, main_process_factures, main_process_factures_from_bl
 
 
 def connect_with_retry(host="rabbitmq", tries=30, delay=2):
@@ -43,14 +43,9 @@ def handle(ch, method, properties, body):
         main_process_factures(
             data["jobId"], data["year"], data["month"])
 
-        main_process_factures_residence(
-            data["jobId"], data["year"], data["month"])
-
     if data["type"] == "byEntreprise":
-        main_process_facture_detail(
+        main_process_facture_by_entreprise(
             data["jobId"], data["en_list"], data["year"], data["month"])
-        main_process_residence_facture_detail(
-            data["jobId"], data["residence_list"], data["year"], data["month"])
 
     if data["type"] == "fromBonLivraison":
         main_process_factures_from_bl(

@@ -10,41 +10,21 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
 //import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
-import { EStatus, useEntrepriseBonLivraisonStore } from "../store/store"
+import { useEntrepriseBonLivraisonStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
-import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
-import useGenerateFactures from "../api/use-generate-factures"
 import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise"
-import useUpdateBonLivraison from "../api/use-update-bon-livraison"
 
 
-const months = [
-    { month: "janvier", value: 1 },
-    { month: "février", value: 2 },
-    { month: "mars", value: 3 },
-    { month: "avril", value: 4 },
-    { month: "mai", value: 5 },
-    { month: "juin", value: 6 },
-    { month: "juillet", value: 7 },
-    { month: "août", value: 8 },
-    { month: "septembre", value: 9 },
-    { month: "octobre", value: 10 },
-    { month: "novembre", value: 11 },
-    { month: "décembre", value: 12 }
-];
-
-
-export function DialogActualiserBonLivraison({ children }: { children: ReactNode }) {
+export function DialogGenerateFacturesByEntreprise({ children }: { children: ReactNode }) {
 
     const store = useEntrepriseBonLivraisonStore()
 
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
-    const { mutate } = useUpdateBonLivraison()
+    const { mutate } = useGenerateFacturesByEntreprise()
 
 
     const submitHandler = () => {
@@ -70,12 +50,9 @@ export function DialogActualiserBonLivraison({ children }: { children: ReactNode
             });
 
 
-        const en_list_valid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 1).map((item) => item.EN_No)
-        const en_list_invalid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 0).map((item) => item.EN_No)
 
 
-
-        mutate({ json: { en_list_valid, en_list_invalid, year: store.periode[0], month: store.periode[1] } }, {
+        mutate({ json: { en_list: store.billCart, year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: (results: any) => {
                 store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
@@ -92,7 +69,7 @@ export function DialogActualiserBonLivraison({ children }: { children: ReactNode
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="mb-4">
-                        <DialogTitle>Actualiser Bon de livraison  </DialogTitle>
+                        <DialogTitle>Générer Factures  </DialogTitle>
                     </DialogHeader>
                     <DialogFooter className="gap-4">
                         <DialogClose asChild>
