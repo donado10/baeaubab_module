@@ -5,38 +5,36 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ReactNode, use, useState } from "react";
+import { ReactNode, } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEntrepriseFactureStore } from "../store/store";
-import useDeleteFeature from "@/features/features/api/use-delete-feature";
 import { toast } from "sonner";
-import JobWatcher from "./JobWatcher";
-import useDeleteSomeFactures from "../api/use-delete-facture";
-import { QueryClient, useQueryClient } from "@tanstack/react-query";
-import useGetFacture from "../api/use-get-facture";
+import { useQueryClient } from "@tanstack/react-query";
+import useDeleteFactureByDocument from "../api/use-delete-facture";
 
 
 
 
 export function DropdownMenuTable({
+  ref_bill,
   ref_enterprise,
   children,
 }: {
+  ref_bill: string;
   ref_enterprise: string;
   children: ReactNode;
 }) {
   const store = useEntrepriseFactureStore()
   const pathname = usePathname()
-  const { mutate } = useDeleteSomeFactures()
+  const { mutate } = useDeleteFactureByDocument()
   const queryClient = useQueryClient()
-  const { mutate: mutateGetFacture } = useGetFacture()
 
 
   const submitHandler = () => {
 
 
-    mutate({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1] } }, {
+    mutate({ json: { fact_list: [ref_bill], en_no: ref_enterprise, year: store.periode[0], month: store.periode[1] } }, {
       onSuccess: (results: any) => {
         // toast success with green background and white text
 
@@ -46,12 +44,8 @@ export function DropdownMenuTable({
             color: 'white'
           }
         })
-        mutateGetFacture({ json: { year: store.periode[0], month: store.periode[1] } }, {
-          onSuccess: (results: any) => {
-            store.setItems(results.result)
-            store.setEvent(null)
-          }
-        })
+        queryClient.invalidateQueries({ queryKey: ["get-facture-stats-by-company", store.periode[0], store.periode[1]] })
+        queryClient.invalidateQueries({ queryKey: ["get-facture-stats", store.periode[0], store.periode[1]] })
       }
     })
 

@@ -232,4 +232,16 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
       </>
     ),
   },
+  {
+    header: "Action",
+    cell: ({ row }) => (
+      <DropdownMenuTable ref_bill={row.original.DO_No.toString()} ref_enterprise={row.original.DO_Entreprise_Sage.toString()} >
+
+
+        <Button variant={"ghost"} type="button">
+          <Image src={DotsIcon} alt="" width={16} height={16} />{" "}
+        </Button>
+      </DropdownMenuTable>
+    ),
+  },
 ];

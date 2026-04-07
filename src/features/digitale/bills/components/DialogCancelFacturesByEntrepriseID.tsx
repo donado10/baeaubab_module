@@ -128,7 +128,7 @@ export function DialogCancelFacturesByEntrepriseID({ children }: { children: Rea
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader className="mb-4">
-                        <DialogTitle>Générer Factures  </DialogTitle>
+                        <DialogTitle>Annuler Factures  </DialogTitle>
                     </DialogHeader>
                     <DialogFooter className="gap-4">
                         <DialogClose asChild>

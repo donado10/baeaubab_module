@@ -4,6 +4,7 @@ import z from "zod";
 import amqp from "amqplib";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
+import { fa } from "zod/v4/locales";
 
 const getFactureEntreprise = async (
 	entreprise_id: string,
@@ -215,6 +216,7 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, fact_list, en_no } = c.req.valid("json");
 
+			console.log(fact_list, en_no, year, month);
 			const pool = await getConnection();
 
 			const query = `
@@ -229,7 +231,6 @@ const app = new Hono()
 				
 				`;
 
-			console.log(query);
 			await pool.request().query(query);
 
 			return c.json({ result: "done" });
