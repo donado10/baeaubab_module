@@ -161,8 +161,8 @@ const app = new Hono()
 
 			if (en_list_invalid.length > 0) {
 				const pool = await getConnection();
-				const query = `delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_ENTREPRISE_SAGE in (${en_list_invalid.map((en) => `'${en}'`).join(",")});
-            delete from TRANSIT.dbo.F_DOCligne_DIGITAL where DO_ENTREPRISE_SAGE in (${en_list_invalid.map((en) => `'${en}'`).join(",")})
+				const query = `delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = ${year} and month(created_at)=${month} and DO_ENTREPRISE_SAGE in (${en_list_invalid.map((en) => `'${en}'`).join(",")});
+            delete from TRANSIT.dbo.F_DOCligne_DIGITAL where  DO_Type=3 and year(created_at) = ${year} and month(created_at)=${month}  and DO_No in (select DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = ${year} and month(created_at)=${month} and DO_ENTREPRISE_SAGE in (${en_list_invalid.map((en) => `'${en}'`).join(",")}) )
             `;
 
 				await pool.request().query(query);

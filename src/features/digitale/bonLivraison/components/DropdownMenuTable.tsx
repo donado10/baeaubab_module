@@ -13,6 +13,7 @@ import useUpdateBonLivraison from "../api/use-update-bon-livraison";
 import { toast } from "sonner";
 import JobWatcher from "./JobWatcher";
 import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise";
+import { en } from "zod/v4/locales";
 
 export function DropdownMenuTable({
   ref_enterprise,
@@ -52,6 +53,7 @@ export function DropdownMenuTable({
       });
 
     if (entreprise) {
+
 
       mutate({ json: { en_list_invalid: entreprise.EN_Valide === 0 ? [ref_enterprise] : [], en_list_valid: entreprise.EN_Valide === 1 ? [ref_enterprise] : [], year: store.periode[0], month: store.periode[1] } }, {
         onSuccess: (results: any) => {
