@@ -478,7 +478,6 @@ def handle_bl_entete(bl: tuple) -> list:
     entete.append(bl[1])
     entete.append(bl[2])
     entete.append(bl[3])
-    entete.append(bl[6])
     entete.append(bl[7])
     entete.append(bl[8])
     entete.append(bl[9])
@@ -491,12 +490,11 @@ def handle_bl_entete(bl: tuple) -> list:
            ,[DO_Type]
            ,[Client_ID]
            ,[CT_Num]
-           ,[DO_Date]
            ,[created_at]
            ,[DO_Status]
            ,[LIV_No])
      VALUES
-           (?,?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?)
 """
     cursor_mssql.execute(script, entete)
 
@@ -566,14 +564,13 @@ def insert_bl_ligne(ligne: list):
                 ,[DO_Type]
                 ,[Client_ID]
                 ,[CT_Num]
-                ,[DO_Date]
                 ,[created_at]
                 ,[DO_Status]
                 ,[ART_No]
                 ,[ART_Qte]
                 ,[DO_TotalHT])
             VALUES
-                (?,?,?,?,?,?,?,?,?,?)
+                (?,?,?,?,?,?,?,?,?)
         """
     cursor_mssql.execute(script, ligne)
 
@@ -590,7 +587,6 @@ def handle_bl_ligne(bl: tuple) -> list:
             ligne.append(bl[1])
             ligne.append(bl[2])
             ligne.append(bl[3])
-            ligne.append(bl[6])
             ligne.append(bl[7])
             ligne.append(bl[8])
             ligne.append(art)

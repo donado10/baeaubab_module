@@ -169,7 +169,6 @@ def set_bl_valide(entetes: list, latest_fact_id):
 def get_transport_value(en_sage):
     query = f"""
     SELECT trans_montant FROM transit.dbo.f_transport_digital WHERE trans_en_sage = '{en_sage}' order by trans_no desc
-
     """
     results = execute_select_one(query)
     return results[0] if results else 0
