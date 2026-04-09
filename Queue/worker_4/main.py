@@ -92,9 +92,10 @@ def handle_fact_entete(entete: list) -> list:
             ,[DO_Date]
             ,[DO_Status]
             ,[created_at]
-            ,[DO_Entreprise_Sage])
+            ,[DO_Entreprise_Sage]
+            ,[DO_Transport])
      VALUES
-           (?,?,?,?,?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?,?,?,?,?,?)
 """
     cursor_mssql.execute(script, entete)
 
@@ -137,11 +138,11 @@ def get_last_day_of_month(year, month):
     return last_day.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
 
-def calculate_totals(entetes: list, is_tva_applicable: bool) -> tuple:
+def calculate_totals(entetes: list, is_tva_applicable: bool, transport: int) -> tuple:
     """
     Calculate DO_TotalHT, DO_TotalTVA, and DO_TotalTTC.
     """
-    DO_TotalHT = sum(int(entete[5]) for entete in entetes)
+    DO_TotalHT = sum(int(entete[5]) for entete in entetes) + transport
     DO_TotalTVA = DO_TotalHT * 0.18 if is_tva_applicable else 0
     DO_TotalTTC = DO_TotalHT + DO_TotalTVA
     return DO_TotalHT, DO_TotalTVA, DO_TotalTTC
@@ -165,10 +166,22 @@ def set_bl_valide(entetes: list, latest_fact_id):
         cursor_mssql.execute(script)
 
 
+def get_transport_value(en_sage):
+    query = f"""
+    SELECT trans_montant FROM transit.dbo.f_transport_digital WHERE trans_en_sage = '{en_sage}' order by trans_no desc
+
+    """
+    results = execute_select_one(query)
+    return results[0] if results else 0
+
+
 def build_facture(agence_dg: tuple, entetes: list, latest_fact_id, year, month):
     current_date = get_current_date()
+
+    DO_Transport = get_transport_value(agence_dg[5])
+
     DO_TotalHT, DO_TotalTVA, DO_TotalTTC = calculate_totals(
-        entetes, agence_dg[3] == 1
+        entetes, agence_dg[3] == 1, DO_Transport
     )
 
     facture_entete = []
@@ -183,6 +196,7 @@ def build_facture(agence_dg: tuple, entetes: list, latest_fact_id, year, month):
     facture_entete.append(0)  # DO_Status
     facture_entete.append(current_date)  # created_at
     facture_entete.append(agence_dg[5])  # entreprise_id
+    facture_entete.append(DO_Transport)  # entreprise_id
 
     handle_fact_entete(facture_entete)
 

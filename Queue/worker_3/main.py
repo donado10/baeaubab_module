@@ -59,6 +59,30 @@ def insert_new_clients(clients: list):
     conn_mssql.commit()
 
 
+def insert_new_transports(clients: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        INSERT INTO [TRANSIT].[dbo].[F_TRANSPORT_DIGITAL]
+           ([Trans_No]
+           ,[Trans_Montant]
+           ,[Trans_Client]
+           ,[created_at])
+     VALUES
+           (?,?,?,?)
+"""
+    cursor_mssql.executemany(script, clients)
+    conn_mssql.commit()
+    script = """
+        UPDATE tr
+        set Trans_EN_Sage = ct.CT_Entreprise_Sage,
+        Trans_En_Digital = ct.CT_Entreprise_Digital
+        from TRANSIT.dbo.F_TRANSPORT_DIGITAL tr inner join TRANSIT.dbo.F_COMPTET_DIGITAL ct
+        on tr.Trans_Client = ct.CT_No 
+"""
+    cursor_mssql.execute(script)
+    conn_mssql.commit()
+
+
 def insert_new_client_prices(ArtPrix: list):
     conn_mssql, cursor_mssql = dbo_mssql()
     script = """
@@ -215,6 +239,31 @@ def handle_new_client():
     insert_new_clients(result)
 
 
+def handle_transport():
+    script_mssql = """
+    SELECT  Trans_No
+  FROM TRANSIT.dbo.F_TRANSPORT_DIGITAL
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    script_mysql = ""
+
+    if len(result):
+        script_mysql = f"""
+        select id,montant,client_id,created_at from transports where id not in ({','.join(result)})
+    """
+    else:
+        script_mysql = """
+        select id,montant,client_id,created_at from transports
+    """
+
+    result = mysql_execute_select_all(script_mysql)
+    if not len(result):
+        return
+    insert_new_transports(result)
+
+
 def handle_client_price():
     script_mssql = """
     SELECT  ArtPrice_No
@@ -362,6 +411,7 @@ def handle_clients(year, month):
     handle_entreprise()
     handle_client_price()
     handle_new_client()
+    handle_transport()
     update_entreprise(year, month)
 
 
