@@ -12,6 +12,7 @@ import ecritureDigitaleEvents from "@/features/digitale/ecritures/server/route_e
 import bonLivraisonEvents from "@/features/digitale/bonLivraison/server/route_events";
 import factureEvents from "@/features/digitale/bills/server/route_events";
 import modules from "@/features/modules/server/route";
+import notification from "@/features/server/notification/notification";
 export const runtime = "nodejs";
 
 const app = new Hono().basePath("api");
@@ -28,7 +29,8 @@ const routes = app
 	.route("/digitale/facture/events", factureEvents)
 	.route("/digitale/bonLivraison", bonLivraison2)
 	.route("/digitale/facture", facture2)
-	.route("/modules", modules);
+	.route("/modules", modules)
+	.route("/notification", notification);
 
 export const GET = handle(app);
 export const POST = handle(app);
