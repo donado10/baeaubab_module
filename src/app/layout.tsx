@@ -27,7 +27,7 @@ export default function RootLayout({
         className={`flex min-h-screen w-full ${montserrat.className} items-center justify-center antialiased bg-[#101010] `}
       >
         <NextTopLoader speed={5000} />
-        aaa
+
         <Providers>{children}</Providers>
         <Toaster duration={3000} position="top-right" expand={true} />
       </body>

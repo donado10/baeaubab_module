@@ -9,12 +9,7 @@ export default function JobWatcher({ jobId }: { jobId: string }) {
 
 
     useEffect(() => {
-
-
-
-
         const es = new EventSource(`${process.env.NEXT_PUBLIC_APP_URL!}/api/digitale/bonLivraison/events/jobId/${store.event.jobId}`);
-        console.log(es)
 
         es.addEventListener("connected", () => {
             setStatus("connected, waiting for updates...");
