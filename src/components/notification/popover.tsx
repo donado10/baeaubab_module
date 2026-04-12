@@ -2,7 +2,6 @@
 import {
     Popover,
     PopoverContent,
-    PopoverDescription,
     PopoverHeader,
     PopoverTitle,
     PopoverTrigger,
@@ -13,6 +12,7 @@ import { FiRefreshCw } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 import useGetNotifications from "./use-get-notifications";
 import { INotificationSchema } from "@/features/server/notification/interface";
+import { Card } from "../ui/card";
 
 
 enum EFilter {
@@ -37,51 +37,87 @@ const NotificationFilter = () => {
     </div>
 }
 
-const NotificationListContainer = () => {
-    const { data, isPending } = useGetNotifications();
-
+const NotificationListContainer = ({
+    notifications,
+    isPending,
+}: {
+    notifications?: INotificationSchema[];
+    isPending: boolean;
+}) => {
     if (isPending) {
         return <div>Loading...</div>
     }
 
-    if (!data) {
+    if (!notifications?.length) {
         return <div>No notifications</div>
     }
 
-
-    return <NotificationList notifications={data.results} />
+    return <NotificationList notifications={notifications} />
 }
 
 const NotificationList = ({ notifications }: { notifications: INotificationSchema[] }) => {
-    return <ul>
-        {notifications.map(notification => <li key={notification.Notif_No} className="border-b p-4">
-            <div className="flex items-center justify-between">
-                <h3 className="font-bold">{notification.Notif_Type}</h3>
-                <span className="text-sm text-gray-500">{new Date(notification.created_at).toLocaleString()}</span>
-            </div>
-            <p>{notification.Notif_Message}</p>
-        </li>)}
+    return <ul className="p-4 flex gap-4 flex-col">
+        {notifications.map(notification => <NotificationItem key={notification.Notif_No} notification={notification} />)}
     </ul>
 }
 
+const NotificationItem = ({ notification }: { notification: INotificationSchema }) => {
+
+    const NotifTypeMap = new Map<string, string>([
+        ["CHECK_BL", "Vérification Bon Livraison"],
+    ]);
+
+    return <Card className="border-b p-4">
+        <div className="flex items-center justify-between">
+            <h3 className="font-bold text-base">{NotifTypeMap.get(notification.Notif_Type) || notification.Notif_Type}</h3>
+            <span className="font-bold">BL{notification.Notif_RessourceId}</span>
+        </div>
+        <p>{notification.Notif_Message}</p>
+        <span className="text-sm text-gray-500">{new Date(notification.created_at).toLocaleString()}</span>
+
+    </Card>
+}
+
 const NotificationPopover = ({ children }: { children: ReactNode }) => {
+    const { data, isPending, isFetching, refetch } = useGetNotifications();
+    const [rotation, setRotation] = useState(0);
+    const notifications = data ? data.results : [];
+
+    const refreshNotifications = async () => {
+        setRotation((previousRotation) => previousRotation + 180);
+        await refetch();
+    }
+
     return (
         <Popover>
             <PopoverTrigger asChild>
                 {children}
             </PopoverTrigger>
-            <PopoverContent className="w-90 p-0 ">
+            <PopoverContent className="w-xl p-0  overflow-hidden">
                 <PopoverHeader className="flex flex-row items-center justify-between border-b p-4">
-                    <PopoverTitle className="font-bold">Notifications</PopoverTitle>
-
-                    <div className="w-fit "><FiRefreshCw /></div>
+                    <PopoverTitle className="font-bold text-xl">Notifications</PopoverTitle>
+                    <div className="w-fit ">
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            className="rounded-full"
+                            onClick={refreshNotifications}
+                            disabled={isFetching}
+                            aria-label="Refresh notifications"
+                        >
+                            <FiRefreshCw
+                                className="transition-transform duration-300"
+                                style={{ transform: `rotate(${rotation}deg)` }}
+                            />
+                        </Button>
+                    </div>
                 </PopoverHeader>
                 <div className="w-full p-4 ">
                     {/*filter section */}
                     <NotificationFilter />
                 </div>
-                <div>
-                    <NotificationListContainer />
+                <div className="w-full h-[400px] overflow-y-auto">
+                    <NotificationListContainer notifications={notifications} isPending={isPending} />
                 </div>
             </PopoverContent>
         </Popover>

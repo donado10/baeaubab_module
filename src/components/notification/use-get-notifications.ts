@@ -1,17 +1,27 @@
 import { client } from "@/lib/rpc";
 import { useQuery } from "@tanstack/react-query";
+import { INotificationSchema } from "@/features/server/notification/interface";
 
-const useGetNotifications = () => {
-	const query = useQuery({
+type NotificationResponse = {
+	results: INotificationSchema[];
+};
+
+type UseGetNotificationsOptions = {
+	refetchInterval?: number;
+};
+
+const useGetNotifications = ({ refetchInterval }: UseGetNotificationsOptions = {}) => {
+	const query = useQuery<NotificationResponse>({
 		queryKey: ["get-notification"],
-		queryFn: async ({}) => {
+		refetchInterval,
+		queryFn: async () => {
 			const response = await client.api["notification"].$get();
 
 			if (!response.ok) {
 				throw new Error("error when fetching piece");
 			}
 
-			return await response.json();
+			return (await response.json()) as NotificationResponse;
 		},
 	});
 
