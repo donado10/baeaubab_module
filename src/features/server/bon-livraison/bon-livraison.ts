@@ -8,7 +8,7 @@ import { ID } from "node-appwrite";
 const getAdjacentEntreprises = async (
 	entreprise_id: string,
 	year: string,
-	month: string
+	month: string,
 ) => {
 	const query = `
 		WITH RankedRows AS (
@@ -64,7 +64,7 @@ const getEntrepriseDG = async (entreprise_id: string) => {
 const getBonLivraisonEntreprise = async (
 	entreprise_id: string,
 	year: string,
-	month: string
+	month: string,
 ) => {
 	const pool = await getConnection();
 
@@ -107,6 +107,99 @@ const getEntreprise = async (entreprise_id: string) => {
 	return result.recordset[0];
 };
 
+const deleteInvalidBonLivraisons = async (
+	year: string,
+	month: string,
+	entreprises: string[],
+) => {
+	if (entreprises.length === 0) {
+		return;
+	}
+
+	const pool = await getConnection();
+	const entreprisesList = entreprises.map((en) => `'${en}'`).join(",");
+	const query = `delete from TRANSIT.dbo.F_DOCligne_DIGITAL where  DO_Type=3 and year(created_at) = ${year} and month(created_at)=${month}  and DO_No in (select DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = ${year} and month(created_at)=${month} and DO_ENTREPRISE_SAGE in (${entreprisesList}) );
+		delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = ${year} and month(created_at)=${month} and DO_ENTREPRISE_SAGE in (${entreprisesList});`;
+
+	await pool.request().query(query);
+};
+
+const getBonLivraisonValidity = async (
+	year: string,
+	month: string,
+	entreprise_id: string,
+	bl_id: string,
+) => {
+	const pool = await getConnection();
+	const query = `
+		select top 1 DO_Valide
+		from TRANSIT.dbo.F_DOCENTETE_DIGITAL
+		where DO_Type=3
+		and year(created_at) = ${year}
+		and month(created_at) = ${month}
+		and DO_Entreprise_Sage = '${entreprise_id}'
+		and DO_No = '${bl_id}'
+	`;
+	const result = await pool.request().query(query);
+
+	return result.recordset[0]?.DO_Valide ?? null;
+};
+
+const deleteBonLivraison = async (
+	year: string,
+	month: string,
+	entreprise_id: string,
+	bl_id: string,
+) => {
+	const pool = await getConnection();
+	const query = `
+		delete from TRANSIT.dbo.F_DOCligne_DIGITAL
+		where DO_Type=3
+		and year(created_at) = ${year}
+		and month(created_at)=${month}
+		and DO_Entreprise_Sage = '${entreprise_id}'
+		and DO_No = '${bl_id}';
+
+		delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL
+		where DO_Type=3
+		and year(created_at) = ${year}
+		and month(created_at)=${month}
+		and DO_Entreprise_Sage = '${entreprise_id}'
+		and DO_No = '${bl_id}'
+		and do_valide != 1;
+	`;
+
+	await pool.request().query(query);
+};
+
+const queueBonLivraisonUpdate = async (
+	year: string,
+	month: string,
+	en_list: string[],
+) => {
+	const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
+	const channel = await conn.createChannel();
+
+	await channel.assertQueue("get_digital_bl_jobs");
+
+	const jobId = ID.unique();
+
+	channel.sendToQueue(
+		"get_digital_bl_jobs",
+		Buffer.from(
+			JSON.stringify({
+				jobId: jobId,
+				year: year,
+				month: month,
+				en_list: en_list,
+				type: "bl_some",
+			}),
+		),
+	);
+
+	return jobId;
+};
+
 const app = new Hono()
 	.get(
 		"/entreprise/:entreprise_id",
@@ -115,7 +208,7 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("query");
@@ -124,14 +217,14 @@ const app = new Hono()
 			const entreprisesAdjacent = await getAdjacentEntreprises(
 				entreprise_id,
 				year,
-				month
+				month,
 			);
 			const entreprise = await getEntreprise(entreprise_id);
 			const entrepriseDG = await getEntrepriseDG(entreprise_id);
 			const documents = await getBonLivraisonEntreprise(
 				entreprise_id,
 				year,
-				month
+				month,
 			);
 
 			return c.json({
@@ -142,7 +235,7 @@ const app = new Hono()
 					adjacent: entreprisesAdjacent,
 				},
 			});
-		}
+		},
 	)
 	.post(
 		"/updateBonLivraisonByEntreprise",
@@ -153,45 +246,53 @@ const app = new Hono()
 				en_list_invalid: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, en_list_valid, en_list_invalid } =
 				c.req.valid("json");
 
-			if (en_list_invalid.length > 0) {
-				const pool = await getConnection();
-				const query = `delete from TRANSIT.dbo.F_DOCligne_DIGITAL where  DO_Type=3 and year(created_at) = ${year} and month(created_at)=${month}  and DO_No in (select DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = ${year} and month(created_at)=${month} and DO_ENTREPRISE_SAGE in (${en_list_invalid.map((en) => `'${en}'`).join(",")}) );
-				delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = ${year} and month(created_at)=${month} and DO_ENTREPRISE_SAGE in (${en_list_invalid.map((en) => `'${en}'`).join(",")});
-            
-            `;
-
-				await pool.request().query(query);
-			}
-
-			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
-			const channel = await conn.createChannel();
-
-			await channel.assertQueue("get_digital_bl_jobs");
-
-			const jobId = ID.unique();
+			await deleteInvalidBonLivraisons(year, month, en_list_invalid);
 
 			const en_list = [...en_list_valid, ...en_list_invalid];
-
-			channel.sendToQueue(
-				"get_digital_bl_jobs",
-				Buffer.from(
-					JSON.stringify({
-						jobId: jobId,
-						year: year,
-						month: month,
-						en_list: en_list,
-						type: "bl_some",
-					})
-				)
-			);
+			const jobId = await queueBonLivraisonUpdate(year, month, en_list);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
+	)
+	.post(
+		"/updateBonLivraisonOne",
+		zValidator(
+			"json",
+			z.object({
+				bl_id: z.string(),
+				entreprise_id: z.string(),
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { bl_id, entreprise_id, year, month } = c.req.valid("json");
+			const isValid = await getBonLivraisonValidity(
+				year,
+				month,
+				entreprise_id,
+				bl_id,
+			);
+
+			if (isValid === null) {
+				return c.json({ error: "Bon de livraison introuvable." }, 404);
+			}
+
+			if (Number(isValid) === 1) {
+				return c.json({ error: "Ce bon de livraison est deja valide." }, 400);
+			}
+
+			await deleteBonLivraison(year, month, entreprise_id, bl_id);
+
+			const jobId = await queueBonLivraisonUpdate(year, month, [entreprise_id]);
+
+			return c.json({ results: [], jobId: jobId });
+		},
 	);
 export default app;

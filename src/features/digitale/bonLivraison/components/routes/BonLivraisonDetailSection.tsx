@@ -23,13 +23,12 @@ import { GrRadial, GrRadialSelected } from "react-icons/gr";
 import useGenerateFacturesFromBonLivraison from '../../api/use-generate-facture-from-bls';
 import { toast } from 'sonner';
 import JobWatcher from '../JobWatcher';
-import { DialogCancelFactures } from '../DialogCancelFactures';
+import { DialogCancelFactures, DialogBonLivraisonAction, DialogActualiserOneEntrepriseBonLivraison, DialogActualiserAllBonLivraison } from '../dialogs';
+
 import { MdCloudDownload } from 'react-icons/md';
 import { fi, is, se } from 'date-fns/locale';
 import { useQueryClient } from '@tanstack/react-query';
 import JobWatcherEntrepriseDetail from '../JobWatcherEntrepriseDetail';
-
-
 
 
 const DocumentPDFView = dynamic(
@@ -184,6 +183,8 @@ const handleDownload = (fileUrl: string, filename: string) => {
 
 const BonLivraisonSelected = ({ document }: { document: IDocumentBonLivraison }) => {
 
+    const store = useEntrepriseDetailStore()
+
     const [instance, updateInstance] = usePDF({ document: <DocumentPDFBonLivraison document={document} /> });
 
     useEffect(() => {
@@ -204,11 +205,32 @@ const BonLivraisonSelected = ({ document }: { document: IDocumentBonLivraison })
                     </div>
                 </div>
                 <div>
-
                     <span className='font-bold'> REF-{document.entete.DO_No}</span>
                     <div>
-                        {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url, `BL-REF-${document.entete.DO_No}`) }}>Download</Button>}
+                        {/*                         {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url, `BL-REF-${document.entete.DO_No}`) }}>Download</Button>}
+ */}
+                        <DialogActualiserOneEntrepriseBonLivraison
+                            blId={document.entete.DO_No}
+                            entrepriseId={document.entete.EN_No.toString()}
+                            year={store.periode[0]}
+                            month={store.periode[1]}
+                            setEvent={store.setEvent}
+                            renderToast={() => {
+                                const detailStore = useEntrepriseDetailStore()
 
+                                return (
+                                    <div className="text-white">
+                                        <h1>En cours</h1>
+                                        {detailStore.event && <JobWatcherEntrepriseDetail jobId={detailStore.event.jobId} />}
+                                    </div>
+                                )
+                            }}
+                        >
+
+                            <Button variant={"ghost"} >
+                                <span>Actualiser</span>
+                            </Button>
+                        </DialogActualiserOneEntrepriseBonLivraison>
                     </div>
                 </div>
 
@@ -223,53 +245,25 @@ const BonLivraisonSelected = ({ document }: { document: IDocumentBonLivraison })
         </div>
     </>
 }
-const FactureResume = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgence, documentsBL: IDocumentBonLivraison[], month: string, year: string }) => {
+const EventContent = () => {
+    const { event } = useEntrepriseDetailStore()
 
-
-    const [instance, updateInstance] = usePDF({ document: <DocumentPDFFactureResume agence={agence_dg} documents={documentsBL} /> });
 
     useEffect(() => {
-        updateInstance(<DocumentPDFFactureResume agence={agence_dg} documents={documentsBL} />);
-    }, [JSON.stringify(agence_dg)]);
-
-
-
-    return <>
-
-        <div className='  border-b border-gray-500 h-[15vh] p-8 '>
-            <div className='flex items-center justify-between'>
-
-                <div className='flex flex-col '>
-                    <span className='text-normal font-semibold'>{agence_dg.CT_Intitule}</span>
-                    <span className='text-xs font-semibold'>{agence_dg.CT_No}</span>
-                    <div>
-                    </div>
-                </div>
-                <div>
-
-                    <div>
-                        {!instance.loading && <Button variant='ghost' onClick={() => { handleDownload(instance.url, `FACT-${agence_dg.CT_Num}-${year}-${month}`) }}>Download</Button>}
-
-                    </div>
-                </div>
-
-            </div>
-        </div>
-        {instance.loading ? 'loading...' :
-            <div className='bg-gray-500/20  flex items-center justify-center'>
-
-                <DocumentPDFView fileUrl={instance.url} />
-
-            </div>
+        if (event?.status === 'done') {
+            toast.success("Actualisation terminée")
         }
-    </>
+    }, [JSON.stringify(event)])
+
+    return event ? <JobWatcherEntrepriseDetail jobId={event.jobId} /> : null
 }
+
 
 const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgence, documentsBL: IDocumentBonLivraison[], month: string, year: string }) => {
 
     const entrepriseStore = useEntrepriseDetailStore()
     const { data, isPending } = useGetEnterpriseFactures(agence_dg.CT_Entreprise_Sage.toString(), year, month)
-    const { mutate } = useGenerateFacturesFromBonLivraison()
+    const { mutate, isPending: isGenerating } = useGenerateFacturesFromBonLivraison()
 
     const [instance, updateInstance] = usePDF({
         document: <DocumentPDFFactureResume agence={agence_dg} documents={documentsBL.filter((bl) => entrepriseStore.cart.includes(bl.entete
@@ -322,6 +316,9 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
 
     }
 
+    const enListInvalid = entrepriseStore.documents.every((doc) => doc.entete.DO_Valide === 1) ? [agence_dg.CT_Entreprise_Sage] : []
+    const enListValid = enListInvalid.length > 0 ? [] : [agence_dg.CT_Entreprise_Sage]
+
     return <>
 
         <div className='  border-b border-gray-500 h-[15vh] p-8 '>
@@ -343,9 +340,22 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
                         </Button>
                     </DialogCancelFactures>}
 
-                    {entrepriseStore.cart.length > 0 && <Button variant='outline' onClick={submitHandler}>
-                        Générer Facture
-                    </Button>}
+                    {entrepriseStore.cart.length > 0 && <DialogBonLivraisonAction title="Générer Facture" onConfirm={submitHandler} isPending={isGenerating}>
+                        <Button variant='outline'>Générer Facture</Button>
+                    </DialogBonLivraisonAction>}
+                    <DialogActualiserAllBonLivraison
+                        enListValid={enListValid}
+                        enListInvalid={enListInvalid}
+                        year={entrepriseStore.periode[0]}
+                        month={entrepriseStore.periode[1]}
+                        onSuccess={entrepriseStore.setEvent}
+                        EventContent={EventContent}
+                    >
+
+                        <Button variant={"ghost"} >
+                            <span>Actualiser</span>
+                        </Button>
+                    </DialogActualiserAllBonLivraison>
                 </div>
 
             </div>

@@ -1,8 +1,8 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import BreadcrumbContainer from "@/components/breadcrumbContainer";
-import NotificationSection from "@/components/notification/notification";
+import NotificationSection from "@/features/notification/notification";
+import SearchSection from "@/features/digitale/search/components/SearchSection";
 import Providers from "@/components/queryProviders";
-import { Button } from "@/components/ui/button";
 
 import { Separator } from "@/components/ui/separator";
 import {
@@ -13,7 +13,6 @@ import {
 import { getCurrent } from "@/features/auth/action";
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
-import { IoNotifications } from "react-icons/io5";
 
 
 export default async function Layout({ children }: { children: ReactNode }) {
@@ -31,7 +30,8 @@ export default async function Layout({ children }: { children: ReactNode }) {
         <AppSidebar />
         <div className="flex flex-col w-full p-4  ">
 
-          <div className="h-[10vh] w-full ">
+          <div className="h-[10vh] w-full flex items-center justify-between gap-4 px-2">
+            <SearchSection />
             <NotificationSection />
           </div>
           <SidebarInset className="h-[90vh] rounded-xl">

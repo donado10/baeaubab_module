@@ -3,9 +3,8 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { cn, getCurrentYearMonth, getFrenchMonthName } from '@/lib/utils'
-import { DialogLoadBonLivraison } from '../DialogLoadBonLivraison'
+import { DialogLoadBonLivraison, DialogGenerateFactures, DialogGenerateFacturesByEntreprise, DialogActualiserAllBonLivraison } from '../dialogs'
 import { EStatus, useEntrepriseBonLivraisonStore } from '../../store/store'
-import { DialogGetBonLivraison } from '../DialogGetBonLivraison'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -13,11 +12,8 @@ import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import BonLivraisonTableContainer from '../TableContainer'
 import useGetBillStats from '../../api/use-get-bl-stats'
-import { DialogGenerateFactures } from '../DialogGenerateFactures'
-import { DialogGenerateFacturesByEntreprise } from '../DialogGenerateFacturesByEntreprise'
-import useGetBonLivraison from '../../api/use-get-bon-livraison'
-import { DialogActualiserBonLivraison } from '../DialogActualiserBonLivraison'
 import { IDocumentBonLivraison, IEntrepriseBonLivraison } from '../../interface'
+import JobWatcher from '../JobWatcher'
 import useGetBonLivraisonStatsByCompany from '../../api/use-get-bon-livraison'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useGetBonLivraisonStats from '../../api/use-get-bl-stats'
@@ -137,17 +133,34 @@ const BonLivraisonStatsContainer = () => {
 }
 
 
+const EventContent = () => {
+    const { event } = useEntrepriseBonLivraisonStore()
+    return event ? <JobWatcher jobId={event.jobId} /> : null
+}
+
 const BonLivraisonButtonContainer = () => {
     const store = useEntrepriseBonLivraisonStore()
+
+    const enListValid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 1).map((item) => item.EN_No)
+    const enListInvalid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 0).map((item) => item.EN_No)
+
+    console.log(enListValid)
     return <div className='flex items-center gap-4'>
 
-        {store.billCart.length > 0 && <DialogActualiserBonLivraison  >
+        {store.billCart.length > 0 && <DialogActualiserAllBonLivraison
+            enListValid={enListValid}
+            enListInvalid={enListInvalid}
+            year={store.periode[0]}
+            month={store.periode[1]}
+            onSuccess={store.setEvent}
+            EventContent={EventContent}
+        >
 
             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
                 <span><MdCloudDownload />
                 </span><span>Actualiser</span>
             </Button>
-        </DialogActualiserBonLivraison>}
+        </DialogActualiserAllBonLivraison>}
         {store.billCart.length > 0 && <DialogGenerateFacturesByEntreprise  >
 
             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
@@ -245,7 +258,6 @@ const BonLivraisonSection = ({ documents }: { documents: IEntrepriseBonLivraison
 
     return (
         <section className='p-4 text-gray-700'>
-            {store.event?.status === 'done' && <DialogGetBonLivraison open={dialogBonLivraison} onOpen={setDialogBonLivraison} />}
             <div className=''>
 
                 <div className='flex items-center justify-between mb-8 '>

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const entrepriseBonLivraisonSchema = z.object({
-	EN_No: z.coerce.number(),
+	EN_No: z.coerce.string(),
 	EN_Intitule: z.coerce.string(),
 	EN_BonLivraisons: z.coerce.number(),
 	EN_Agences: z.coerce.number(),
@@ -20,7 +20,7 @@ export const entrepriseSchema = z.object({
 });
 
 export const bonLivraisonEnteteSchema = z.object({
-	EN_No: z.coerce.number(),
+	EN_No: z.coerce.string(),
 	EN_Intitule: z.coerce.string(),
 	EN_Agences: z.coerce.number(),
 	EN_Status: z.coerce.number(),

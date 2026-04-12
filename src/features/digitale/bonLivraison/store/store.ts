@@ -41,15 +41,15 @@ interface IEntrepriseBonLivraisonState {
 	periode: string[];
 	event: IEvent | null;
 	filter: IFilter;
-	billCart: number[];
+	billCart: string[];
 	dialog: IDialogEcritures;
 	selectedBonLivraison: IDocumentBonLivraison | null;
 	setSelectedBonLivraison: (bl: IDocumentBonLivraison | null) => void;
 	setClearDialogState: () => void;
 	setDialogState: (dialogState: IDialogEcritures) => void;
-	setAddBillCart: (bill: number) => void;
-	setRemoveBillCart: (bill: number) => void;
-	setAddAllBillCart: (bills: number[]) => void;
+	setAddBillCart: (bill: string) => void;
+	setRemoveBillCart: (bill: string) => void;
+	setAddAllBillCart: (bills: string[]) => void;
 	setRemoveAllBillCart: () => void;
 	setItems: (items: IEntrepriseBonLivraison[]) => void;
 	setItemsBL: (items: IDocumentBonLivraison[]) => void;
@@ -103,12 +103,12 @@ export const useEntrepriseBonLivraisonStore =
 					set({ itemsBL: [...items] }),
 				setEvent: (event: IEvent) => set({ event: event }),
 				setFilter: (filter: IFilter) => set({ filter: filter }),
-				setAddBillCart: (bill: number) =>
+				setAddBillCart: (bill: string) =>
 					set((state) => ({ billCart: [...state.billCart, bill] })),
-				setAddAllBillCart: (bills: number[]) =>
+				setAddAllBillCart: (bills: string[]) =>
 					set((state) => ({ billCart: [...bills] })),
 				setRemoveAllBillCart: () => set((state) => ({ billCart: [] })),
-				setRemoveBillCart: (bill: number) =>
+				setRemoveBillCart: (bill: string) =>
 					set((state) => ({
 						billCart: state.billCart.filter((b) => b !== bill),
 					})),
@@ -134,6 +134,6 @@ export const useEntrepriseBonLivraisonStore =
 			{
 				name: "bon-livraison-storage", // unique name
 				storage: createJSONStorage(() => localStorage), // default
-			}
-		)
+			},
+		),
 	);
