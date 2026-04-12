@@ -67,7 +67,7 @@ const NotificationItem = ({ notification }: { notification: INotificationSchema 
         ["CHECK_BL", "Vérification Bon Livraison"],
     ]);
 
-    return <Card className="border-b p-4">
+    return <Card className="border-b p-4 gap-3">
         <div className="flex items-center justify-between">
             <h3 className="font-bold text-base">{NotifTypeMap.get(notification.Notif_Type) || notification.Notif_Type}</h3>
             <span className="font-bold">BL{notification.Notif_RessourceId}</span>
