@@ -3,13 +3,20 @@
 import { useCallback, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
-    CommandDialog,
+    Command,
     CommandEmpty,
     CommandGroup,
     CommandInput,
     CommandItem,
     CommandList,
 } from "@/components/ui/command"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { SearchStrategyFactory } from "../strategies"
@@ -67,8 +74,7 @@ function ResultItem({
 }) {
     return (
         <CommandItem
-            key={result.id}
-            value={`${result.label} ${result.sublabel}`}
+            value={result.id}
             onSelect={() => onSelect(result.href)}
             className="flex items-center justify-between gap-4 py-2.5"
         >
@@ -99,7 +105,7 @@ function ResultItem({
                 )}
                 {result.amount !== undefined && (
                     <span className="text-xs tabular-nums text-muted-foreground">
-                        {result.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} DH
+                        {result.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} FCFA
                     </span>
                 )}
             </div>
@@ -165,45 +171,60 @@ export function SearchCommand({ open, onOpenChange }: Props) {
         setQuery("")
     }
 
+    console.log(results)
+
     return (
-        <CommandDialog
-            open={open}
-            onOpenChange={onOpenChange}
-            title="Recherche globale"
-            description="Rechercher par bon de livraison, facture ou entreprise"
-            showCloseButton={false}
-            className="max-w-xl"
-        >
-            <TypeTabs active={type} onChange={handleTypeChange} />
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogHeader className="sr-only">
+                <DialogTitle>Recherche globale</DialogTitle>
+                <DialogDescription>Rechercher par bon de livraison, facture ou entreprise</DialogDescription>
+            </DialogHeader>
+            <DialogContent
+                className="overflow-hidden p-0 max-w-xl"
+                showCloseButton={false}
+            >
+                {/*
+                 * shouldFilter={false} disables cmdk's built-in client-side fuzzy filter.
+                 * All filtering is done server-side; letting cmdk re-filter would hide
+                 * results that matched on a field not present in the item's visible text
+                 * (e.g. CT_Num "cl10885" not appearing in the label/sublabel).
+                 */}
+                <Command
+                    shouldFilter={false}
+                    className="**:[[cmdk-group-heading]]:text-muted-foreground **:data-[slot=command-input-wrapper]:h-12 **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:font-medium **:[[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 **:[[cmdk-input]]:h-12 **:[[cmdk-item]]:px-2 **:[[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5"
+                >
+                    <TypeTabs active={type} onChange={handleTypeChange} />
 
-            <CommandInput
-                placeholder={strategy.placeholder}
-                value={query}
-                onValueChange={setQuery}
-            />
+                    <CommandInput
+                        placeholder={strategy.placeholder}
+                        value={query}
+                        onValueChange={setQuery}
+                    />
 
-            <CommandList className="max-h-[360px]">
-                {!isReady && <SearchHint strategy={strategy} />}
+                    <CommandList className="max-h-[360px]">
+                        {!isReady && <SearchHint strategy={strategy} />}
 
-                {isReady && isLoading && <ResultsSkeleton />}
+                        {isReady && isLoading && <ResultsSkeleton />}
 
-                {isReady && !isLoading && results.length === 0 && (
-                    <CommandEmpty>Aucun résultat pour « {query} ».</CommandEmpty>
-                )}
+                        {isReady && !isLoading && results.length === 0 && (
+                            <CommandEmpty>Aucun résultat pour « {query} ».</CommandEmpty>
+                        )}
 
-                {isReady && !isLoading && results.length > 0 && (
-                    <CommandGroup heading={`${results.length} résultat${results.length > 1 ? "s" : ""}`}>
-                        {results.map((result) => (
-                            <ResultItem
-                                key={result.id}
-                                result={result}
-                                strategy={strategy}
-                                onSelect={handleSelect}
-                            />
-                        ))}
-                    </CommandGroup>
-                )}
-            </CommandList>
-        </CommandDialog>
+                        {isReady && !isLoading && results.length > 0 && (
+                            <CommandGroup heading={`${results.length} résultat${results.length > 1 ? "s" : ""}`}>
+                                {results.map((result) => (
+                                    <ResultItem
+                                        key={result.id}
+                                        result={result}
+                                        strategy={strategy}
+                                        onSelect={handleSelect}
+                                    />
+                                ))}
+                            </CommandGroup>
+                        )}
+                    </CommandList>
+                </Command>
+            </DialogContent>
+        </Dialog>
     )
 }

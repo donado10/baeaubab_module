@@ -11,6 +11,7 @@ export const factureStrategy: ISearchStrategy = {
 		label: `FAC #${raw.DO_No}`,
 		sublabel: raw.EN_Intitule ?? "",
 		amount: raw.DO_TotalTTC,
+		date: raw.DO_Date,
 		href: `/m1/facture`,
 	}),
 };

@@ -1,5 +1,6 @@
 import { Truck } from "lucide-react";
 import { ISearchStrategy } from "../types";
+import { formatDate } from "@/lib/utils";
 
 export const bonLivraisonStrategy: ISearchStrategy = {
 	type: "bon-livraison",
@@ -12,6 +13,7 @@ export const bonLivraisonStrategy: ISearchStrategy = {
 		sublabel: raw.CT_Intitule ?? "",
 		badge: raw.DO_Valide === 1 ? "Valide" : "En attente",
 		amount: raw.DO_TotalHT,
-		href: `/m1/bon-livraison/entreprise/${raw.EN_No}`,
+		date: formatDate(raw.created_at),
+		href: `/m1/bon-livraison/entreprise/${raw.EN_No}?year=${new Date(raw.created_at).getFullYear()}&month=${new Date(raw.created_at).getMonth() + 1}`,
 	}),
 };

@@ -28,12 +28,14 @@ const app = new Hono()
 					EN_No_Digital,
 					EN_No_Sage,
 					EN_Intitule
-				FROM TRANSIT.dbo.F_ENTREPRISE_DIGITAL
-				WHERE EN_No_Sage LIKE @q
-				   OR EN_Intitule LIKE @q
+				FROM TRANSIT.dbo.F_ENTREPRISE_DIGITAL en inner join F_COMPTET_DIGITAL ct  on en.EN_No_Sage = ct.CT_Entreprise_Sage 
+				WHERE  ( EN_No_Sage LIKE @q 
+					OR EN_Intitule LIKE @q 
+					OR ct.CT_Num LIKE @q) and ct.CT_DG=1
 				ORDER BY EN_Intitule
 			`);
 
+		console.log(result.recordset);
 		return c.json({ results: result.recordset });
 	})
 
@@ -52,7 +54,8 @@ const app = new Hono()
 					d.DO_No,
 					d.DO_TotalHT,
 					d.DO_Valide,
-					d.DO_Entreprise_Digital AS EN_No,
+					d.DO_Entreprise_Sage AS EN_No,
+					d.created_at,
 					c.CT_Intitule
 				FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL d
 				LEFT JOIN TRANSIT.dbo.F_COMPTET_DIGITAL c
@@ -79,6 +82,7 @@ const app = new Hono()
 				SELECT TOP 15
 					d.DO_No,
 					d.DO_TotalTTC,
+					d.DO_Date,
 					e.EN_Intitule
 				FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL d
 				LEFT JOIN TRANSIT.dbo.F_ENTREPRISE_DIGITAL e
