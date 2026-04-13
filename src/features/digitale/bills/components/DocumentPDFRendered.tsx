@@ -40,8 +40,8 @@ export function DocumentPDFFacture({ document }: { document: IDocumentFacture })
                         </View>
                         <View>
                             <Text style={tw("text-base font-bold text-right")}>{document.entete.CT_Intitule}</Text>
-                            <Text style={tw("text-sm text-right")}>BL No: {document.entete.DO_No}</Text>
-                            <Text style={tw("text-sm text-right")}>Date BL: {formatDate(document.entete.created_at)}</Text>
+                            <Text style={tw("text-sm text-right")}>Facture No: {document.entete.DO_No}</Text>
+                            <Text style={tw("text-sm text-right")}>Date Facture: {formatDate(document.entete.DO_Date)}</Text>
                         </View>
                     </View>
 
@@ -70,17 +70,15 @@ export function DocumentPDFFacture({ document }: { document: IDocumentFacture })
                             <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>Référence</Text>
                             <Text style={tw("text-[10px] w-[40%] p-2 border-r border-black font-bold")}>Designation</Text>
                             <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>Quantité</Text>
-                            <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>P.U.</Text>
                             <Text style={tw("text-[10px] w-[15%] p-2 font-bold")}>Prix</Text>
                         </View>
 
                         {/* Data Rows */}
                         {document.lignes.map((ligne, i) => (
                             <View key={i} style={tw("w-full flex flex-row border-l border-r border-b border-black")}>
-                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{ligne.Art_Code}</Text>
-                                <Text style={tw("text-[10px] w-[40%] p-2 border-r border-black")}>{ligne.Art_Design}</Text>
-                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{ligne.ART_Qte}</Text>
-                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{(ligne.DO_PrixUnitaire).toFixed(2)}</Text>
+                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{ligne.Art_Design}</Text>
+                                <Text style={tw("text-[10px] w-[40%] p-2 border-r border-black")}>{ligne.Art_Code ?? 'N/A'}</Text>
+                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black")}>{ligne.ART_Qte ?? 'N/A'}</Text>
                                 <Text style={tw("text-[10px] w-[15%] p-2")}>{(ligne.DO_TotalHT).toFixed(2)}</Text>
                             </View>
                         ))}
@@ -176,7 +174,7 @@ export function DocumentPDFFactureResume({ agence, documents }: { agence: IAgenc
                             <View key={i} style={tw("w-full flex flex-row border-l border-r border-b border-black")}>
                                 <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>REF-{document.entete.DO_No}</Text>
                                 <Text style={tw("text-[10px] w-[40%] p-2 border-r border-black font-bold")}>{document.entete.CT_Intitule}</Text>
-                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>{formatDate(document.entete.created_at)}</Text>
+                                <Text style={tw("text-[10px] w-[15%] p-2 border-r border-black font-bold")}>{formatDate(document.entete.DO_Date)}</Text>
                                 <Text style={tw("text-[10px] w-[10%] p-2 border-r border-black font-bold")}>{agence.CT_TVA == '1' ? '18%' : '0%'}</Text>
                                 <Text style={tw("text-[10px] w-[10%] p-2 border-r border-black font-bold")}>0</Text>
                                 <Text style={tw("text-[10px] w-[10%] p-2 border-r border-black font-bold")}>{document.entete.DO_TotalHT}</Text>

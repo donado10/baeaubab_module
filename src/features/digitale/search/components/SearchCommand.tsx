@@ -95,9 +95,18 @@ function ResultItem({
                     <span
                         className={cn(
                             "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                            result.badge === "Valide"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-yellow-100 text-yellow-700"
+                            (() => {
+                                switch (result.badge) {
+                                    case "Valide":
+                                        return "bg-green-100 text-green-800"
+                                    case "En attente":
+                                        return "bg-yellow-100 text-yellow-800"
+                                    case "Supprimé":
+                                        return "bg-red-100 text-red-800"
+                                    default:
+                                        return "bg-gray-100 text-gray-800"
+                                }
+                            })()
                         )}
                     >
                         {result.badge}

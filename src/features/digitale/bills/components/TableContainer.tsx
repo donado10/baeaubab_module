@@ -23,7 +23,7 @@ const TableFactureDigitalContainer = () => {
       }
       if (store.filter.search.type === 'entreprise_id') {
 
-        return value.DO_No.toString() == store.filter.search.value
+        return value.DO_Entreprise_Sage.toString() == store.filter.search.value
       }
     }) : [...filterByStatus]
 
@@ -33,7 +33,6 @@ const TableFactureDigitalContainer = () => {
   }, [JSON.stringify(store.filter), JSON.stringify(store.items)])
 
 
-  console.log(factures)
 
 
 

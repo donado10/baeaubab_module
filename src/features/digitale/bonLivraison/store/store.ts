@@ -1,28 +1,17 @@
 import { create } from "zustand";
 import { IDocumentBonLivraison, IEntrepriseBonLivraison } from "../interface";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { se } from "date-fns/locale";
-import { it } from "node:test";
 import { getCurrentYearMonth } from "@/lib/utils";
+import { createBaseSlice } from "@/features/digitale/_shared/createBaseSlice";
+import { EStatus, IBaseStore, IEvent } from "@/features/digitale/_shared/types";
 
-interface IEvent {
-	jobId: string;
-	status: string;
-	ec_count: string;
-	ec_total: string;
-	id_toast_job: string;
-}
+// Re-export EStatus so existing imports (e.g. `import { EStatus } from "../store/store"`) keep working.
+export { EStatus };
 
 interface IDialogEcritures {
 	viewTable: [boolean, string];
 	viewTableCorrection: [boolean, string];
 	checkEcriture: [boolean, string];
-}
-
-export enum EStatus {
-	ALL = "Tout",
-	VALID = 1,
-	WAITING = 0,
 }
 interface IFilter {
 	status: EStatus;
@@ -35,27 +24,20 @@ interface IFilter {
 	invalide: string[];
 }
 
-interface IEntrepriseBonLivraisonState {
+interface IEntrepriseBonLivraisonState extends IBaseStore {
 	items: IEntrepriseBonLivraison[];
 	itemsBL: IDocumentBonLivraison[];
-	periode: string[];
-	event: IEvent | null;
 	filter: IFilter;
-	billCart: string[];
 	dialog: IDialogEcritures;
 	selectedBonLivraison: IDocumentBonLivraison | null;
 	setSelectedBonLivraison: (bl: IDocumentBonLivraison | null) => void;
 	setClearDialogState: () => void;
 	setDialogState: (dialogState: IDialogEcritures) => void;
-	setAddBillCart: (bill: string) => void;
 	setRemoveBillCart: (bill: string) => void;
 	setAddAllBillCart: (bills: string[]) => void;
-	setRemoveAllBillCart: () => void;
 	setItems: (items: IEntrepriseBonLivraison[]) => void;
 	setItemsBL: (items: IDocumentBonLivraison[]) => void;
-	setEvent: (event: IEvent) => void;
 	setFilter: (filter: IFilter) => void;
-	setPeriode: (year: string, month: string) => void;
 
 	clear: () => void;
 }
@@ -64,17 +46,14 @@ export const useEntrepriseBonLivraisonStore =
 	create<IEntrepriseBonLivraisonState>()(
 		persist(
 			(set) => ({
+				...createBaseSlice(set),
 				items: [],
 				itemsBL: [],
-				periode: [],
-				billCart: [],
-				event: null,
 				dialog: {
 					viewTable: [false, ""],
 					viewTableCorrection: [false, ""],
 					checkEcriture: [false, ""],
 				},
-				errors: [],
 				filter: {
 					status: EStatus.ALL,
 					search: { type: "Intitule", value: "" },
@@ -101,19 +80,7 @@ export const useEntrepriseBonLivraisonStore =
 					set({ items: [...items] }),
 				setItemsBL: (items: IDocumentBonLivraison[]) =>
 					set({ itemsBL: [...items] }),
-				setEvent: (event: IEvent) => set({ event: event }),
 				setFilter: (filter: IFilter) => set({ filter: filter }),
-				setAddBillCart: (bill: string) =>
-					set((state) => ({ billCart: [...state.billCart, bill] })),
-				setAddAllBillCart: (bills: string[]) =>
-					set((state) => ({ billCart: [...bills] })),
-				setRemoveAllBillCart: () => set((state) => ({ billCart: [] })),
-				setRemoveBillCart: (bill: string) =>
-					set((state) => ({
-						billCart: state.billCart.filter((b) => b !== bill),
-					})),
-				setPeriode: (year: string, month: string) =>
-					set({ periode: [year, month] }),
 
 				clear: () =>
 					set({
@@ -121,7 +88,6 @@ export const useEntrepriseBonLivraisonStore =
 						itemsBL: [],
 						selectedBonLivraison: null,
 						items: [],
-
 						filter: {
 							status: EStatus.ALL,
 							searchByBL: "",
@@ -132,8 +98,8 @@ export const useEntrepriseBonLivraisonStore =
 					}),
 			}),
 			{
-				name: "bon-livraison-storage", // unique name
-				storage: createJSONStorage(() => localStorage), // default
+				name: "bon-livraison-storage",
+				storage: createJSONStorage(() => localStorage),
 			},
 		),
 	);

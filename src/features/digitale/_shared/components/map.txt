@@ -1,0 +1,104 @@
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  SERVER  src/features/server/bon-livraison/bon-livraison.ts                 │
+│                                                                             │
+│  Hono routes (MSSQL + RabbitMQ)                                             │
+│  ┌──────────────────────────┐  ┌──────────────────────────────────────────┐ │
+│  │ GET /entreprise/:id      │  │ POST /updateBonLivraisonByEntreprise     │ │
+│  │ GET /stats               │  │ POST /updateBonLivraisonOne              │ │
+│  └──────────────────────────┘  └──────────────────────────────────────────┘ │
+│         ↑ SQL queries                    ↑ publishes jobId to RabbitMQ      │
+│         └──────── getConnection() ───────┘                                  │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │ HTTP (via @/lib/rpc client)
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  bonLivraison/api/   (React Query hooks — one file per endpoint)            │
+│                                                                             │
+│  use-get-bon-livraison.tsx          → GET /stats                            │
+│  use-get-entreprise-bls.tsx         → GET /entreprise/:id                   │
+│  use-update-bon-livraison.tsx       → POST /updateBonLivraisonByEntreprise  │
+│  use-update-bon-livraison-one.tsx   → POST /updateBonLivraisonOne           │
+│  use-generate-factures.tsx          → ...factures routes                    │
+│  use-delete-factures.tsx            → ...                                   │
+│  ...                                                                        │
+└────────────────────────────────┬────────────────────────────────────────────┘
+                                 │ data → store   jobId → SSE
+          ┌──────────────────────┴──────────────────────────┐
+          ▼                                                  ▼
+┌─────────────────────────────────────┐   ┌─────────────────────────────────────┐
+│  bonLivraison/store/                │   │  _shared/components/JobWatcher.tsx  │
+│                                     │   │                                     │
+│  store.ts  (list-level state)       │   │  props:                             │
+│  ┌──────────────────────────────┐   │   │    jobId          (from api hook)   │
+│  │ extends IBaseStore (_shared) │   │   │    sseEndpoint    (from config.ts)  │
+│  │ + items[]                    │◄──┼───│    useStore()     (from config.ts)  │
+│  │ + filter (status/search/…)   │   │   │                                     │
+│  │ + billCart[]                 │   │   │  Connects to SSE stream,            │
+│  │ + dialog state               │   │   │  calls store.setEvent() on update   │
+│  └──────────────────────────────┘   │   └─────────────────────────────────────┘
+│                                     │
+│  entreprise-store.ts (detail-level) │
+│  ┌──────────────────────────────┐   │
+│  │ extends IBaseStore (_shared) │   │
+│  │ + entreprise / agence        │   │
+│  │ + documents[]                │   │
+│  │ + cart[]                     │   │
+│  └──────────────────────────────┘   │
+└────────────────────┬────────────────┘
+                     │ consumed by
+          ┌──────────┴──────────────────────────────────────┐
+          ▼                                                  ▼
+┌──────────────────────────────┐       ┌────────────────────────────────────────┐
+│  bonLivraison/components/    │       │  bonLivraison/config.ts                │
+│                              │       │  (Concrete Factory)                    │
+│  TableContainer.tsx          │       │                                        │
+│    └─ Table/table.tsx        │       │  bonLivraisonConfig = {                │
+│         └─ _shared/DataTable │       │    sseEndpointPrefix: "…/jobId",       │
+│              (generic)       │       │    useStore: useEntrepriseBLStore,     │
+│                              │       │  }  satisfies FeatureConfig            │
+│  JobWatcher.tsx       ──────────────►│                                        │
+│  JobWatcherDetail.tsx ──────────────►│  bonLivraisonDetailConfig = {          │
+│    both → _shared/JobWatcher │       │    sseEndpointPrefix: "…/jobId",       │
+│                              │       │    useStore: useEntrepriseDetailStore  │
+│  dialogs/                    │       │  }                                     │
+│    index.ts (barrel)         │       └────────────────────────────────────────┘
+│    dialog-shell.tsx          │
+│      └─ re-exports           │
+│         _shared/DialogShell  │
+│    actualiser-all.tsx        │
+│    actualiser-one.tsx        │
+│    generate-factures.tsx     │
+│    … (domain-specific)       │
+│                              │
+│  FilterSection.tsx           │
+│  PDFBuilder.tsx              │
+│  DocumentPDFViewer.tsx       │
+└────────────────────────────┬─┘
+                             │ rendered by
+                             ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  bonLivraison/components/routes/                                            │
+│                                                                             │
+│  BonLivraisonSection.tsx      (list page  — uses store.ts)                 │
+│  BonLivraisonDetailSection.tsx (detail page — uses entreprise-store.ts)    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+══════════════════════════════════════════════════════════════════════════════
+  _shared/  — Abstract layer (write once, consumed by every feature)
+══════════════════════════════════════════════════════════════════════════════
+
+  types.ts
+  ├── IEvent            ← SSE message shape
+  ├── EStatus           ← ALL / VALID / WAITING
+  ├── IBaseStore        ← minimum store contract (event, billCart, periode + setters)
+  └── FeatureConfig     ← { sseEndpointPrefix, useStore }  ← config.ts satisfies this
+
+  createBaseSlice.ts
+  └── createBaseSlice(set)  ← spread into any Zustand store
+        provides: event, billCart, periode, setEvent, setAddBillCart, …
+
+  components/
+  ├── DialogShell.tsx   ← generic confirm dialog (title/content/onConfirm as props)
+  ├── JobWatcher.tsx    ← generic SSE watcher   (sseEndpoint/useStore as props)
+  └── DataTable.tsx     ← generic table          (columns/data as props)

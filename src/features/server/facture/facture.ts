@@ -4,12 +4,79 @@ import z from "zod";
 import amqp from "amqplib";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
-import { fa } from "zod/v4/locales";
+
+const getAdjacentEntreprises = async (
+	entreprise_id: string,
+	year: string,
+	month: string,
+) => {
+	const query = `
+		WITH RankedRows AS (
+    SELECT 
+        DO_Entreprise_Sage,
+        ROW_NUMBER() OVER (ORDER BY DO_Entreprise_Sage) AS rn
+    FROM F_DOCENTETE_DIGITAL where year(do_date) = ${year} and month(do_date) = ${month} and DO_Type=6 group by DO_Entreprise_Sage
+	)
+	SELECT 
+		prev.DO_Entreprise_Sage as previous ,
+		curr.DO_Entreprise_Sage as [current] ,
+		next.DO_Entreprise_Sage as  [next]
+	FROM RankedRows curr
+	LEFT JOIN RankedRows prev ON prev.rn = curr.rn - 1
+	LEFT JOIN RankedRows next ON next.rn = curr.rn + 1
+	WHERE curr.DO_Entreprise_Sage = '${entreprise_id}'
+	`;
+	const pool = await getConnection();
+	const result = await pool.request().query(query);
+
+	const values = result.recordset[0];
+	let adjacents = {
+		previous: null as any,
+		current: null as any,
+		next: null as any,
+	};
+
+	if (values?.previous) {
+		adjacents.previous = await getEntreprise(values.previous);
+	}
+	if (values?.current) {
+		adjacents.current = await getEntreprise(values.current);
+	}
+	if (values?.next) {
+		adjacents.next = await getEntreprise(values.next);
+	}
+
+	return adjacents;
+};
+
+const getEntrepriseDG = async (entreprise_id: string) => {
+	const query = `
+		SELECT TOP 1 *
+		FROM TRANSIT.dbo.F_COMPTET_DIGITAL
+		WHERE CT_Entreprise_Sage = '${entreprise_id}' AND CT_DG = 1
+	`;
+	const pool = await getConnection();
+	const result = await pool.request().query(query);
+
+	return result.recordset[0];
+};
+
+const getEntreprise = async (entreprise_id: string) => {
+	const query = `
+		SELECT TOP 1 *
+		FROM TRANSIT.dbo.F_ENTREPRISE_DIGITAL
+		WHERE EN_No_Sage = '${entreprise_id}'
+	`;
+	const pool = await getConnection();
+	const result = await pool.request().query(query);
+
+	return result.recordset[0];
+};
 
 const getFactureEntreprise = async (
 	entreprise_id: string,
 	year: string,
-	month: string
+	month: string,
 ) => {
 	const pool = await getConnection();
 
@@ -18,8 +85,8 @@ const getFactureEntreprise = async (
 			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = '${entreprise_id}'
 	`;
 	const query_ligne = `
-			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month} and do_type=6 )
-			select lev1.*,NULL as Art_Design, NULL as Art_Code from lev1 where lev1.EN_No = '${entreprise_id}'
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,Art_Design,ART_Qte,DO_TotalHT,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month} and do_type=6 )
+			select lev1.*, NULL as Art_Code from lev1 where lev1.EN_No = '${entreprise_id}'
 			`;
 	let result_entete = await pool.request().query(query_entete);
 	let result_ligne = await pool.request().query(query_ligne);
@@ -48,20 +115,26 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("query");
 			const { entreprise_id } = c.req.param();
 
 			const documents = await getFactureEntreprise(entreprise_id, year, month);
+			const entreprise = await getEntreprise(entreprise_id);
+			const entrepriseDG = await getEntrepriseDG(entreprise_id);
+			const adjacent = await getAdjacentEntreprises(entreprise_id, year, month);
 
 			return c.json({
 				results: {
 					documents: documents,
+					entreprise: entreprise,
+					entrepriseDG: entrepriseDG,
+					adjacent: adjacent,
 				},
 			});
-		}
+		},
 	)
 	.post(
 		"/generate",
@@ -70,7 +143,7 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
@@ -90,12 +163,12 @@ const app = new Hono()
 						year: year,
 						month: month,
 						type: "all",
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.post(
 		"/generateFromBonLivraison",
@@ -106,7 +179,7 @@ const app = new Hono()
 				bl_list: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, en_list, bl_list } = c.req.valid("json");
@@ -128,12 +201,12 @@ const app = new Hono()
 						type: "fromBonLivraison",
 						en_list: en_list,
 						bl_list: bl_list,
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.post(
 		"/generateByEntreprise",
@@ -143,7 +216,7 @@ const app = new Hono()
 				en_list: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, en_list } = c.req.valid("json");
@@ -164,12 +237,12 @@ const app = new Hono()
 						month: month,
 						en_list: en_list,
 						type: "byEntreprise",
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.delete(
 		"/cancel",
@@ -179,7 +252,7 @@ const app = new Hono()
 				en_list: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, en_list } = c.req.valid("json");
@@ -200,7 +273,7 @@ const app = new Hono()
 			await pool.request().query(query);
 
 			return c.json({ result: "done" });
-		}
+		},
 	)
 	.delete(
 		"/cancelByDocument",
@@ -211,7 +284,7 @@ const app = new Hono()
 				en_no: z.string(),
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, fact_list, en_no } = c.req.valid("json");
@@ -234,7 +307,7 @@ const app = new Hono()
 			await pool.request().query(query);
 
 			return c.json({ result: "done" });
-		}
+		},
 	);
 
 export default app;

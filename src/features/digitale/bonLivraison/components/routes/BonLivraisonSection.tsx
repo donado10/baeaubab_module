@@ -144,7 +144,6 @@ const BonLivraisonButtonContainer = () => {
     const enListValid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 1).map((item) => item.EN_No)
     const enListInvalid = store.items.filter((item) => store.billCart.includes(item.EN_No) && item.EN_Valide === 0).map((item) => item.EN_No)
 
-    console.log(enListValid)
     return <div className='flex items-center gap-4'>
 
         {store.billCart.length > 0 && <DialogActualiserAllBonLivraison

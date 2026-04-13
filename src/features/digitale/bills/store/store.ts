@@ -1,28 +1,16 @@
 import { create } from "zustand";
 import { IDocumentFacture, IEntrepriseFacture } from "../interface";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { se } from "date-fns/locale";
-import { it } from "node:test";
-import { getCurrentYearMonth } from "@/lib/utils";
+import { createBaseSlice } from "@/features/digitale/_shared/createBaseSlice";
+import { EStatus, IBaseStore, IEvent } from "@/features/digitale/_shared/types";
 
-interface IEvent {
-	jobId: string;
-	status: string;
-	ec_count: string;
-	ec_total: string;
-	id_toast_job: string;
-}
+// Re-export EStatus so existing imports keep working.
+export { EStatus };
 
 interface IDialogEcritures {
 	viewTable: [boolean, string];
 	viewTableCorrection: [boolean, string];
 	checkEcriture: [boolean, string];
-}
-
-export enum EStatus {
-	ALL = "Tout",
-	VALID = 1,
-	WAITING = 0,
 }
 interface IFilter {
 	status: EStatus;
@@ -35,45 +23,32 @@ interface IFilter {
 	invalide: string[];
 }
 
-interface IEntrepriseFactureState {
+interface IEntrepriseFactureState extends IBaseStore<number> {
 	items: IEntrepriseFacture[];
 	itemsBL: IDocumentFacture[];
-	periode: string[];
-	event: IEvent | null;
 	filter: IFilter;
-	billCart: number[];
 	dialog: IDialogEcritures;
 	selectedFacture: IDocumentFacture | null;
 	setSelectedFacture: (bl: IDocumentFacture | null) => void;
 	setClearDialogState: () => void;
 	setDialogState: (dialogState: IDialogEcritures) => void;
-	setAddBillCart: (bill: number) => void;
-	setRemoveBillCart: (bill: number) => void;
-	setAddAllBillCart: (bills: number[]) => void;
-	setRemoveAllBillCart: () => void;
 	setItems: (items: IEntrepriseFacture[]) => void;
 	setItemsBL: (items: IDocumentFacture[]) => void;
-	setEvent: (event: IEvent) => void;
 	setFilter: (filter: IFilter) => void;
-	setPeriode: (year: string, month: string) => void;
-
 	clear: () => void;
 }
 
 export const useEntrepriseFactureStore = create<IEntrepriseFactureState>()(
 	persist(
 		(set) => ({
+			...createBaseSlice<number>(set),
 			items: [],
 			itemsBL: [],
-			periode: [],
-			billCart: [],
-			event: null,
 			dialog: {
 				viewTable: [false, ""],
 				viewTableCorrection: [false, ""],
 				checkEcriture: [false, ""],
 			},
-			errors: [],
 			filter: {
 				status: EStatus.ALL,
 				search: { type: "Intitule", value: "" },
@@ -82,43 +57,27 @@ export const useEntrepriseFactureStore = create<IEntrepriseFactureState>()(
 				ecart_conformite: 0,
 			},
 			selectedFacture: null,
-			setSelectedFacture: (bl: IDocumentFacture | null) => {
-				set({ selectedFacture: bl });
-			},
-			setClearDialogState: () => {
+			setSelectedFacture: (bl: IDocumentFacture | null) =>
+				set({ selectedFacture: bl }),
+			setClearDialogState: () =>
 				set({
 					dialog: {
 						viewTable: [false, ""],
 						viewTableCorrection: [false, ""],
 						checkEcriture: [false, ""],
 					},
-				});
-			},
+				}),
 			setDialogState: (dialogState: IDialogEcritures) =>
 				set({ dialog: { ...dialogState } }),
 			setItems: (items: IEntrepriseFacture[]) => set({ items: [...items] }),
 			setItemsBL: (items: IDocumentFacture[]) => set({ itemsBL: [...items] }),
-			setEvent: (event: IEvent) => set({ event: event }),
 			setFilter: (filter: IFilter) => set({ filter: filter }),
-			setAddBillCart: (bill: number) =>
-				set((state) => ({ billCart: [...state.billCart, bill] })),
-			setAddAllBillCart: (bills: number[]) =>
-				set((state) => ({ billCart: [...bills] })),
-			setRemoveAllBillCart: () => set((state) => ({ billCart: [] })),
-			setRemoveBillCart: (bill: number) =>
-				set((state) => ({
-					billCart: state.billCart.filter((b) => b !== bill),
-				})),
-			setPeriode: (year: string, month: string) =>
-				set({ periode: [year, month] }),
-
 			clear: () =>
 				set({
 					billCart: [],
 					itemsBL: [],
 					selectedFacture: null,
 					items: [],
-
 					filter: {
 						status: EStatus.ALL,
 						searchByBL: "",
@@ -129,8 +88,8 @@ export const useEntrepriseFactureStore = create<IEntrepriseFactureState>()(
 				}),
 		}),
 		{
-			name: "facture-storage", // unique name
-			storage: createJSONStorage(() => localStorage), // default
-		}
-	)
+			name: "facture-storage",
+			storage: createJSONStorage(() => localStorage),
+		},
+	),
 );

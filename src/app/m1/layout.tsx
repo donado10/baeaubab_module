@@ -28,14 +28,14 @@ export default async function Layout({ children }: { children: ReactNode }) {
 
       <SidebarProvider className="">
         <AppSidebar />
-        <div className="flex flex-col w-full p-4  ">
+        <div className="flex flex-col w-full p-4 h-screen overflow-hidden">
 
           <div className="h-[10vh] w-full flex items-center justify-between gap-4 px-2">
             <SearchSection />
             <NotificationSection />
           </div>
-          <SidebarInset className="h-[90vh] rounded-xl">
-            <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-gray-500-900 ">
+          <SidebarInset className="h-[80vh]  rounded-xl overflow-hidden">
+            <header className="flex h-[5%] shrink-0 items-center justify-between gap-2 border-b border-gray-500-900 ">
               <div className="flex items-center gap-2 px-4 ">
                 <SidebarTrigger className="-ml-1" />
                 <Separator
@@ -46,7 +46,10 @@ export default async function Layout({ children }: { children: ReactNode }) {
               </div>
 
             </header>
-            <main className="  overflow-scroll ">{children}</main>
+            <div className="h-[95%] overflow-scroll">
+
+              <main className="overflow-scroll">{children}</main>
+            </div>
           </SidebarInset>
         </div>
       </SidebarProvider>

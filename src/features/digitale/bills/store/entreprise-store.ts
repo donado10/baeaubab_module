@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { IAgence, IDocumentBonLivraison, IEntreprise } from "../interface";
+import { IAgence, IDocumentFacture, IEntreprise } from "../interface";
 import { createBaseSlice } from "@/features/digitale/_shared/createBaseSlice";
 import { EStatus, IBaseStore } from "@/features/digitale/_shared/types";
 
@@ -11,31 +11,31 @@ interface IAdjacent {
 
 interface IFilter {
 	status: EStatus;
-	searchByBL: string;
+	searchByFacture: string;
 }
 
-interface IDocumentBonLivraisonState extends IBaseStore {
+interface IFactureDetailState extends IBaseStore {
 	entreprise: IEntreprise | null;
 	agence: IAgence | null;
 	adjacent: IAdjacent | null;
-	documents: IDocumentBonLivraison[];
+	documents: IDocumentFacture[];
 	selectedOption: boolean;
 	filter: IFilter;
-	selectedBonLivraison: IDocumentBonLivraison | null;
+	selectedFacture: IDocumentFacture | null;
 	cart: string[];
 	setFilter: (filter: IFilter) => void;
-	setSelectedBonLivraison: (bl: IDocumentBonLivraison | null) => void;
+	setSelectedFacture: (facture: IDocumentFacture | null) => void;
 	setAdjacent: (adjacent: IAdjacent | null) => void;
 	setAgence: (agence: IAgence | null) => void;
 	setEntreprise: (entreprise: IEntreprise | null) => void;
-	setDocuments: (documents: IDocumentBonLivraison[]) => void;
+	setDocuments: (documents: IDocumentFacture[]) => void;
 	setAddCart: (item: string) => void;
 	setRemoveCart: (item: string) => void;
 	setSelectedOption: (option: boolean) => void;
 	clear: () => void;
 }
 
-export const useEntrepriseDetailStore = create<IDocumentBonLivraisonState>()(
+export const useEntrepriseDetailStore = create<IFactureDetailState>()(
 	(set) => ({
 		...createBaseSlice(set),
 		documents: [],
@@ -43,20 +43,20 @@ export const useEntrepriseDetailStore = create<IDocumentBonLivraisonState>()(
 		cart: [],
 		filter: {
 			status: EStatus.ALL,
-			searchByBL: "",
+			searchByFacture: "",
 		},
 		adjacent: null,
 		agence: null,
-		selectedBonLivraison: null,
+		selectedFacture: null,
 		selectedOption: false,
-		setSelectedBonLivraison: (bl: IDocumentBonLivraison | null) =>
-			set({ selectedBonLivraison: bl }),
+		setSelectedFacture: (facture: IDocumentFacture | null) =>
+			set({ selectedFacture: facture }),
 		setFilter: (filter: IFilter) => set({ filter: filter }),
 		setAdjacent: (adjacent: IAdjacent | null) => set({ adjacent: adjacent }),
 		setAgence: (agence: IAgence | null) => set({ agence: agence }),
 		setEntreprise: (entreprise: IEntreprise | null) =>
 			set({ entreprise: entreprise }),
-		setDocuments: (documents: IDocumentBonLivraison[]) =>
+		setDocuments: (documents: IDocumentFacture[]) =>
 			set({ documents: [...documents] }),
 		setAddCart: (item: string) =>
 			set((state) => ({ cart: [...state.cart, item] })),
@@ -75,11 +75,11 @@ export const useEntrepriseDetailStore = create<IDocumentBonLivraisonState>()(
 				billCart: [],
 				filter: {
 					status: EStatus.ALL,
-					searchByBL: "",
+					searchByFacture: "",
 				},
 				adjacent: null,
 				agence: null,
-				selectedBonLivraison: null,
+				selectedFacture: null,
 				selectedOption: false,
 			}),
 	}),

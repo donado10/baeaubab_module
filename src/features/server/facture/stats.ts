@@ -11,21 +11,19 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { month, year } = c.req.valid("query");
 
 			const pool = await getConnection();
 
-			const query = `select  * from transit.dbo.fnc_GetFactureCompanyMonthDetails(${year},${month}) order by do_no`;
+			const query = `select  * from transit.dbo.fnc_GetFactureCompanyMonthDetails(${year},${month}) order by DO_Entreprise_Sage`;
 
 			let result = await pool.request().query(query);
 
-			console.log(result.recordset);
-
 			return c.json({ result: [...result.recordset] });
-		}
+		},
 	)
 	.get("/:year/:month", async (c) => {
 		const month = c.req.param("month");

@@ -14,10 +14,10 @@ import { PopoverFilterButton } from './FilterSection'
 import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import TableFactureDigitalContainer from './TableContainer'
-import useGetBillStats from '../api/use-get-bill-stats'
 import { DialogCancelFactures } from './DialogCancelFactures'
 import { DialogCancelFacturesByEntrepriseID } from './DialogCancelFacturesByEntrepriseID'
 import useGetFacture from '../api/use-get-facture'
+import useGetFactureStats from '../api/use-get-facture-stats'
 
 
 
@@ -69,8 +69,8 @@ const FilterSection = () => {
 
         <div className=' border-gray-200 flex items-center gap-8'>
             <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-primary font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.TAXABLE ? 'text-green-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.TAXABLE })} disabled={store.items.length <= 0}>Taxable</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.EXONORE ? ' text-yellow-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.EXONORE })} disabled={store.items.length <= 0}>Exonoré</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALID ? 'text-green-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.TAXABLE })} disabled={store.items.length <= 0}>Taxable</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.WAITING ? ' text-yellow-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.EXONORE })} disabled={store.items.length <= 0}>Exonoré</Button>
         </div>
         <div className='flex items-center gap-4'>
             <Search />
@@ -98,7 +98,7 @@ const FilterResume = () => {
 
 const FilterResumeContainer = () => {
     const store = useEntrepriseFactureStore()
-    const { data, isPending } = useGetBillStats(store.periode[0], store.periode[1])
+    const { data, isPending } = useGetFactureStats(store.periode[0], store.periode[1])
 
     if (isPending) {
         return <>
@@ -134,23 +134,8 @@ const FactureSection = () => {
 
     const store = useEntrepriseFactureStore()
 
-    const { mutate, isPending } = useGetFacture()
 
-    useEffect(() => {
-
-        if (store.periode.length <= 0) return
-
-        if (store.event) return
-
-
-        store.setEvent(null)
-        mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
-            onSuccess: (results: any) => {
-                store.setItems(results.result)
-                store.setEvent(null)
-            }
-        })
-    }, [JSON.stringify(store.periode)])
+    console.log(store.billCart)
 
 
 

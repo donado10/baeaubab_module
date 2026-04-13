@@ -88,7 +88,6 @@ export function DialogCancelFactures({ children }: { children: ReactNode }) {
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
     const queryClient = useQueryClient()
-    const { mutate: mutateGetFacture } = useGetFacture()
 
 
     const { mutate } = useDeleteFactures()

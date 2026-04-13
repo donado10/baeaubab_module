@@ -1,10 +1,9 @@
 import { z } from "zod";
 
 export const entrepriseFactureSchema = z.object({
-	DO_No: z.coerce.number(),
 	DO_Entreprise_Sage: z.coerce.number(),
 	EN_Intitule: z.coerce.string(),
-	DO_BonLivraisons: z.coerce.number(),
+	Fact_Nbr: z.coerce.number(),
 	DO_TotalHT: z.coerce.number(),
 	DO_TotalTVA: z.coerce.number(),
 	DO_TotalTTC: z.coerce.number(),
@@ -63,6 +62,14 @@ export const bonLivraisonSchema = z.object({
 	entete: entrepriseFactureSchema,
 });
 
+export const entrepriseSchema = z.object({
+	EN_No_Sage: z.coerce.string(),
+	EN_No_Digital: z.coerce.number(),
+	EN_Intitule: z.coerce.string(),
+	EN_TVA: z.coerce.number(),
+	created_at: z.string(),
+});
+
 export const agenceSchema = z.object({
 	CT_No: z.number(),
 	CT_Intitule: z.string(),
@@ -70,6 +77,7 @@ export const agenceSchema = z.object({
 	CT_TVA: z.string(),
 	CT_DG: z.string(),
 	CT_Entreprise_Digital: z.string(),
+	CT_Entreprise_Sage: z.string(),
 	CT_Phone: z.string(),
 	CT_Addresse: z.string(),
 	CT_Email: z.string(),

@@ -11,7 +11,12 @@ export const bonLivraisonStrategy: ISearchStrategy = {
 		id: String(raw.DO_No),
 		label: `BL #${raw.DO_No}`,
 		sublabel: raw.CT_Intitule ?? "",
-		badge: raw.DO_Valide === 1 ? "Valide" : "En attente",
+		badge: (() => {
+			if (raw.DO_Valide === 1) return "Valide";
+			if (raw.DO_Valide === 0 && raw.DO_Status !== 2) return "En attente";
+			if (raw.DO_Valide === 0 && raw.DO_Status === 2) return "Supprimé";
+			return "Inconnu";
+		})(),
 		amount: raw.DO_TotalHT,
 		date: formatDate(raw.created_at),
 		href: `/m1/bon-livraison/entreprise/${raw.EN_No}?year=${new Date(raw.created_at).getFullYear()}&month=${new Date(raw.created_at).getMonth() + 1}`,

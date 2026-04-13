@@ -1,12 +1,12 @@
 import { client } from "@/lib/rpc";
 import { useQuery } from "@tanstack/react-query";
 
-const useGetEnterpriseBonLivraison = (en_no: string, year: string, month: string) => {
+const useGetEnterpriseFactures = (en_no: string, year: string, month: string) => {
     const query = useQuery({
-        queryKey: ["entreprise_bls", en_no, year, month],
+        queryKey: ["entreprise_factures", en_no, year, month],
         queryFn: async ({ }) => {
             const response =
-                await client.api["bon-livraison"].entreprise[en_no]
+                await client.api.facture.entreprise[en_no]
                     .$get({
                         query: {
                             year: year,
@@ -26,4 +26,4 @@ const useGetEnterpriseBonLivraison = (en_no: string, year: string, month: string
     return query;
 };
 
-export default useGetEnterpriseBonLivraison;
+export default useGetEnterpriseFactures;

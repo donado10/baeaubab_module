@@ -57,7 +57,7 @@ export function DropdownMenuTable({
         <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
         <DropdownMenuContent className="w-40" align="start">
           <DropdownMenuItem className="text-blue-600" asChild onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, viewTable: [true, ref_enterprise] }) }}>
-            <Link href={`${pathname}/${ref_enterprise}`}>
+            <Link href={`${pathname}/entreprise/${ref_enterprise}?year=${store.periode[0]}&month=${store.periode[1]}`}>
               <span
               >
                 Voir

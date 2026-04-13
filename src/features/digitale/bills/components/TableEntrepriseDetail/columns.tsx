@@ -1,16 +1,14 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-import { IEntrepriseFacture } from "../../interface";
-import { cn, convertDate, dateToMilliseconds, formatNumberToFrenchStandard, MStatus } from "@/lib/utils";
-import DotsIcon from "@/assets/dots.svg";
+import { cn, formatDate, formatNumberToFrenchStandard } from "@/lib/utils";
 import TrierIcon from "@/assets/trier.svg";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { DropdownMenuTable } from "../DropdownMenuTable";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEntrepriseFactureStore } from "../../store/store";
+import { useEntrepriseDetailStore } from "../../store/entreprise-store";
 import { useEffect } from "react";
 import { GoDotFill } from "react-icons/go";
+import { IDocumentFacture } from "@/features/digitale/bills/interface";
 
 
 const StatusDisplay = ({ value }: { value: string }) => {
@@ -41,7 +39,6 @@ const StatusDisplay = ({ value }: { value: string }) => {
       >
         <span><GoDotFill color={MStatusDisplayColor.get(value.toString())} /></span>
         <h1 className={cn(MStatusDisplayTextColor.get(value.toString()))}>
-
           {MStatusText.get(value.toString())}
         </h1>
       </div>}
@@ -50,17 +47,16 @@ const StatusDisplay = ({ value }: { value: string }) => {
 };
 
 
-export const columns: ColumnDef<IEntrepriseFacture>[] = [
+export const columns: ColumnDef<IDocumentFacture>[] = [
   {
     id: "select",
     header: ({ table }) => {
-      // console.log(table.getRowModel().rows);
-      const store = useEntrepriseFactureStore()
+      const store = useEntrepriseDetailStore()
 
       useEffect(() => {
         table.toggleAllRowsSelected(false)
         store.setRemoveAllBillCart()
-      }, [JSON.stringify(store.filter?.status), JSON.stringify(store.items)])
+      }, [JSON.stringify(store.documents)])
 
       return (
         <Checkbox
@@ -71,7 +67,7 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           onCheckedChange={(value) => {
             table.toggleAllRowsSelected(!!value);
             if (!!value) {
-              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.DO_Entreprise_Sage))
+              store.setAddAllBillCart(table.getCoreRowModel().rows.map((row) => row.original.entete.DO_No))
             } else {
               store.setRemoveAllBillCart()
             }
@@ -81,8 +77,7 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
       );
     },
     cell: ({ row }) => {
-
-      const store = useEntrepriseFactureStore()
+      const store = useEntrepriseDetailStore()
 
       return (
         <Checkbox
@@ -90,10 +85,9 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           onCheckedChange={(value) => {
             row.toggleSelected(!!value);
             if (!!value) {
-              store.setAddBillCart(row.original.DO_Entreprise_Sage)
+              store.setAddBillCart(row.original.entete.DO_No)
             } else {
-              store.setRemoveBillCart(row.original.DO_Entreprise_Sage)
-
+              store.setRemoveBillCart(row.original.entete.DO_No)
             }
           }}
           aria-label="Select row"
@@ -104,7 +98,7 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "DO_Entreprise_Sage",
+    accessorKey: "entete.DO_No",
     header: ({ column }) => {
       return (
         <Button
@@ -112,43 +106,17 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          <span>
-            ID Entreprise
-          </span>
-          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
-        </Button>
-      )
-    },
-    cell: ({ row }) => {
-
-      return (
-        <div className="capitalize">{row.getValue("DO_Entreprise_Sage")}</div>
-      )
-
-    },
-  },
-  {
-    accessorKey: "EN_Intitule",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          <span>
-            Intitule
-          </span>
+          <span>Numéro Facture</span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("EN_Intitule")}</div>
+      <div className="capitalize">{row.original.entete.DO_No}</div>
     ),
   },
   {
-    accessorKey: "DO_TotalTVA",
+    accessorKey: "lignes",
     header: ({ column }) => {
       return (
         <Button
@@ -156,19 +124,17 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          <span>
-            TotalTVA
-          </span>
+          <span>Bon de livraison</span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("DO_TotalTVA")}</div>
+      <div className="capitalize">{row.original.lignes.length}</div>
     ),
   },
   {
-    accessorKey: "DO_TotalHT",
+    accessorKey: "entete.DO_Date",
     header: ({ column }) => {
       return (
         <Button
@@ -176,21 +142,17 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          <span>
-            TotalHT
-          </span>
+          <span>Date Facture</span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
     cell: ({ row }) => (
-      <>
-        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("DO_TotalHT")))}</div>
-      </>
+      <div className="capitalize">{formatDate(row.original.entete.DO_Date)}</div>
     ),
   },
   {
-    accessorKey: "DO_TotalTTC",
+    accessorKey: "entete.DO_TotalHT",
     header: ({ column }) => {
       return (
         <Button
@@ -198,29 +160,49 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
           className="p-0 flex items-center justify-between w-full hover:bg-transparent"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          <span>
-            TotalTTC
-          </span>
+          <span>Total HT</span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
       )
     },
     cell: ({ row }) => (
-      <>
-        <div className="capitalize">{formatNumberToFrenchStandard(Number(row.getValue("DO_TotalTTC")))}</div>
-      </>
+      <div className="capitalize">{formatNumberToFrenchStandard(row.original.entete.DO_TotalHT)}</div>
     ),
   },
   {
-    header: "Action",
-    cell: ({ row }) => (
-      <DropdownMenuTable ref_bill={row.original.DO_Entreprise_Sage.toString()} ref_enterprise={row.original.DO_Entreprise_Sage.toString()} >
-
-
-        <Button variant={"ghost"} type="button">
-          <Image src={DotsIcon} alt="" width={16} height={16} />{" "}
+    accessorKey: "entete.DO_TotalTVA",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <span>Total TVA</span>
+          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
-      </DropdownMenuTable>
+      )
+    },
+    cell: ({ row }) => (
+      <div className="capitalize">{formatNumberToFrenchStandard(row.original.entete.DO_TotalTVA)}</div>
+    ),
+  },
+  {
+    accessorKey: "entete.DO_TotalTTC",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <span>Total TTC</span>
+          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
+        </Button>
+      )
+    },
+    cell: ({ row }) => (
+      <div className="capitalize">{formatNumberToFrenchStandard(row.original.entete.DO_TotalTTC)}</div>
     ),
   },
 ];

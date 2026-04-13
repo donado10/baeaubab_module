@@ -56,6 +56,7 @@ const app = new Hono()
 					d.DO_Valide,
 					d.DO_Entreprise_Sage AS EN_No,
 					d.created_at,
+					d.DO_Status,
 					c.CT_Intitule
 				FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL d
 				LEFT JOIN TRANSIT.dbo.F_COMPTET_DIGITAL c
@@ -83,10 +84,11 @@ const app = new Hono()
 					d.DO_No,
 					d.DO_TotalTTC,
 					d.DO_Date,
+					d.DO_Entreprise_Sage AS EN_No,
 					e.EN_Intitule
 				FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL d
 				LEFT JOIN TRANSIT.dbo.F_ENTREPRISE_DIGITAL e
-					ON d.DO_Entreprise_Digital = e.EN_No_Digital
+					ON d.DO_Entreprise_Sage = e.EN_No_Sage
 				WHERE d.DO_Type = 6
 				  AND CAST(d.DO_No AS VARCHAR(20)) LIKE @q
 				ORDER BY d.DO_No DESC
