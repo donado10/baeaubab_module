@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTable as SharedDataTable } from "@/features/digitale/_shared/components/DataTable";
+import { DataTable as SharedDataTable } from "@/components/data-display/data-table";
 import { columns } from "./columns";
 import { IEntrepriseFacture } from "../../interface";
 

@@ -1,5 +1,5 @@
 "use client";
-import SharedJobWatcher from "@/features/digitale/_shared/components/JobWatcher";
+import SharedJobWatcher from "@/components/jobs/job-watcher";
 import { useEntrepriseBonLivraisonStore } from "../store/store";
 
 export default function JobWatcher({ jobId }: { jobId: string }) {

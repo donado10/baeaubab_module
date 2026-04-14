@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Providers from "@/components/queryProviders";
+import Providers from "@/components/providers/queryProviders";
 import { Toaster } from "@/components/ui/sonner";
-import ProgressBar from "@/components/progressBar";
+import ProgressBar from "@/components/feedback/progressBar";
 import NextTopLoader from 'nextjs-toploader';
 import { Montserrat, Roboto } from "@next/font/google"
 

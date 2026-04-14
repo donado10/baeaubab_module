@@ -1,4 +1,4 @@
-import { ToastError, ToastSuccess } from "@/components/ToastComponents";
+import { ToastError, ToastSuccess } from "@/components/feedback/ToastComponents";
 import { client } from "@/lib/rpc";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 

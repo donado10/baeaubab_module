@@ -1,6 +1,6 @@
 "use client"
 
-import { ToastInfo, ToastSuccess } from "@/components/ToastComponents";
+import { ToastInfo, ToastSuccess } from "@/components/feedback/ToastComponents";
 import { client } from "@/lib/rpc";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";

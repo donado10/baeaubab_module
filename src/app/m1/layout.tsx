@@ -1,8 +1,8 @@
-import { AppSidebar } from "@/components/app-sidebar";
-import BreadcrumbContainer from "@/components/breadcrumbContainer";
-import NotificationSection from "@/features/notification/notification";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import BreadcrumbContainer from "@/components/layout/breadcrumbContainer";
+import NotificationSection from "@/components/notification/notification";
 import SearchSection from "@/features/digitale/search/components/SearchSection";
-import Providers from "@/components/queryProviders";
+import Providers from "@/components/providers/queryProviders";
 
 import { Separator } from "@/components/ui/separator";
 import {

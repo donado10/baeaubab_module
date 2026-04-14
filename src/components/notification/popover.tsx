@@ -6,13 +6,13 @@ import {
     PopoverTitle,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { Button } from "../../components/ui/button"
+import { Button } from "@/components/ui/button"
 import { ReactNode, useState } from "react"
 import { FiRefreshCw } from "react-icons/fi";
 import { cn } from "@/lib/utils";
 import useGetNotifications from "./use-get-notifications";
 import { INotificationSchema } from "@/features/server/notification/interface";
-import { Card } from "../../components/ui/card";
+import { Card } from "@/components/ui/card";
 
 
 enum EFilter {

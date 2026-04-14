@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react'
-import { Button } from '../../components/ui/button'
+import { Button } from '@/components/ui/button'
 import { IoNotifications } from 'react-icons/io5'
 import NotificationPopover from './popover'
 import useGetUnreadNotificationsCount from './use-get-unread-notifications-count'
