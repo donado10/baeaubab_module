@@ -1,0 +1,135 @@
+"use client"
+
+import { Checkbox } from "@/components/ui/checkbox"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+    Popover,
+    PopoverContent,
+    PopoverHeader,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { ReactNode, useState } from "react"
+
+interface IFilterState {
+    invalide: string[];
+    ecart_conformite: number;
+}
+
+interface IFilterStore {
+    filter: IFilterState;
+    setFilter: (filter: IFilterState) => void;
+}
+
+const CheckboxFilter = ({
+    id,
+    type,
+    label,
+    store,
+}: {
+    id: string;
+    type: string;
+    label: string;
+    store: IFilterStore;
+}) => {
+    const [state, setState] = useState(store.filter.invalide.includes(type))
+
+    return (
+        <div className="flex items-center gap-3">
+            <Checkbox
+                id={id}
+                checked={state}
+                onCheckedChange={(e) => {
+                    if (e.valueOf() === true) {
+                        store.setFilter({ ...store.filter, invalide: [...store.filter.invalide, type] })
+                        setState(true)
+                        return
+                    }
+                    store.setFilter({ ...store.filter, invalide: store.filter.invalide.filter((f) => f !== type) })
+                    setState(false)
+                }}
+            />
+            <Label htmlFor={id} className="font-light">{label}</Label>
+        </div>
+    )
+}
+
+const EcartCompliance = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => {
+    const [valueEcart, setValueEcart] = useState<number>(value)
+    return (
+        <div className="flex items-center gap-4">
+            <Label htmlFor="er_ecart" className="font-normal">Ecart conformité</Label>
+            <Input
+                id="er_ecart"
+                className="py-0 h-7 w-1/4 rounded-md"
+                min={0}
+                type="number"
+                value={valueEcart}
+                onChange={(e) => {
+                    onChange(Number(e.currentTarget.value))
+                    setValueEcart(Number(e.currentTarget.value))
+                }}
+            />
+        </div>
+    )
+}
+
+const PopoverFilter = ({ useStore }: { useStore: () => IFilterStore }) => {
+    const [open, setOpen] = useState(true)
+    const store = useStore()
+
+    return (
+        <Collapsible open={open} onOpenChange={(value) => setOpen(value)}>
+            <CollapsibleTrigger>
+                <span className="text-blue-600 font-semibold cursor-pointer"> Invalide</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4 text-xs flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex flex-col gap-4">
+                        <CheckboxFilter id="er_equilibre" type="Balanced" label="Equilibre" store={store} />
+                        <CheckboxFilter id="er_compliance" type="Compliance" label="Conformité" store={store} />
+                        <CheckboxFilter id="er_date_journal" type="JM_Date" label="Date Journal" store={store} />
+                        <CheckboxFilter id="er_ec_jour" type="EC_Jour" label="Jour Ecriture" store={store} />
+                        <CheckboxFilter id="er_ec_date" type="EC_Date" label="Date Ecriture" store={store} />
+                        <CheckboxFilter id="er_ec_piece" type="EC_Piece" label="Piece" store={store} />
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        <CheckboxFilter id="er_ec_refpiece" type="EC_Refpiece" label="Référence Ecriture" store={store} />
+                        <CheckboxFilter id="er_cg_num" type="CG_Num" label="Compte Général" store={store} />
+                        <CheckboxFilter id="er_ct_num" type="CT_Num" label="Compte Tiers" store={store} />
+                        <CheckboxFilter id="er_ec_intitule" type="EC_Intitule" label="Intitulé Ecriture" store={store} />
+                        <CheckboxFilter id="er_ec_sens" type="EC_Sens" label="Sens Ecriture" store={store} />
+                        <CheckboxFilter id="er_ec_montant" type="EC_Montant" label="Montant Ecriture" store={store} />
+                    </div>
+                </div>
+                <div>
+                    <EcartCompliance
+                        value={store.filter.ecart_conformite}
+                        onChange={(value) => store.setFilter({ ...store.filter, ecart_conformite: Number(value) })}
+                    />
+                </div>
+            </CollapsibleContent>
+        </Collapsible>
+    )
+}
+
+export const PopoverFilterButton = ({
+    children,
+    useStore,
+}: {
+    children: ReactNode;
+    useStore: () => IFilterStore;
+}) => {
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                {children}
+            </PopoverTrigger>
+            <PopoverContent side="left" className="w-96!">
+                <PopoverHeader />
+                <PopoverFilter useStore={useStore} />
+            </PopoverContent>
+        </Popover>
+    )
+}

@@ -4,6 +4,8 @@ import z from "zod";
 import { getConnection } from "@/lib/db-mssql";
 import amqp from "amqplib";
 import { ID } from "node-appwrite";
+import { sessionMiddleware } from "@/lib/session-middleware";
+import sql from "mssql";
 
 const getAdjacentEntreprises = async (
 	entreprise_id: string,
@@ -15,7 +17,7 @@ const getAdjacentEntreprises = async (
     SELECT 
         DO_Entreprise_Sage,
         ROW_NUMBER() OVER (ORDER BY DO_Entreprise_Sage) AS rn
-    FROM F_DOCENTETE_DIGITAL where year(created_at) = ${year} and month(created_at) = ${month} and DO_Type=3 group by DO_Entreprise_Sage
+    FROM F_DOCENTETE_DIGITAL where year(created_at) = @year and month(created_at) = @month and DO_Type=3 group by DO_Entreprise_Sage
 	)
 	SELECT 
 		prev.DO_Entreprise_Sage as previous ,
@@ -24,10 +26,15 @@ const getAdjacentEntreprises = async (
 	FROM RankedRows curr
 	LEFT JOIN RankedRows prev ON prev.rn = curr.rn - 1
 	LEFT JOIN RankedRows next ON next.rn = curr.rn + 1
-	WHERE curr.DO_Entreprise_Sage = '${entreprise_id}'
+	WHERE curr.DO_Entreprise_Sage = @entreprise_id
 	`;
 	const pool = await getConnection();
-	const result = await pool.request().query(query);
+	const result = await pool
+		.request()
+		.input("year", sql.Int, parseInt(year))
+		.input("month", sql.Int, parseInt(month))
+		.input("entreprise_id", sql.NVarChar, entreprise_id)
+		.query(query);
 
 	const values = result.recordset[0];
 	let adjacents = {
@@ -50,13 +57,14 @@ const getAdjacentEntreprises = async (
 };
 
 const getEntrepriseDG = async (entreprise_id: string) => {
-	const query = `
+	const pool = await getConnection();
+	const result = await pool
+		.request()
+		.input("entreprise_id", sql.NVarChar, entreprise_id).query(`
 		SELECT TOP 1 *
 		FROM TRANSIT.dbo.F_COMPTET_DIGITAL
-		WHERE CT_Entreprise_Sage = '${entreprise_id}' AND CT_DG = 1
-	`;
-	const pool = await getConnection();
-	const result = await pool.request().query(query);
+		WHERE CT_Entreprise_Sage = @entreprise_id AND CT_DG = 1
+	`);
 
 	return result.recordset[0];
 };
@@ -69,15 +77,25 @@ const getBonLivraisonEntreprise = async (
 	const pool = await getConnection();
 
 	const query_entete = `
-		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_Status,DO_Valide,created_at,DO_ENTREPRISE_SAGE as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} and DO_Type=3 and DO_Entreprise_Sage='${entreprise_id}' )
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_Status,DO_Valide,created_at,DO_ENTREPRISE_SAGE as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(created_at) = @year and MONTH(created_at)=@month and DO_Type=3 and DO_Entreprise_Sage=@entreprise_id )
 			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No 
 	`;
 	const query_ligne = `
-			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,DO_ENTREPRISE_SAGE as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = ${year} and MONTH(created_at)=${month} and DO_Type=3 and DO_Entreprise_Sage='${entreprise_id}' )
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,created_at,DO_ENTREPRISE_SAGE as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(created_at) = @year and MONTH(created_at)=@month and DO_Type=3 and DO_Entreprise_Sage=@entreprise_id )
 			select lev1.*,art.Art_Design,art.Art_Code from lev1 inner join F_ARTICLE_DIGITAL art on lev1.ART_No= art.Art_No 
 			`;
-	let result_entete = await pool.request().query(query_entete);
-	let result_ligne = await pool.request().query(query_ligne);
+	let result_entete = await pool
+		.request()
+		.input("year", sql.Int, parseInt(year))
+		.input("month", sql.Int, parseInt(month))
+		.input("entreprise_id", sql.NVarChar, entreprise_id)
+		.query(query_entete);
+	let result_ligne = await pool
+		.request()
+		.input("year", sql.Int, parseInt(year))
+		.input("month", sql.Int, parseInt(month))
+		.input("entreprise_id", sql.NVarChar, entreprise_id)
+		.query(query_ligne);
 
 	const entetes = [...result_entete.recordset];
 	const lignes = [...result_ligne.recordset];
@@ -96,13 +114,14 @@ const getBonLivraisonEntreprise = async (
 };
 
 const getEntreprise = async (entreprise_id: string) => {
-	const query = `
+	const pool = await getConnection();
+	const result = await pool
+		.request()
+		.input("entreprise_id", sql.NVarChar, entreprise_id).query(`
 		SELECT TOP 1 *
 		FROM TRANSIT.dbo.F_ENTREPRISE_DIGITAL
-		WHERE EN_No_Sage = '${entreprise_id}'
-	`;
-	const pool = await getConnection();
-	const result = await pool.request().query(query);
+		WHERE EN_No_Sage = @entreprise_id
+	`);
 
 	return result.recordset[0];
 };
@@ -117,11 +136,20 @@ const deleteInvalidBonLivraisons = async (
 	}
 
 	const pool = await getConnection();
-	const entreprisesList = entreprises.map((en) => `'${en}'`).join(",");
-	const query = `delete from TRANSIT.dbo.F_DOCligne_DIGITAL where  DO_Type=3 and year(created_at) = ${year} and month(created_at)=${month}  and DO_No in (select DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = ${year} and month(created_at)=${month} and DO_ENTREPRISE_SAGE in (${entreprisesList}) );
-		delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = ${year} and month(created_at)=${month} and DO_ENTREPRISE_SAGE in (${entreprisesList});`;
+	const req = pool.request();
+	req.input("year", sql.Int, parseInt(year));
+	req.input("month", sql.Int, parseInt(month));
+	const enParams = entreprises
+		.map((en, i) => {
+			req.input(`en${i}`, sql.NVarChar, en);
+			return `@en${i}`;
+		})
+		.join(",");
 
-	await pool.request().query(query);
+	const query = `delete from TRANSIT.dbo.F_DOCligne_DIGITAL where  DO_Type=3 and year(created_at) = @year and month(created_at)=@month  and DO_No in (select DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = @year and month(created_at)=@month and DO_ENTREPRISE_SAGE in (${enParams}) );
+		delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Type=3 and do_valide !=1 and year(created_at) = @year and month(created_at)=@month and DO_ENTREPRISE_SAGE in (${enParams});`;
+
+	await req.query(query);
 };
 
 const getBonLivraisonValidity = async (
@@ -131,16 +159,20 @@ const getBonLivraisonValidity = async (
 	bl_id: string,
 ) => {
 	const pool = await getConnection();
-	const query = `
+	const result = await pool
+		.request()
+		.input("year", sql.Int, parseInt(year))
+		.input("month", sql.Int, parseInt(month))
+		.input("entreprise_id", sql.NVarChar, entreprise_id)
+		.input("bl_id", sql.NVarChar, bl_id).query(`
 		select top 1 DO_Valide
 		from TRANSIT.dbo.F_DOCENTETE_DIGITAL
 		where DO_Type=3
-		and year(created_at) = ${year}
-		and month(created_at) = ${month}
-		and DO_Entreprise_Sage = '${entreprise_id}'
-		and DO_No = '${bl_id}'
-	`;
-	const result = await pool.request().query(query);
+		and year(created_at) = @year
+		and month(created_at) = @month
+		and DO_Entreprise_Sage = @entreprise_id
+		and DO_No = @bl_id
+	`);
 
 	return result.recordset[0]?.DO_Valide ?? null;
 };
@@ -152,24 +184,27 @@ const deleteBonLivraison = async (
 	bl_id: string,
 ) => {
 	const pool = await getConnection();
-	const query = `
+	await pool
+		.request()
+		.input("year", sql.Int, parseInt(year))
+		.input("month", sql.Int, parseInt(month))
+		.input("entreprise_id", sql.NVarChar, entreprise_id)
+		.input("bl_id", sql.NVarChar, bl_id).query(`
 		delete from TRANSIT.dbo.F_DOCligne_DIGITAL
 		where DO_Type=3
-		and year(created_at) = ${year}
-		and month(created_at)=${month}
-		and DO_Entreprise_Sage = '${entreprise_id}'
-		and DO_No = '${bl_id}';
+		and year(created_at) = @year
+		and month(created_at)=@month
+		and DO_Entreprise_Sage = @entreprise_id
+		and DO_No = @bl_id;
 
 		delete from TRANSIT.dbo.F_DOCENTETE_DIGITAL
 		where DO_Type=3
-		and year(created_at) = ${year}
-		and month(created_at)=${month}
-		and DO_Entreprise_Sage = '${entreprise_id}'
-		and DO_No = '${bl_id}'
+		and year(created_at) = @year
+		and month(created_at)=@month
+		and DO_Entreprise_Sage = @entreprise_id
+		and DO_No = @bl_id
 		and do_valide != 1;
-	`;
-
-	await pool.request().query(query);
+	`);
 };
 
 const queueBonLivraisonUpdate = async (
@@ -201,6 +236,7 @@ const queueBonLivraisonUpdate = async (
 };
 
 const app = new Hono()
+	.use(sessionMiddleware)
 	.get(
 		"/entreprise/:entreprise_id",
 		zValidator(

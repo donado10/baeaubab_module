@@ -1,6 +1,6 @@
 // /lib/db.ts
 import "server-only";
-import { ConnectionPool, config as SQLConfig } from "mssql";
+import { ConnectionPool, config as SQLConfig, ISqlType } from "mssql";
 
 const dbConfig: SQLConfig = {
 	user: process.env.MSSQLSERVER_USER as string,
@@ -27,4 +27,24 @@ export async function getConnection(): Promise<ConnectionPool> {
 		console.error("Failed to connect to the database:", error);
 		throw error;
 	}
+}
+
+/**
+ * Execute a parameterized MSSQL query.
+ * @param queryText  SQL with named placeholders (@name)
+ * @param inputs     Record of { paramName: { type, value } }
+ */
+export async function sqlQuery(
+	queryText: string,
+	inputs: Record<
+		string,
+		{ type: ISqlType | (() => ISqlType); value: unknown }
+	> = {},
+) {
+	const poolConn = await getConnection();
+	const req = poolConn.request();
+	for (const [name, { type, value }] of Object.entries(inputs)) {
+		req.input(name, type as ISqlType, value);
+	}
+	return req.query(queryText);
 }

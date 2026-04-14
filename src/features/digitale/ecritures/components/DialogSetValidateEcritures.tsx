@@ -13,7 +13,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { ReactNode, useState } from "react"
-import { EStatus, useEcritureEnteteLigneStore } from "../store/store"
+import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useSetValidateBills from "../api/use-set-valid-bills"
@@ -60,7 +60,7 @@ export function DialogSetValidateEcritures({ children }: { children: ReactNode }
             onSuccess: (results: any) => {
                 store.clear()
                 store.setItems(results.results)
-                store.setFilter({ ...store.filter, status: EStatus.ALL })
+                store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })
                 store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })

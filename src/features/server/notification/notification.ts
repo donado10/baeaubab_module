@@ -1,7 +1,9 @@
 import { Hono } from "hono";
 import { getConnection } from "@/lib/db-mssql";
+import { sessionMiddleware } from "@/lib/session-middleware";
 
 const app = new Hono()
+	.use(sessionMiddleware)
 	.get("/", async (c) => {
 		const pool = await getConnection();
 

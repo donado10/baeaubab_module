@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { cn, getFrenchMonthName } from '@/lib/utils'
 import TableEcritureDigitalContainer from './TableContainer'
 import { DialogLoadEcritures } from './DialogLoadEcritures'
-import { EStatus, useEcritureEnteteLigneStore } from '../store/store'
+import { EEcritureStatut, useEcritureEnteteLigneStore } from '../store/store'
 import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 import { Card } from '@/components/ui/card'
 import { DialogRecheckEcritures } from './DialogRecheckEcritures'
@@ -114,11 +114,11 @@ const FilterSection = () => {
     return <div className='border-b border-gray-200 flex items-center justify-between  gap-8 p-2'>
 
         <div className=' border-gray-200 flex items-center gap-8'>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-primary font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INTEGRE ? 'text-yellow-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALIDE ? 'text-green-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.INVALIDE ? 'text-red-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
-            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ATTENTE ? 'text-gray-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EEcritureStatut.ALL ? 'text-primary font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })} disabled={store.items.length <= 0}>Tout</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EEcritureStatut.INTEGRE ? 'text-yellow-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EEcritureStatut.INTEGRE })} disabled={store.items.length <= 0}>Intégré</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EEcritureStatut.VALIDE ? 'text-green-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EEcritureStatut.VALIDE })} disabled={store.items.length <= 0}>Valide</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EEcritureStatut.INVALIDE ? 'text-red-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EEcritureStatut.INVALIDE })} disabled={store.items.length <= 0}>Invalide</Button>
+            <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EEcritureStatut.ATTENTE ? 'text-gray-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EEcritureStatut.ATTENTE })} disabled={store.items.length <= 0}>En attente</Button>
         </div>
         <div className='flex items-center gap-4'>
             <div className='border-r pr-2'>
@@ -143,7 +143,7 @@ const FilterResumeCard = ({ value }: { value: string }) => {
 
 const FilterResume = () => {
     const store = useEcritureEnteteLigneStore()
-    if (store.filter.status !== EStatus.INVALIDE) {
+    if (store.filter.status !== EEcritureStatut.INVALIDE) {
         return <></>
     }
     return <ul className='flex items-center gap-4'>
@@ -181,11 +181,11 @@ const EcritureDigitaleSection = () => {
                     </div>
                     <div className='flex items-center gap-4'>
 
-                        {store.filter && store.filter.status === EStatus.ATTENTE && <AttenteButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.INVALIDE && <InvalideButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.INVALIDE && <ValidateButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.VALIDE && <IntegrateButtonContainer />}
-                        {store.filter && store.filter.status === EStatus.INTEGRE && <AnnulerButtonContainer />}
+                        {store.filter && store.filter.status === EEcritureStatut.ATTENTE && <AttenteButtonContainer />}
+                        {store.filter && store.filter.status === EEcritureStatut.INVALIDE && <InvalideButtonContainer />}
+                        {store.filter && store.filter.status === EEcritureStatut.INVALIDE && <ValidateButtonContainer />}
+                        {store.filter && store.filter.status === EEcritureStatut.VALIDE && <IntegrateButtonContainer />}
+                        {store.filter && store.filter.status === EEcritureStatut.INTEGRE && <AnnulerButtonContainer />}
                         <DialogLoadEcritures >
 
                             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>

@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 import { useRouter } from "next/navigation";
 import useLoadEcrituresCheckBills from "./use-load-ecritures-check-bills";
-import { EStatus, useEcritureEnteteLigneStore } from "../store/store";
+import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store";
 import { toast } from "sonner";
 import JobWatcher from "../components/JobWatcher";
 

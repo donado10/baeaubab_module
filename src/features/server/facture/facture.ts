@@ -4,6 +4,8 @@ import z from "zod";
 import amqp from "amqplib";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
+import { sessionMiddleware } from "@/lib/session-middleware";
+import sql from "mssql";
 
 const getAdjacentEntreprises = async (
 	entreprise_id: string,
@@ -15,7 +17,7 @@ const getAdjacentEntreprises = async (
     SELECT 
         DO_Entreprise_Sage,
         ROW_NUMBER() OVER (ORDER BY DO_Entreprise_Sage) AS rn
-    FROM F_DOCENTETE_DIGITAL where year(do_date) = ${year} and month(do_date) = ${month} and DO_Type=6 group by DO_Entreprise_Sage
+    FROM F_DOCENTETE_DIGITAL where year(do_date) = @year and month(do_date) = @month and DO_Type=6 group by DO_Entreprise_Sage
 	)
 	SELECT 
 		prev.DO_Entreprise_Sage as previous ,
@@ -24,10 +26,15 @@ const getAdjacentEntreprises = async (
 	FROM RankedRows curr
 	LEFT JOIN RankedRows prev ON prev.rn = curr.rn - 1
 	LEFT JOIN RankedRows next ON next.rn = curr.rn + 1
-	WHERE curr.DO_Entreprise_Sage = '${entreprise_id}'
+	WHERE curr.DO_Entreprise_Sage = @entreprise_id
 	`;
 	const pool = await getConnection();
-	const result = await pool.request().query(query);
+	const result = await pool
+		.request()
+		.input("year", sql.Int, parseInt(year))
+		.input("month", sql.Int, parseInt(month))
+		.input("entreprise_id", sql.NVarChar, entreprise_id)
+		.query(query);
 
 	const values = result.recordset[0];
 	let adjacents = {
@@ -50,25 +57,27 @@ const getAdjacentEntreprises = async (
 };
 
 const getEntrepriseDG = async (entreprise_id: string) => {
-	const query = `
+	const pool = await getConnection();
+	const result = await pool
+		.request()
+		.input("entreprise_id", sql.NVarChar, entreprise_id).query(`
 		SELECT TOP 1 *
 		FROM TRANSIT.dbo.F_COMPTET_DIGITAL
-		WHERE CT_Entreprise_Sage = '${entreprise_id}' AND CT_DG = 1
-	`;
-	const pool = await getConnection();
-	const result = await pool.request().query(query);
+		WHERE CT_Entreprise_Sage = @entreprise_id AND CT_DG = 1
+	`);
 
 	return result.recordset[0];
 };
 
 const getEntreprise = async (entreprise_id: string) => {
-	const query = `
+	const pool = await getConnection();
+	const result = await pool
+		.request()
+		.input("entreprise_id", sql.NVarChar, entreprise_id).query(`
 		SELECT TOP 1 *
 		FROM TRANSIT.dbo.F_ENTREPRISE_DIGITAL
-		WHERE EN_No_Sage = '${entreprise_id}'
-	`;
-	const pool = await getConnection();
-	const result = await pool.request().query(query);
+		WHERE EN_No_Sage = @entreprise_id
+	`);
 
 	return result.recordset[0];
 };
@@ -81,15 +90,25 @@ const getFactureEntreprise = async (
 	const pool = await getConnection();
 
 	const query_entete = `
-		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_TotalTVA,DO_TotalTTC,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month} and do_type=6 )
-			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = '${entreprise_id}'
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_TotalTVA,DO_TotalTTC,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 )
+			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = @entreprise_id
 	`;
 	const query_ligne = `
-			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,Art_Design,ART_Qte,DO_TotalHT,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month} and do_type=6 )
-			select lev1.*, NULL as Art_Code from lev1 where lev1.EN_No = '${entreprise_id}'
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,Art_Design,ART_Qte,DO_TotalHT,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 )
+			select lev1.*, NULL as Art_Code from lev1 where lev1.EN_No = @entreprise_id
 			`;
-	let result_entete = await pool.request().query(query_entete);
-	let result_ligne = await pool.request().query(query_ligne);
+	let result_entete = await pool
+		.request()
+		.input("year", sql.Int, parseInt(year))
+		.input("month", sql.Int, parseInt(month))
+		.input("entreprise_id", sql.NVarChar, entreprise_id)
+		.query(query_entete);
+	let result_ligne = await pool
+		.request()
+		.input("year", sql.Int, parseInt(year))
+		.input("month", sql.Int, parseInt(month))
+		.input("entreprise_id", sql.NVarChar, entreprise_id)
+		.query(query_ligne);
 
 	const entetes = [...result_entete.recordset];
 	const lignes = [...result_ligne.recordset];
@@ -108,6 +127,7 @@ const getFactureEntreprise = async (
 };
 
 const app = new Hono()
+	.use(sessionMiddleware)
 	.get(
 		"/entreprise/:entreprise_id",
 		zValidator(
@@ -258,19 +278,26 @@ const app = new Hono()
 			const { year, month, en_list } = c.req.valid("json");
 
 			const pool = await getConnection();
+			const req = pool.request();
+			req.input("year", sql.Int, parseInt(year));
+			req.input("month", sql.Int, parseInt(month));
+			const enParams = en_list
+				.map((en, i) => {
+					req.input(`en${i}`, sql.NVarChar, en);
+					return `@en${i}`;
+				})
+				.join(",");
 
-			const query = `
-				delete from transit.dbo.f_docentete_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and do_entreprise_sage in (${en_list.map((en) => `'${en}'`).join(",")});
-				delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and do_entreprise_sage in (${en_list.map((en) => `'${en}'`).join(",")});
+			await req.query(`
+				delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and do_entreprise_sage in (${enParams});
+				delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and do_entreprise_sage in (${enParams});
 				update transit.dbo.f_docentete_digital
 				set do_valide=0,DO_FactureReference=NULL
-				where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and do_entreprise_sage in (${en_list.map((en) => `'${en}'`).join(",")});
+				where year(created_at) = @year and month(created_at) = @month and do_type=3 and do_entreprise_sage in (${enParams});
 				update transit.dbo.f_docligne_digital
 				set DO_FactureReference=NULL
-				where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and do_entreprise_sage in (${en_list.map((en) => `'${en}'`).join(",")});
-				
-				`;
-			await pool.request().query(query);
+				where year(created_at) = @year and month(created_at) = @month and do_type=3 and do_entreprise_sage in (${enParams});
+			`);
 
 			return c.json({ result: "done" });
 		},
@@ -289,22 +316,28 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, fact_list, en_no } = c.req.valid("json");
 
-			console.log(fact_list, en_no, year, month);
 			const pool = await getConnection();
+			const req = pool.request();
+			req.input("year", sql.Int, parseInt(year));
+			req.input("month", sql.Int, parseInt(month));
+			req.input("en_no", sql.NVarChar, en_no);
+			const factParams = fact_list
+				.map((bl, i) => {
+					req.input(`fact${i}`, sql.NVarChar, bl);
+					return `@fact${i}`;
+				})
+				.join(",");
 
-			const query = `
-				delete from transit.dbo.f_docentete_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and do_entreprise_sage in ('${en_no}') and DO_No in (${fact_list.map((bl) => `'${bl}'`).join(",")});
-				delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and do_entreprise_sage in ('${en_no}') and DO_No in (${fact_list.map((bl) => `'${bl}'`).join(",")});
+			await req.query(`
+				delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and do_entreprise_sage in (@en_no) and DO_No in (${factParams});
+				delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and do_entreprise_sage in (@en_no) and DO_No in (${factParams});
 				update transit.dbo.f_docentete_digital
 				set do_valide=0,DO_FactureReference=NULL
-				where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and do_entreprise_sage in ('${en_no}') and DO_FactureReference in (${fact_list.map((bl) => `'${bl}'`).join(",")});
+				where year(created_at) = @year and month(created_at) = @month and do_type=3 and do_entreprise_sage in (@en_no) and DO_FactureReference in (${factParams});
 				update transit.dbo.f_docligne_digital
 				set DO_FactureReference=NULL
-				where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and do_entreprise_sage in ('${en_no}') and DO_FactureReference in (${fact_list.map((bl) => `'${bl}'`).join(",")});
-				
-				`;
-
-			await pool.request().query(query);
+				where year(created_at) = @year and month(created_at) = @month and do_type=3 and do_entreprise_sage in (@en_no) and DO_FactureReference in (${factParams});
+			`);
 
 			return c.json({ result: "done" });
 		},

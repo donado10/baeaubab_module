@@ -13,7 +13,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { ReactNode, useState } from "react"
-import { EStatus, useEcritureEnteteLigneStore } from "../store/store"
+import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useSetValidateBills from "../api/use-set-valid-bills"

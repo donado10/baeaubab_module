@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
 import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
-import { EStatus, useEcritureEnteteLigneStore } from "../store/store"
+import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store"
 import JobWatcher from "./JobWatcher"
 import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 import { toast } from "sonner"
@@ -122,7 +122,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                 onSuccess: (results: any) => {
                     store.clear()
                     store.setItems(results.results)
-                    store.setFilter({ ...store.filter, status: EStatus.ALL })
+                    store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })
                     store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
                 }
             })
@@ -135,7 +135,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                     onSuccess: (results: any) => {
                         store.clear()
                         store.setItems(results.results)
-                        store.setFilter({ ...store.filter, status: EStatus.ALL })
+                        store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })
                     }
                 })
 
@@ -148,7 +148,7 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
                     onSuccess: (results: any) => {
                         store.clear()
                         store.setItems(results.results)
-                        store.setFilter({ ...store.filter, status: EStatus.ALL })
+                        store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })
                     }
                 })
             }

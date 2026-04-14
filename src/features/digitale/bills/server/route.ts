@@ -4,6 +4,7 @@ import z, { string } from "zod";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 import amqp from "amqplib";
+import sql from "mssql";
 
 const app = new Hono()
 
@@ -13,20 +14,22 @@ const app = new Hono()
 			"query",
 			z.object({
 				en_no: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { en_no } = c.req.valid("query");
 
 			const pool = await getConnection();
 
-			const query = `
-			select * from TRANSIT.dbo.F_COMPTET_DIGITAL where ct_dg=1 and ct_entreprise=${en_no}
-			`;
-			let result = await pool.request().query(query);
+			const result = await pool
+				.request()
+				.input("en_no", sql.NVarChar, en_no)
+				.query(
+					`select * from TRANSIT.dbo.F_COMPTET_DIGITAL where ct_dg=1 and ct_entreprise=@en_no`,
+				);
 
 			return c.json({ result: result.recordset[0] });
-		}
+		},
 	)
 	.get(
 		"/entreprise/list",
@@ -36,7 +39,7 @@ const app = new Hono()
 				en_no: z.string(),
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { en_no, month, year } = c.req.valid("query");
@@ -44,15 +47,25 @@ const app = new Hono()
 			const pool = await getConnection();
 
 			const query_entete = `
-		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_TotalTVA,DO_TotalTTC,DO_Status,DO_Date,entreprise_id as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month} and do_type=6 )
-			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = ${en_no}
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_TotalTVA,DO_TotalTTC,DO_Status,DO_Date,entreprise_id as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 )
+			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = @en_no
 	`;
 			const query_ligne = `
-			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,DO_Date,entreprise_id as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month} and do_type=6 )
-			select lev1.*,NULL as Art_Design, NULL as Art_Code from lev1 where lev1.EN_No = ${en_no}
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,ART_Qte,DO_TotalHT,DO_Status,DO_Date,entreprise_id as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 )
+			select lev1.*,NULL as Art_Design, NULL as Art_Code from lev1 where lev1.EN_No = @en_no
 			`;
-			let result_entete = await pool.request().query(query_entete);
-			let result_ligne = await pool.request().query(query_ligne);
+			let result_entete = await pool
+				.request()
+				.input("year", sql.Int, parseInt(year))
+				.input("month", sql.Int, parseInt(month))
+				.input("en_no", sql.NVarChar, en_no)
+				.query(query_entete);
+			let result_ligne = await pool
+				.request()
+				.input("year", sql.Int, parseInt(year))
+				.input("month", sql.Int, parseInt(month))
+				.input("en_no", sql.NVarChar, en_no)
+				.query(query_ligne);
 
 			const entetes = [...result_entete.recordset];
 			const lignes = [...result_ligne.recordset];
@@ -67,10 +80,8 @@ const app = new Hono()
 				};
 			});
 
-			console.log(documents);
-
 			return c.json({ result: documents ?? [] });
-		}
+		},
 	)
 	.get("/:year/:month", async (c) => {
 		const month = c.req.param("month");
@@ -78,21 +89,29 @@ const app = new Hono()
 
 		const pool = await getConnection();
 
-		const query_total = `
-			select sum(do_totalttc) as total  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month} and do_type=6
-		`;
+		const result_total = await pool
+			.request()
+			.input("year", sql.Int, parseInt(year))
+			.input("month", sql.Int, parseInt(month))
+			.query(
+				`select sum(do_totalttc) as total  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6`,
+			);
 
-		const query_taxable = `
-			select sum(do_totalttc) as taxable   FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month}  and do_type=6 and do_totalttc != do_totalht
-		`;
+		const result_taxable = await pool
+			.request()
+			.input("year", sql.Int, parseInt(year))
+			.input("month", sql.Int, parseInt(month))
+			.query(
+				`select sum(do_totalttc) as taxable   FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month  and do_type=6 and do_totalttc != do_totalht`,
+			);
 
-		const query_exo = `
-			select sum(do_totalttc) as exo   FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = ${year} and MONTH(do_date)=${month}  and do_type=6 and do_totalttc = do_totalht
-		`;
-
-		let result_total = await pool.request().query(query_total);
-		let result_taxable = await pool.request().query(query_taxable);
-		let result_exo = await pool.request().query(query_exo);
+		const result_exo = await pool
+			.request()
+			.input("year", sql.Int, parseInt(year))
+			.input("month", sql.Int, parseInt(month))
+			.query(
+				`select sum(do_totalttc) as exo   FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month  and do_type=6 and do_totalttc = do_totalht`,
+			);
 
 		return c.json({
 			results: {
@@ -109,7 +128,7 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
@@ -128,12 +147,12 @@ const app = new Hono()
 						jobId: jobId,
 						year: year,
 						month: month,
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.post(
 		"/generateFacturesDigital",
@@ -142,7 +161,7 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
@@ -162,12 +181,12 @@ const app = new Hono()
 						year: year,
 						month: month,
 						type: "all",
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.post(
 		"/generateFacturesDigitalByEntreprise",
@@ -177,7 +196,7 @@ const app = new Hono()
 				en_list: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, en_list } = c.req.valid("json");
@@ -198,12 +217,12 @@ const app = new Hono()
 						month: month,
 						en_list: en_list,
 						type: "byEntreprise",
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.post(
 		"/",
@@ -212,36 +231,36 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { month, year } = c.req.valid("json");
 
 			const pool = await getConnection();
 
-			const query = `with lev1 as (select entreprise_id,count(do_no) as nbre_bls from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(DO_Date)=${year} and month(DO_Date)=${month} and do_type = 6 group by entreprise_id),
-			lev2 as (select entreprise_id,sum(DO_TotalHT) as totalHT,sum(DO_TotalTVA) as totalTVA,sum(DO_TotalTTC) as totalTTC from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(DO_Date)=${year} and month(DO_Date)=${month} and do_type=6 group by entreprise_id),
+			const result = await pool
+				.request()
+				.input("year", sql.Int, parseInt(year))
+				.input("month", sql.Int, parseInt(month))
+				.query(`with lev1 as (select entreprise_id,count(do_no) as nbre_bls from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(DO_Date)=@year and month(DO_Date)=@month and do_type = 6 group by entreprise_id),
+			lev2 as (select entreprise_id,sum(DO_TotalHT) as totalHT,sum(DO_TotalTVA) as totalTVA,sum(DO_TotalTTC) as totalTTC from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(DO_Date)=@year and month(DO_Date)=@month and do_type=6 group by entreprise_id),
 			lev3 as (select lev1.entreprise_id as EN_No,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT,totalTTC as EN_TotalTTC,totalTVA as EN_TotalTVA 
 			from lev1 inner join lev2 on lev1.entreprise_id = lev2.entreprise_id ),
 			lev4 as (select lev3.*,en.EN_Intitule,en.EN_TVA from lev3 inner join F_ENTREPRISE_DIGITAL en on lev3.EN_No = en.EN_No),
 			lev5 as (select CT_Entreprise,count(CT_Entreprise) as EN_Agences from F_COMPTET_DIGITAL  group by CT_Entreprise)
-			select lev4.*,lev5.EN_Agences from lev4 inner join lev5 on lev4.EN_No = lev5.CT_Entreprise order by en_no
+			select lev4.*,lev5.EN_Agences from lev4 inner join lev5 on lev4.EN_No = lev5.CT_Entreprise order by en_no`);
 
-
-`;
-
-			const query2 = `with lev1 as (select ct_num, COUNT(DO_No) as nbre_bls from F_DOCENTETE_DIGITAL where year(DO_Date) = ${year} and month(DO_Date) = ${month} and entreprise_id is null and DO_Status !=2 and do_type = 6 group by CT_Num),
-			lev2 as (select ct_num,sum(DO_TotalHT) as totalHT,sum(DO_TotalTVA) as totalTVA,sum(DO_TotalTTC) as totalTTC from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(DO_Date)=${year} and month(DO_Date)=${month} and do_type = 6 group by CT_Num),
+			const result2 = await pool
+				.request()
+				.input("year", sql.Int, parseInt(year))
+				.input("month", sql.Int, parseInt(month))
+				.query(`with lev1 as (select ct_num, COUNT(DO_No) as nbre_bls from F_DOCENTETE_DIGITAL where year(DO_Date) = @year and month(DO_Date) = @month and entreprise_id is null and DO_Status !=2 and do_type = 6 group by CT_Num),
+			lev2 as (select ct_num,sum(DO_TotalHT) as totalHT,sum(DO_TotalTVA) as totalTVA,sum(DO_TotalTTC) as totalTTC from F_DOCENTETE_DIGITAL where DO_Status !=2 and year(DO_Date)=@year and month(DO_Date)=@month and do_type = 6 group by CT_Num),
 			lev3 as (select lev1.ct_num as EN_CL,nbre_bls as EN_BonLivraisons,totalHT as EN_TotalHT,totalTTC as EN_TotalTTC,totalTVA as EN_TotalTVA  from lev1 inner join lev2 on lev1.ct_num = lev2.CT_Num )
-			select ct.CT_No as EN_No,ct.CT_TVA as EN_TVA,ct.type_client_id as EN_Type,lev3.EN_BonLivraisons,lev3.EN_TotalHT,lev3.EN_TotalTVA,lev3.EN_TotalTTC,CT_Intitule as EN_Intitule,1 as EN_Agences from lev3 inner join F_COMPTET_DIGITAL ct on lev3.EN_CL = ct.CT_Num
-
-			`;
-
-			let result = await pool.request().query(query);
-			let result2 = await pool.request().query(query2);
+			select ct.CT_No as EN_No,ct.CT_TVA as EN_TVA,ct.type_client_id as EN_Type,lev3.EN_BonLivraisons,lev3.EN_TotalHT,lev3.EN_TotalTVA,lev3.EN_TotalTTC,CT_Intitule as EN_Intitule,1 as EN_Agences from lev3 inner join F_COMPTET_DIGITAL ct on lev3.EN_CL = ct.CT_Num`);
 
 			return c.json({ result: [...result.recordset, ...result2.recordset] });
-		}
+		},
 	)
 	.delete(
 		"/all",
@@ -250,24 +269,26 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
 
 			const pool = await getConnection();
 
-			const query = `
-			delete from transit.dbo.f_docentete_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6;
-			delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6;
+			await pool
+				.request()
+				.input("year", sql.Int, parseInt(year))
+				.input("month", sql.Int, parseInt(month)).query(`
+			delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6;
+			delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6;
 			update transit.dbo.f_docentete_digital
 			set do_valide=0
-			where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3
-			`;
-			await pool.request().query(query);
+			where year(created_at) = @year and month(created_at) = @month and do_type=3
+			`);
 
 			return c.json({ result: "done" });
-		}
+		},
 	)
 	.delete(
 		"/some",
@@ -277,24 +298,32 @@ const app = new Hono()
 				en_list: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, en_list } = c.req.valid("json");
 
 			const pool = await getConnection();
+			const req = pool.request();
+			req.input("year", sql.Int, parseInt(year));
+			req.input("month", sql.Int, parseInt(month));
+			const enParams = en_list
+				.map((en, i) => {
+					req.input(`en${i}`, sql.NVarChar, en);
+					return `@en${i}`;
+				})
+				.join(",");
 
-			const query = `
-			delete from transit.dbo.f_docentete_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and entreprise_id in (${en_list.join(",")});
-			delete from transit.dbo.f_docligne_digital where year(DO_Date) = ${year} and month(DO_Date) = ${month} and do_type=6 and entreprise_id in (${en_list.join(",")});
+			await req.query(`
+			delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and entreprise_id in (${enParams});
+			delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and entreprise_id in (${enParams});
 			update transit.dbo.f_docentete_digital
 			set do_valide=0
-			where year(created_at) = ${year} and month(created_at) = ${month} and do_type=3 and entreprise_id in (${en_list.join(",")});
-			`;
-			await pool.request().query(query);
+			where year(created_at) = @year and month(created_at) = @month and do_type=3 and entreprise_id in (${enParams});
+			`);
 
 			return c.json({ result: "done" });
-		}
+		},
 	);
 
 export default app;

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { DataTable } from "./Table/table";
 
-import { EStatus, useEcritureEnteteLigneStore } from "../store/store";
+import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store";
 import { DialogTableDetail } from "./DialogTableDetail";
 import { IEcritureEnteteLigne, IEcritureError } from "../interface";
 import { isWithinRange } from "@/lib/utils";
@@ -86,7 +86,7 @@ const filterInvalide = (items: IEcritureEnteteLigne, invalide: string[]) => {
 const TableEcritureDigitalContainer = () => {
 
   const store = useEcritureEnteteLigneStore()
-  const EcMapByStatus = new Map<number, EStatus>([[0, EStatus.ATTENTE], [1, EStatus.INVALIDE], [2, EStatus.VALIDE], [3, EStatus.INTEGRE]])
+  const EcMapByStatus = new Map<number, EEcritureStatut>([[0, EEcritureStatut.ATTENTE], [1, EEcritureStatut.INVALIDE], [2, EEcritureStatut.VALIDE], [3, EEcritureStatut.INTEGRE]])
   const [ecritures, setEcritures] = useState(store.items)
 
   useEffect(() => {
@@ -96,7 +96,7 @@ const TableEcritureDigitalContainer = () => {
 
 
 
-      const filterByStatus = store.filter?.status !== EStatus.ALL ? store.items.filter((ec) => {
+      const filterByStatus = store.filter?.status !== EEcritureStatut.ALL ? store.items.filter((ec) => {
         if (EcMapByStatus.get(ec.entete.Status) === store.filter?.status) {
           return ec
         }
@@ -117,9 +117,9 @@ const TableEcritureDigitalContainer = () => {
 
 
 
-      const filterByInvalide = store.filter.status === EStatus.INVALIDE ? filterInvalide(filterBySearch, store.filter.invalide) : [...filterBySearch]
+      const filterByInvalide = store.filter.status === EEcritureStatut.INVALIDE ? filterInvalide(filterBySearch, store.filter.invalide) : [...filterBySearch]
 
-      const filterByEcart = store.filter.status === EStatus.INVALIDE && store.filter.ecart_conformite !== 0 ? filterByInvalide.filter((filter) => isWithinRange(filter.entete.EC_Montant, filter.entete.Montant_reel ?? 0, store.filter.ecart_conformite)) : [...filterByInvalide]
+      const filterByEcart = store.filter.status === EEcritureStatut.INVALIDE && store.filter.ecart_conformite !== 0 ? filterByInvalide.filter((filter) => isWithinRange(filter.entete.EC_Montant, filter.entete.Montant_reel ?? 0, store.filter.ecart_conformite)) : [...filterByInvalide]
 
 
 

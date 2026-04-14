@@ -15,7 +15,7 @@ interface IDialogEcritures {
 	checkEcriture: [boolean, string];
 }
 
-export enum EStatus {
+export enum EEcritureStatut {
 	ALL = "Tout",
 	INTEGRE = "Intégré",
 	VALIDE = "Valide",
@@ -23,7 +23,7 @@ export enum EStatus {
 	ATTENTE = "Attente",
 }
 interface IFilter {
-	status: EStatus;
+	status: EEcritureStatut;
 	search: {
 		type: "tiers" | "facture";
 		value: string;
@@ -71,7 +71,7 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		},
 		errors: [],
 		filter: {
-			status: EStatus.ALL,
+			status: EEcritureStatut.ALL,
 			search: { type: "facture", value: "" },
 			invalide: [],
 			ecart_conformite: 0,
@@ -106,7 +106,7 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 			set({
 				billCart: [],
 				filter: {
-					status: EStatus.ALL,
+					status: EEcritureStatut.ALL,
 					search: { type: "facture", value: "" },
 					invalide: [],
 					ecart_conformite: 0,
@@ -114,5 +114,5 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 				items: [],
 				event: null,
 			}),
-	})
+	}),
 );
