@@ -21,19 +21,17 @@ enum EFilter {
     BACKGROUND = "background"
 }
 
-const NotificationFilter = () => {
-    const [activeFilter, setActiveFilter] = useState<EFilter>(EFilter.ALL);
-
+const NotificationFilter = ({ filter, setFilter }: { filter: EFilter; setFilter: React.Dispatch<React.SetStateAction<EFilter>> }) => {
     const filterHandler = (filter: EFilter) => {
-        setActiveFilter(filter);
+        setFilter(filter);
     }
 
     const noneActiveClass = "border-none bg-transparent shadow-none hover:bg-transparent hover:shadow-none focus:ring-0 focus:ring-offset-0 focus:ring-transparent";
 
     return <div className="flex items-center justify-between px-1 py-1 w-full rounded-sm bg-gray-100 ">
-        <Button variant="outline" size="sm" onClick={filterHandler.bind(this, EFilter.ALL)} className={cn("w-1/4", activeFilter !== EFilter.ALL && noneActiveClass)}>Tout</Button>
-        <Button variant="outline" size="sm" onClick={filterHandler.bind(this, EFilter.SYSTEM)} className={cn("w-1/4", activeFilter !== EFilter.SYSTEM && noneActiveClass)}>Système</Button>
-        <Button variant="outline" size="sm" onClick={filterHandler.bind(this, EFilter.BACKGROUND)} className={cn("w-2/4", activeFilter !== EFilter.BACKGROUND && noneActiveClass)}>Arrière-plan</Button>
+        <Button variant="outline" size="sm" onClick={filterHandler.bind(this, EFilter.ALL)} className={cn("w-1/4", filter !== EFilter.ALL && noneActiveClass)}>Tout</Button>
+        <Button variant="outline" size="sm" onClick={filterHandler.bind(this, EFilter.SYSTEM)} className={cn("w-1/4", filter !== EFilter.SYSTEM && noneActiveClass)}>Système</Button>
+        <Button variant="outline" size="sm" onClick={filterHandler.bind(this, EFilter.BACKGROUND)} className={cn("w-2/4", filter !== EFilter.BACKGROUND && noneActiveClass)}>Arrière-plan</Button>
     </div>
 }
 
@@ -83,6 +81,8 @@ const NotificationPopover = ({ children }: { children: ReactNode }) => {
     const [rotation, setRotation] = useState(0);
     const notifications = data ? data.results : [];
 
+    const [filter, setFilter] = useState<EFilter>(EFilter.ALL);
+
     const refreshNotifications = async () => {
         setRotation((previousRotation) => previousRotation + 180);
         await refetch();
@@ -114,10 +114,20 @@ const NotificationPopover = ({ children }: { children: ReactNode }) => {
                 </PopoverHeader>
                 <div className="w-full p-4 ">
                     {/*filter section */}
-                    <NotificationFilter />
+                    <NotificationFilter filter={filter} setFilter={setFilter} />
                 </div>
                 <div className="w-full h-[400px] overflow-y-auto">
-                    <NotificationListContainer notifications={notifications} isPending={isPending} />
+                    <NotificationListContainer notifications={(() => {
+                        switch (filter) {
+                            case EFilter.SYSTEM:
+                                return notifications.filter(n => n.Notif_Source === "SYSTEM");
+                            case EFilter.BACKGROUND:
+                                return notifications.filter(n => n.Notif_Source === "BACKGROUND");
+                            case EFilter.ALL:
+                            default:
+                                return notifications;
+                        }
+                    })()} isPending={isPending} />
                 </div>
             </PopoverContent>
         </Popover>
