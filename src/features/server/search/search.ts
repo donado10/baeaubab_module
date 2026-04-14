@@ -35,7 +35,6 @@ const app = new Hono()
 				ORDER BY EN_Intitule
 			`);
 
-		console.log(result.recordset);
 		return c.json({ results: result.recordset });
 	})
 

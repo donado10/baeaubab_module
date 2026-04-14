@@ -86,8 +86,6 @@ export function DialogIntegrateEcritures({ children }: { children: ReactNode }) 
                 }
             });
 
-        console.log(id_toast)
-
         mutate({ json: { database: database, journal: journal, month: store.periode[1], year: store.periode[0] } }, {
             onSuccess: (results: any) => {
                 store.event?.id_toast_job && toast.dismiss(store.event?.id_toast_job);

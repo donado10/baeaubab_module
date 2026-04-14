@@ -60,7 +60,7 @@ export function convertDate(timestamp: string) {
 	const originalDate = new Date(Number(timestamp));
 
 	const firstOfMonth = new Date(
-		Date.UTC(originalDate.getUTCFullYear(), originalDate.getUTCMonth(), 1)
+		Date.UTC(originalDate.getUTCFullYear(), originalDate.getUTCMonth(), 1),
 	);
 
 	return firstOfMonth.toISOString().split("T")[0];
@@ -118,4 +118,3 @@ export const getCurrentYearMonth = (): { year: string; month: string } => {
 };
 
 // Example:
-//console.log(formatDate("2025-12-10T00:00:00.000Z")); // "10/12/2025"

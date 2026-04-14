@@ -50,11 +50,8 @@ export function DialogSetValidateEcritures({ children }: { children: ReactNode }
 
         const compliantBillsOnly = store.billCart.filter((bill) => {
             const { Compliance, CreatedDate, EC_RefPiece, date_facture, job_id, Marq, ...error } = store.items.filter((item) => item.entete.EC_RefPiece === bill)[0].error[0]
-            console.log(error)
-            return Object.values(error).every((val) => { console.log(val); return val == "1" })
+            return Object.values(error).every((val) => { return val == "1" })
         })
-
-        console.log(compliantBillsOnly)
 
         mutateValidateBills({ json: { year: store.periode[0], month: store.periode[1], bills: compliantBillsOnly } }, {
             onSuccess: (results: any) => {

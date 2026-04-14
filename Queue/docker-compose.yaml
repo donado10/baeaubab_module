@@ -17,23 +17,29 @@ services:
 
   worker_3:
     restart: on-failure
-    build: ./worker_3
+    build:
+      context: .
+      dockerfile: worker_3/Dockerfile
     depends_on:
       - rabbitmq
     environment:
       RABBITMQ_HOST: rabbitmq
-    volumes:
-      - ./worker_3:/worker_3
+    networks:
+      bridge-baeaubab: {}
+      default: {}
 
   worker_4:
     restart: on-failure
-    build: ./worker_4
+    build:
+      context: .
+      dockerfile: worker_4/Dockerfile
     depends_on:
       - rabbitmq
     environment:
       RABBITMQ_HOST: rabbitmq
-    volumes:
-      - ./worker_4:/worker_4
+    networks:
+      bridge-baeaubab: {}
+      default: {}
 
 networks:
   bridge-baeaubab:

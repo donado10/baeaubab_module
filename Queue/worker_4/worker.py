@@ -1,78 +1,15 @@
-import pika
-import json
-import time
-import requests
-
+from shared.worker_base import run_worker
 from main import main_process_facture_by_entreprise, main_process_factures, main_process_factures_from_bl
 
+API_ENDPOINT = "digitale/bonLivraison/events/job-finished"
 
-def connect_with_retry(host="rabbitmq", tries=30, delay=2):
-    for i in range(tries):
-        try:
-            return pika.BlockingConnection(pika.ConnectionParameters(host=host))
-        except pika.exceptions.AMQPConnectionError:
-            print(f"RabbitMQ not ready yet... retry {i+1}/{tries}")
-            time.sleep(delay)
-    raise RuntimeError("Could not connect to RabbitMQ")
+handler_map = {
+    "all": lambda data: main_process_factures(data["jobId"], data["year"], data["month"]),
+    "byEntreprise": lambda data: main_process_facture_by_entreprise(
+        data["jobId"], data["en_list"], data["year"], data["month"]),
+    "fromBonLivraison": lambda data: main_process_factures_from_bl(
+        data["jobId"], data["year"], data["month"], data["en_list"], data["bl_list"]),
+}
 
-
-connection = connect_with_retry()
-
-channel = connection.channel()
-
-channel.queue_declare(queue="generate_digital_fact_jobs", durable=True)
-
-
-def handle(ch, method, properties, body):
-    data = json.loads(body)
-    print("Received:", data, flush=True)
-
-    time.sleep(2)
-
-    requests.post(
-        "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
-        json={
-            "jobId": data["jobId"],
-            "status": "pending",
-            "ec_total": "",
-            "ec_count": ""
-        }
-    )
-
-    if data["type"] == "all":
-        main_process_factures(
-            data["jobId"], data["year"], data["month"])
-
-    if data["type"] == "byEntreprise":
-        main_process_facture_by_entreprise(
-            data["jobId"], data["en_list"], data["year"], data["month"])
-
-    if data["type"] == "fromBonLivraison":
-        main_process_factures_from_bl(
-            data["jobId"], data["year"], data["month"], data["en_list"], data["bl_list"])
-
-    requests.post(
-        "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
-        json={
-            "jobId": data["jobId"],
-            "status": "done",
-            "ec_total": "",
-            "ec_count": ""
-        }
-    )
-
-
-channel.basic_consume(
-    queue="generate_digital_fact_jobs",
-    on_message_callback=handle,
-    auto_ack=True
-)
-
-print("Waiting for jobs...", flush=True)
-try:
-    channel.start_consuming()
-except Exception as e:
-    print("❌ start_consuming stopped because:", repr(e), flush=True)
-    raise
-finally:
-    print("❌ worker is exiting now", flush=True)
+if __name__ == "__main__":
+    run_worker("generate_digital_fact_jobs", handler_map, API_ENDPOINT)

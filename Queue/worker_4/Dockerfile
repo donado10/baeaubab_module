@@ -1,6 +1,7 @@
 FROM python:3.12
-WORKDIR /worker_2
-COPY . .
+WORKDIR /app
+COPY shared/ ./shared/
+COPY worker_4/ .
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates gnupg2 \
     unixodbc unixodbc-dev \
@@ -15,10 +16,5 @@ RUN set -eux; \
  ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18; \
  rm -rf /var/lib/apt/lists/*
 
-RUN pip install   pika
-RUN pip install   requests
-RUN pip install   setuptools
-RUN pip install   pyodbc
-RUN pip install  mysql-connector-python
-RUN python setup.py install
+RUN pip install --no-cache-dir pika requests setuptools pyodbc mysql-connector-python
 CMD ["python", "worker.py"]

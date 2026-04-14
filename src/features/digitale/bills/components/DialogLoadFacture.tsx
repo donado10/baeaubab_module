@@ -119,8 +119,6 @@ export function DialogLoadFacture({ children }: { children: ReactNode }) {
                 }
             });
 
-        console.log(year, month)
-
         mutate({ json: { year, month } }, {
             onSuccess: (results: any) => {
                 store.clear()

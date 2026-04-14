@@ -249,7 +249,6 @@ export const FactureDetailSectionContainer = () => {
     if (!data) {
         return <></>
     }
-    console.log(data.results.documents)
     return <>{store.documents.length > 0 && <FactureDetailSection />}</>
 }
 

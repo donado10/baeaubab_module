@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 import re
-import requests
-from mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
-from mysql_digital.database import database_objects as dbo_mysql, execute_select_all as mysql_execute_select_all
+from shared.worker_base import post_job_status
+from shared.mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
+from shared.mysql_digital.database import database_objects as dbo_mysql, execute_select_all as mysql_execute_select_all
 
 
 def get_entreprises(year, month):
@@ -243,14 +243,11 @@ def main_process_factures_from_bl(jobID, year, month, entreprises: list, bls: li
 
             count += 1
 
-            requests.post(
-                "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
-                json={
-                    "jobId": jobID,
-                    "status": "pending",
-                    "ec_total": len(entreprises),
-                    "ec_count": count
-                }
+            post_job_status(
+                "digitale/bonLivraison/events/job-finished",
+                jobID, "pending",
+                ec_total=len(entreprises),
+                ec_count=count
             )
 
 
@@ -277,14 +274,11 @@ def main_process_factures(jobID, year, month):
 
             count += 1
 
-            requests.post(
-                "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
-                json={
-                    "jobId": jobID,
-                    "status": "pending",
-                    "ec_total": len(entreprises),
-                    "ec_count": count
-                }
+            post_job_status(
+                "digitale/bonLivraison/events/job-finished",
+                jobID, "pending",
+                ec_total=len(entreprises),
+                ec_count=count
             )
 
 
@@ -309,18 +303,9 @@ def main_process_facture_by_entreprise(jobID, entreprises, year, month):
 
             count += 1
 
-            requests.post(
-                "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
-                json={
-                    "jobId": jobID,
-                    "status": "pending",
-                    "ec_total": len(entreprises),
-                    "ec_count": count
-                }
+            post_job_status(
+                "digitale/bonLivraison/events/job-finished",
+                jobID, "pending",
+                ec_total=len(entreprises),
+                ec_count=count
             )
-
-
-# main_process_factures(2026, 1)
-
-
-# main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')

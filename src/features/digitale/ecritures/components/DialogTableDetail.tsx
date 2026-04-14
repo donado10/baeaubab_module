@@ -74,7 +74,6 @@ export function DialogTableDetail({ open, setOpen, refpiece }: { refpiece: strin
     const [openDialog, setOpenDialog] = useState(open)
 
     useEffect(() => {
-        console.log(open)
         setOpenDialog(open)
     }, [open])
 

@@ -1,9 +1,9 @@
 from datetime import datetime
 import re
 
-import requests
-from mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
-from mysql_digital.database import database_objects as dbo_mysql
+from shared.worker_base import post_job_status
+from shared.mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
+from shared.mysql_digital.database import database_objects as dbo_mysql
 
 
 def build_date(year: int, month: int) -> str:
@@ -384,14 +384,11 @@ def process_facture_detail(jobId, year, month, journal, database):
 
         data = process_data(filteredRows, row[0])
         insert_data(data, database, journal)
-        requests.post(
-            "http://172.30.0.1:3000/api/digitale/ecritures/events/job-finished",
-            json={
-                "jobId": jobId,
-                "status": "pending",
-                "ec_total": len(rowsByBill),
-                "ec_count": row_count
-            }
+        post_job_status(
+            "digitale/ecritures/events/job-finished",
+            jobId, "pending",
+            ec_total=len(rowsByBill),
+            ec_count=row_count
         )
 
     change_status([f"'{x[0]}'" for x in rowsByBill], journal)
@@ -403,8 +400,3 @@ def main_process_facture_detail(jobId, year, month, journal, database):
 
     # process_facture_detail(jobId, year, month, journal, database)
     process_facture_general(jobId, year, month, journal, database)
-
-
-process_facture_general('', 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')
-
-# main_process_facture_detail(1, 2026, 1, 'VTEDC3', 'F_GBAEAUBAB23')

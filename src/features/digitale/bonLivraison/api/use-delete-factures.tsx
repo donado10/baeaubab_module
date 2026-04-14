@@ -11,7 +11,6 @@ const useDeleteFactureByDocument = () => {
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["delete_facture_by_document"],
         mutationFn: async ({ json }) => {
-            console.log(json)
             const res = await client.api.facture.cancelByDocument.$delete({ json });
 
             if (!res.ok) {

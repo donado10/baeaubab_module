@@ -180,8 +180,6 @@ export function SearchCommand({ open, onOpenChange }: Props) {
         setQuery("")
     }
 
-    console.log(results)
-
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogHeader className="sr-only">

@@ -11,7 +11,6 @@ const useDeleteFactures = () => {
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["delete_factures"],
         mutationFn: async ({ json }) => {
-            console.log(json)
             const res = await client.api.digitale.facture.all.$delete({ json });
 
             if (!res.ok) {

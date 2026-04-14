@@ -13,15 +13,12 @@ export function useGetLocation() {
 		if ("geolocation" in navigator) {
 			navigator.geolocation.getCurrentPosition(
 				(position) => {
-					console.log(position);
 					setCoords([position.coords.longitude, position.coords.latitude]);
 				},
 				(error) => {
 					console.error("Error Code = " + error.code + " - " + error.message);
-				}
+				},
 			);
-		} else {
-			console.log("Geolocation not supported");
 		}
 	}, []);
 

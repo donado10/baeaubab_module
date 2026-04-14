@@ -11,7 +11,6 @@ const useUpdateBonLivraison = () => {
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["update_bon_livraison"],
         mutationFn: async ({ json }) => {
-            console.log(json)
             const res = await client.api["bon-livraison"]["updateBonLivraisonByEntreprise"]["$post"]({ json });
 
             if (!res.ok) {

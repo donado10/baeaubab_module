@@ -135,9 +135,6 @@ const FactureSection = () => {
     const store = useEntrepriseFactureStore()
 
 
-    console.log(store.billCart)
-
-
 
     useEffect(() => {
         if (store.event?.status === 'done') {

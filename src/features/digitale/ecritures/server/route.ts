@@ -43,24 +43,24 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
 
 			const [rows_refpiece] = await pool.query(
 				"select  JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,ec.Status as Status,facture_id from ecritures ec inner join factures fact on ec.facture_id=fact.id where year(date_facture)=? and month(date_facture)=? and ec_sens=0 and ec_refpiece like 'FACT%'",
-				[year, month]
+				[year, month],
 			);
 
 			const [rows_ecritures] = await pool.query(
 				"select * from ecritures where year(date_facture)=? and month(date_facture)=? and ec_refpiece like 'FACT%'",
-				[year, month]
+				[year, month],
 			);
 
 			const query_errors = `select * from transit.dbo.f_ecriturec_invalid`;
 			const query_montant_reel = `select facture_id,montant_ttc from transit.dbo.f_facture_digital_format where facture_id in (${Array.from(
-				rows_refpiece
+				rows_refpiece,
 			)
 				.map((ref) => `'${ref.facture_id}'`)
 				.join(",")})`;
@@ -69,14 +69,7 @@ const app = new Hono()
 			let result_errors = await pool_.request().query(query_errors);
 			let result_montant_reel = await pool_.request().query(query_montant_reel);
 
-			console.log(result_montant_reel);
-
 			const ecritures_formated = Array.from(rows_refpiece).map((ref) => {
-				console.log(
-					result_montant_reel.recordset.filter((value) => {
-						return value.facture_id == ref.facture_id;
-					})
-				);
 				return {
 					entete: {
 						...ref,
@@ -86,16 +79,16 @@ const app = new Hono()
 							})[0]?.montant_ttc ?? -1,
 					},
 					ligne: rows_ecritures.filter(
-						(ec) => ec.EC_RefPiece === ref.EC_RefPiece
+						(ec) => ec.EC_RefPiece === ref.EC_RefPiece,
 					),
 					error: result_errors.recordset.filter(
-						(err) => err.EC_RefPiece === ref.EC_RefPiece
+						(err) => err.EC_RefPiece === ref.EC_RefPiece,
 					),
 				};
 			});
 
 			return c.json({ results: ecritures_formated });
-		}
+		},
 	)
 	.post(
 		"/sage",
@@ -106,7 +99,7 @@ const app = new Hono()
 			z.object({
 				year: z.string(),
 				month: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
@@ -129,16 +122,16 @@ const app = new Hono()
 				(ref) => ({
 					entete: ref,
 					ligne: result_ecritures.recordset.filter(
-						(ec) => ec.EC_RefPiece === ref.EC_RefPiece
+						(ec) => ec.EC_RefPiece === ref.EC_RefPiece,
 					),
 					error: result_errors.recordset.filter(
-						(err) => err.EC_RefPiece === ref.EC_RefPiece
+						(err) => err.EC_RefPiece === ref.EC_RefPiece,
 					),
-				})
+				}),
 			);
 
 			return c.json({ results: ecritures_formated });
-		}
+		},
 	)
 	.post(
 		"/withCheck",
@@ -150,7 +143,7 @@ const app = new Hono()
 				year: z.string(),
 				month: z.string(),
 				check: z.boolean(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, check } = c.req.valid("json");
@@ -171,12 +164,12 @@ const app = new Hono()
 						month: month,
 						check: check,
 						type: "all",
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.post(
 		"/checkBills",
@@ -188,7 +181,7 @@ const app = new Hono()
 				year: z.string(),
 				month: z.string(),
 				bills: z.array(z.string()),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, bills } = c.req.valid("json");
@@ -209,12 +202,12 @@ const app = new Hono()
 						month: month,
 						bills: bills,
 						type: "some",
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.post(
 		"/setBillsValid",
@@ -226,7 +219,7 @@ const app = new Hono()
 				year: z.string(),
 				month: z.string(),
 				bills: z.array(z.string()),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, bills } = c.req.valid("json");
@@ -247,12 +240,12 @@ const app = new Hono()
 						month: month,
 						bills: bills,
 						type: "set_valid",
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.post(
 		"/correctBills",
@@ -275,7 +268,7 @@ const app = new Hono()
 			});
 
 			return c.json({ results: ecritures_ });
-		}
+		},
 	)
 
 	.post(
@@ -289,7 +282,7 @@ const app = new Hono()
 				month: z.string(),
 				journal: z.string(),
 				database: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { journal, database, month, year } = c.req.valid("json");
@@ -311,12 +304,12 @@ const app = new Hono()
 						journal: journal,
 						database: database,
 						type: "facture_detail",
-					})
-				)
+					}),
+				),
 			);
 
 			return c.json({ results: [], jobId: jobId });
-		}
+		},
 	)
 	.delete(
 		"/bills",
@@ -330,7 +323,7 @@ const app = new Hono()
 				bills: z.array(z.string()),
 				database: z.string(),
 				journal: z.string(),
-			})
+			}),
 		),
 		async (c) => {
 			const { year, month, bills, database, journal } = c.req.valid("json");
@@ -352,7 +345,7 @@ const app = new Hono()
 			await pool.query(query_update_bills_status_digital);
 
 			return c.json({ result: [] });
-		}
+		},
 	);
 
 export default app;

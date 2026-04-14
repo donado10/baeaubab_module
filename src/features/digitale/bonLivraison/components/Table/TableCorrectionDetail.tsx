@@ -55,7 +55,6 @@ export function EcrituresTableCorrectionDetails({ details }: { details: IEcritur
     });
 
     const onSubmit = (values: z.infer<typeof ecritureSchema>) => {
-        console.log(values)
         mutate({ json: [values] }, {
             onSuccess: (results: any) => {
                 const oldBill = store.items.filter((bill) => results.results.includes(bill.entete.EC_RefPiece))[0]
@@ -68,8 +67,6 @@ export function EcrituresTableCorrectionDetails({ details }: { details: IEcritur
             }
         })
     }
-
-    console.log(form.formState.errors)
 
 
     return (

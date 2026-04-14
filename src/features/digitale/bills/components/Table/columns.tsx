@@ -54,7 +54,6 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
   {
     id: "select",
     header: ({ table }) => {
-      // console.log(table.getRowModel().rows);
       const store = useEntrepriseFactureStore()
 
       useEffect(() => {

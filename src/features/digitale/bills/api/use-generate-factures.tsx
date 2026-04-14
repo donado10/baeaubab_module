@@ -11,7 +11,6 @@ const useGenerateFactures = () => {
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["generate_factures"],
         mutationFn: async ({ json }) => {
-            console.log(json)
             const res = await client.api.digitale.bonLivraison.generateFacturesDigital.$post({ json });
 
             if (!res.ok) {

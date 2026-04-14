@@ -5,7 +5,6 @@ const useGetBonLivraisonStatsByCompany = (year: string, month: string) => {
     const query = useQuery({
         queryKey: ["get-bon-livraison-stats-by-company", year, month],
         queryFn: async ({ }) => {
-            console.log(year, month)
             const response =
                 await client.api["bon-livraison"].stats.$get({
                     query: {

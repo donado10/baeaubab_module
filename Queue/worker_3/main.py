@@ -1,8 +1,8 @@
 from datetime import datetime
 import re
-import requests
-from mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
-from mysql_digital.database import database_objects as dbo_mysql, execute_select_all as mysql_execute_select_all
+from shared.worker_base import post_job_status
+from shared.mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
+from shared.mysql_digital.database import database_objects as dbo_mysql, execute_select_all as mysql_execute_select_all
 
 
 def insert_new_articles(articles: list):
@@ -661,14 +661,11 @@ def handle_bl_documents(jobID, year, month):
     for bl in results:
         count = count + 1
         handle_bl(bl)
-        requests.post(
-            "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
-            json={
-                "jobId": jobID,
-                "status": "pending",
-                "ec_total": len(results),
-                "ec_count": count
-            }
+        post_job_status(
+            "digitale/bonLivraison/events/job-finished",
+            jobID, "pending",
+            ec_total=len(results),
+            ec_count=count
         )
 
 
@@ -679,14 +676,11 @@ def handle_some_bl_document(jobID, year, month, en_list):
         for bl in results:
             count = count + 1
             handle_bl(bl)
-            requests.post(
-                "http://172.30.0.1:3000/api/digitale/bonLivraison/events/job-finished",
-                json={
-                    "jobId": jobID,
-                    "status": "pending",
-                    "ec_total": len(results),
-                    "ec_count": count
-                }
+            post_job_status(
+                "digitale/bonLivraison/events/job-finished",
+                jobID, "pending",
+                ec_total=len(results),
+                ec_count=count
             )
 
 

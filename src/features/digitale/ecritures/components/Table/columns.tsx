@@ -63,7 +63,6 @@ export const columns: ColumnDef<IEcritureEntete>[] = [
   {
     id: "select",
     header: ({ table }) => {
-      // console.log(table.getRowModel().rows);
       const store = useEcritureEnteteLigneStore()
 
       useEffect(() => {

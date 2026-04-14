@@ -57,9 +57,6 @@ const InvalideButtonContainer = () => {
 }
 const AttenteButtonContainer = () => {
     const store = useEcritureEnteteLigneStore()
-    console.log(store.billCart
-
-    )
     return <>
         {store.billCart.length > 0 && <DialogRecheckEcritures>
             <Button variant={"default"} className='bg-[#101010] hover:bg-[#101010]/80'>Vérifier Ecritures</Button>

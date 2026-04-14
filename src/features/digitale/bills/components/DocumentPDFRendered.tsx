@@ -118,8 +118,6 @@ export function DocumentPDFFactureResume({ agence, documents }: { agence: IAgenc
         })
     }, [JSON.stringify(agence)])
 
-    console.log(agence)
-
 
     return (
         <Document>
