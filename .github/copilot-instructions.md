@@ -114,12 +114,12 @@ Always use these domain terms in variable names, comments, and API routes—**do
 
 All workers declare their queue as **durable** and auto-acknowledge after processing. Each sends HTTP progress updates via `POST /api/.../events/job-finished`.
 
-| Folder            | Queue                        | Purpose                                                               |
-| ----------------- | ---------------------------- | --------------------------------------------------------------------- |
-| `Queue/worker/`   | `check_digital_ec_jobs`      | Validate `écritures` (balance, format, GL/customer account existence) |
-| `Queue/worker_2/` | `integrate_digital_ec_jobs`  | Post validated entries into the general ledger (`F_ECRITUREC`)        |
-| `Queue/worker_3/` | `get_digital_bl_jobs`        | Import delivery documents (`bon livraisons`) from MySQL into MSSQL    |
-| `Queue/worker_4/` | `generate_digital_fact_jobs` | Generate invoices (`factures`, `DO_Type=6`) from validated BLs        |
+| Folder            | Queue                       | Purpose                                                               |
+| ----------------- | --------------------------- | --------------------------------------------------------------------- |
+| `Queue/worker/`   | `check_digital_ec_jobs`     | Validate `écritures` (balance, format, GL/customer account existence) |
+| `Queue/worker_2/` | `integrate_digital_ec_jobs` | Post validated entries into the general ledger (`F_ECRITUREC`)        |
+| `Queue/worker_3/` | `get_digital_bl_jobs`       | Import delivery documents (`bon livraisons`) from MySQL into MSSQL    |
+| `Queue/worker_4/` | `facture-jobs`              | Generate invoices (`factures`, `DO_Type=6`) from validated BLs        |
 
 **Message shapes by worker:**
 
@@ -133,7 +133,7 @@ All workers declare their queue as **durable** and auto-acknowledge after proces
 // worker_3 — get_digital_bl_jobs
 { "jobId": string, "type": "all" | "bl_some", "year": int, "month": int, "en_list"?: string[] }
 
-// worker_4 — generate_digital_fact_jobs
+// worker_4 — facture-jobs
 { "jobId": string, "type": "all" | "byEntreprise" | "fromBonLivraison", "year": int, "month": int, "en_list"?: string[], "bl_list"?: string[] }
 ```
 

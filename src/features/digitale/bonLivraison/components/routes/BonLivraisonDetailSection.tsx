@@ -171,12 +171,6 @@ const BonLivraisonList = ({ p_documents }: { p_documents: IDocumentBonLivraison[
     </ul>
 }
 
-const handleDownload = (fileUrl: string, filename: string) => {
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.download = `${filename}.pdf`;
-    link.click();
-};
 
 const BonLivraisonSelected = ({ document }: { document: IDocumentBonLivraison }) => {
 
@@ -260,7 +254,7 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
         return <></>
     }
 
-    const submitHandler = () => {
+    const submitGenerateFacture = () => {
         mutate({ json: { en_list: [agence_dg.CT_Entreprise_Sage.toString()], year, month, bl_list: entrepriseStore.cart } }, {
             onSuccess: () => {
                 toast.success("Génération lancée")
@@ -294,7 +288,7 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
                         </Button>
                     </DialogCancelFactures>}
 
-                    {entrepriseStore.cart.length > 0 && <DialogBonLivraisonAction title="Générer Facture" onConfirm={submitHandler} isPending={isGenerating}>
+                    {entrepriseStore.cart.length > 0 && <DialogBonLivraisonAction title="Générer Facture" onConfirm={submitGenerateFacture} isPending={isGenerating}>
                         <Button variant='outline'>Générer Facture</Button>
                     </DialogBonLivraisonAction>}
                     <DialogActualiserAllBonLivraison

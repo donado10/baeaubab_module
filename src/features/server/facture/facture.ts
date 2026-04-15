@@ -173,13 +173,13 @@ const app = new Hono()
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
-			await channel.assertQueue("generate_digital_fact_jobs");
+			await channel.assertQueue("facture-jobs");
 
 			const jobId = ID.unique();
 			await createJob(jobId, "facture", "all", user.$id);
 
 			channel.sendToQueue(
-				"generate_digital_fact_jobs",
+				"facture-jobs",
 				Buffer.from(
 					JSON.stringify({
 						jobId: jobId,
@@ -211,13 +211,13 @@ const app = new Hono()
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
-			await channel.assertQueue("generate_digital_fact_jobs");
+			await channel.assertQueue("facture-jobs");
 
 			const jobId = ID.unique();
 			await createJob(jobId, "facture", "fromBonLivraison", user.$id);
 
 			channel.sendToQueue(
-				"generate_digital_fact_jobs",
+				"facture-jobs",
 				Buffer.from(
 					JSON.stringify({
 						jobId: jobId,
@@ -250,13 +250,13 @@ const app = new Hono()
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
-			await channel.assertQueue("generate_digital_fact_jobs");
+			await channel.assertQueue("facture-jobs");
 
 			const jobId = ID.unique();
 			await createJob(jobId, "facture", "byEntreprise", user.$id);
 
 			channel.sendToQueue(
-				"generate_digital_fact_jobs",
+				"facture-jobs",
 				Buffer.from(
 					JSON.stringify({
 						jobId: jobId,
