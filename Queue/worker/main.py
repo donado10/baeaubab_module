@@ -1,7 +1,7 @@
 import hashlib
 import re
 
-from shared.worker_base import post_job_status
+from shared.worker_base import post_job_status, should_post_progress
 from shared.mssql_baeaubab.database import execute_select_all, execute_select_one
 from shared.utils import get_log_timestamp, ini_settings, write_to_file
 from shared.mssql_baeaubab.database import database_objects as dbo_mssql
@@ -438,6 +438,7 @@ def main_process_all(jobId, year, month):
     valid_rows_ref = []
 
     row_count = 0
+    last_pct = 0
 
     for row in rowsByBill:
         filteredRows = [x for x in rowsByEC if x[6] == row[0]]
@@ -461,12 +462,14 @@ def main_process_all(jobId, year, month):
                     (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 2, f'0x{hash}'))
             valid_rows_ref.append(f"'{row[0]}'")
         row_count = row_count + 1
-        post_job_status(
-            "digitale/ecritures/events/job-finished",
-            jobId, "pending",
-            ec_total=len(rowsByBill),
-            ec_count=row_count
-        )
+        should, last_pct = should_post_progress(
+            row_count, len(rowsByBill), last_pct)
+        if should:
+            post_job_status(
+                "digitale/ecritures/events/job-finished",
+                jobId, "pending",
+                progress=last_pct
+            )
 
     handle_invalid_rows_in_sage(invalid_rows_ref)
 
@@ -503,8 +506,7 @@ def main_process_some(jobId, year, month, bills):
     valid_rows_ref = []
 
     row_count = 0
-
-    step_send = (len(rowsByBill) * 5) / 100
+    last_pct = 0
 
     for row in rowsByBill:
         filteredRows = [x for x in rowsByEC if x[6] == row[0]]
@@ -528,13 +530,14 @@ def main_process_some(jobId, year, month, bills):
                     (fr[0], fr[1], convertDate(fr[2]), fr[3], convertDate(fr[4]), fr[5], fr[6], str(fr[7]), fr[8], fr[9],  fr[11], fr[12], fr[13], fr[14], jobId, 2, f'0x{hash}'))
             valid_rows_ref.append(f"'{row[0]}'")
         row_count = row_count + 1
-
-        post_job_status(
-            "digitale/ecritures/events/job-finished",
-            jobId, "pending",
-            ec_total=len(rowsByBill),
-            ec_count=row_count
-        )
+        should, last_pct = should_post_progress(
+            row_count, len(rowsByBill), last_pct)
+        if should:
+            post_job_status(
+                "digitale/ecritures/events/job-finished",
+                jobId, "pending",
+                progress=last_pct
+            )
 
     handle_invalid_rows_in_sage(invalid_rows_ref)
 

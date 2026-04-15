@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import z, { string } from "zod";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
+import { sessionMiddleware } from "@/lib/session-middleware";
+import { createJob } from "@/features/server/job/create-job";
 import amqp from "amqplib";
 import sql from "mssql";
 
@@ -209,6 +211,7 @@ const app = new Hono()
 	})
 	.post(
 		"/getBonLivraisonDigital",
+		sessionMiddleware,
 		zValidator(
 			"json",
 			z.object({
@@ -218,6 +221,7 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
+			const user = c.get("user");
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
@@ -225,6 +229,7 @@ const app = new Hono()
 			await channel.assertQueue("get_digital_bl_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "bonLivraison", "all", user.$id);
 
 			channel.sendToQueue(
 				"get_digital_bl_jobs",
@@ -243,6 +248,7 @@ const app = new Hono()
 	)
 	.post(
 		"/updateBonLivraisonDigitalByEntreprise",
+		sessionMiddleware,
 		zValidator(
 			"json",
 			z.object({
@@ -255,6 +261,7 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, en_list_valid, en_list_invalid } =
 				c.req.valid("json");
+			const user = c.get("user");
 
 			if (en_list_invalid.length > 0) {
 				const pool = await getConnection();
@@ -275,6 +282,7 @@ const app = new Hono()
 			await channel.assertQueue("get_digital_bl_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "bonLivraison", "bl_some", user.$id);
 
 			const en_list = [...en_list_valid, ...en_list_invalid];
 

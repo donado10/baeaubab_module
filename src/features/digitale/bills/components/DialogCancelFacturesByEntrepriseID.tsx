@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ReactNode, useState } from "react"
 //import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { EStatus, useEntrepriseFactureStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
 import useGenerateFactures from "../api/use-generate-factures"
@@ -91,29 +90,9 @@ export function DialogCancelFacturesByEntrepriseID({ children }: { children: Rea
     const submitHandler = () => {
         setClose(false)
 
-
-        const id_toast = toast(() => {
-            const store = useEntrepriseFactureStore()
-
-
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
-                }
-            });
-
-
         mutate({ json: { en_list: store.billCart, year: store.periode[0], month: store.periode[1] } }, {
-            onSuccess: (results: any) => {
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+            onSuccess: () => {
+                toast.success("Génération lancée")
             }
         })
 

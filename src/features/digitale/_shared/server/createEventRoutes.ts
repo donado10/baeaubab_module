@@ -1,13 +1,14 @@
 import { Hono } from "hono";
 import { stream } from "hono/streaming";
+import { getConnection } from "@/lib/db-mssql";
+import sql from "mssql";
 
 type JobStatus = "done" | "failed" | "pending";
 
 type JobUpdatePayload = {
 	jobId: string;
 	status: JobStatus;
-	ec_total: string;
-	ec_count: string;
+	progress?: number;
 	result?: unknown;
 	error?: string;
 };
@@ -76,17 +77,37 @@ export function createEventRoutes(streamPath: string = "/:jobId") {
 		})
 		.post("/job-finished", async (c) => {
 			const body = (await c.req.json()) as Partial<JobUpdatePayload>;
-			const { jobId, status, ec_total, ec_count, result, error } = body;
+			const { jobId, status, progress, result, error } = body;
 
 			if (!jobId || !status) {
 				return c.json({ error: "Missing jobId/status" }, 400);
 			}
 
+			// Update F_JOB_DIGITAL
+			try {
+				const pool = await getConnection();
+				await pool
+					.request()
+					.input("jobId", sql.NVarChar(50), jobId)
+					.input("status", sql.NVarChar(20), status)
+					.input("progress", sql.Int, progress ?? (status === "done" ? 100 : 0))
+					.input("error", sql.NVarChar(sql.MAX), error ?? null)
+					.query(
+						`UPDATE [TRANSIT].[dbo].[F_JOB_DIGITAL]
+						 SET Job_Status = @status,
+						     Job_Progress = @progress,
+						     Job_Error = @error,
+						     updated_at = GETDATE()
+						 WHERE Job_Id = @jobId`,
+					);
+			} catch (e) {
+				console.error("Failed to update F_JOB_DIGITAL:", e);
+			}
+
 			sendToJob(jobId, "job_update", {
 				jobId,
 				status,
-				ec_total,
-				ec_count,
+				progress,
 				result,
 				error,
 			});

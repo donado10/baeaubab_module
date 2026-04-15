@@ -1,12 +1,11 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { cn, getFrenchMonthName } from '@/lib/utils'
 import TableEcritureDigitalContainer from './TableContainer'
 import { DialogLoadEcritures } from './DialogLoadEcritures'
 import { EEcritureStatut, useEcritureEnteteLigneStore } from '../store/store'
-import { DialogLoadEcrituresWithCheck } from './DialogLoadEcrituresWithCheck'
 import { Card } from '@/components/ui/card'
 import { DialogRecheckEcritures } from './DialogRecheckEcritures'
 import { Input } from '@/components/ui/input'
@@ -154,20 +153,10 @@ const FilterResume = () => {
 
 const EcritureDigitaleSection = () => {
 
-    const [dialogEcWithCheck, setDialogEcWithCheck] = useState(false)
-
     const store = useEcritureEnteteLigneStore()
-
-    useEffect(() => {
-        if (store.event?.status === 'done') {
-            setDialogEcWithCheck(true)
-        }
-    }, [store.event?.status])
-
 
     return (
         <section className='p-4 text-gray-700'>
-            {store.event?.status === 'done' && <DialogLoadEcrituresWithCheck open={dialogEcWithCheck} onOpen={setDialogEcWithCheck} />}
             <div className=''>
 
                 <div className='flex items-center justify-between mb-8 '>
@@ -192,9 +181,7 @@ const EcritureDigitaleSection = () => {
                         </DialogLoadEcritures>
                     </div>
                 </div>
-                <div>
-                    {/*                 {store.event?.jobId && <JobWatcher jobId={store.event.jobId} />}
- */}            </div>
+
                 <div className='h-32 mb-4 shadow-none  grid grid-cols-5 gap-4 '>
                     <ResumeCard background='bg-primary text-white' text='text-white' title='Total Factures' count={store.items.length} />
                     <ResumeCard background='bg-yellow-200' title='Factures Intégrées' count={store.items.filter((item) => item.entete.Status === 3).length} />

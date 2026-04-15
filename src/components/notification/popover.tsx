@@ -9,9 +9,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { ReactNode, useState } from "react"
 import { FiRefreshCw } from "react-icons/fi";
+import { Loader2, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useGetNotifications from "./use-get-notifications";
+import useGetJobs from "@/features/server/job/api/use-get-jobs";
 import { INotificationSchema } from "@/features/server/notification/interface";
+import type { JobDigital, JobModule } from "@/features/server/job/interface";
 import { Card } from "@/components/ui/card";
 
 
@@ -47,11 +50,78 @@ const NotificationListContainer = ({
     }
 
     if (!notifications?.length) {
-        return <div>No notifications</div>
+        return <div className="p-4 text-center text-gray-500">Aucune notification</div>
     }
 
     return <NotificationList notifications={notifications} />
 }
+
+const MODULE_LABELS: Record<JobModule, string> = {
+    ecritures: "Écritures",
+    bonLivraison: "Bon de livraison",
+    facture: "Facture",
+};
+
+const JobStatusBadge = ({ status }: { status: string }) => {
+    if (status === "pending") return <Loader2 className="w-4 h-4 animate-spin text-blue-500" />;
+    if (status === "done") return <Check className="w-4 h-4 text-green-500" />;
+    return <X className="w-4 h-4 text-red-500" />;
+};
+
+const JobItem = ({ job }: { job: JobDigital }) => {
+    return (
+        <Card className="border-b p-4 gap-3">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <JobStatusBadge status={job.Job_Status} />
+                    <h3 className="font-bold text-base">{MODULE_LABELS[job.Job_Module] ?? job.Job_Module}</h3>
+                </div>
+                <span className="text-xs text-gray-500">{job.Job_Type}</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                <div
+                    className={cn(
+                        "h-2 rounded-full transition-all duration-300",
+                        job.Job_Status === "failed" ? "bg-red-500" : "bg-blue-500",
+                        job.Job_Progress === 100 && job.Job_Status === "done" ? "bg-green-500" : ""
+                    )}
+                    style={{ width: `${job.Job_Progress}%` }}
+                />
+            </div>
+            <div className="flex items-center justify-between mt-1">
+                <span className="text-xs text-gray-500">{job.Job_Progress}%</span>
+                <span className="text-xs text-gray-500">{new Date(job.updated_at).toLocaleString()}</span>
+            </div>
+            {job.Job_Error && (
+                <p className="text-xs text-red-500 mt-1">{job.Job_Error}</p>
+            )}
+        </Card>
+    );
+};
+
+const JobListContainer = ({
+    jobs,
+    isPending,
+}: {
+    jobs?: JobDigital[];
+    isPending: boolean;
+}) => {
+    if (isPending) {
+        return <div>Loading...</div>
+    }
+
+    if (!jobs?.length) {
+        return <div className="p-4 text-center text-gray-500">Aucun job en arrière-plan</div>
+    }
+
+    return (
+        <ul className="p-4 flex gap-4 flex-col">
+            {jobs.map((job) => (
+                <JobItem key={job.Job_No} job={job} />
+            ))}
+        </ul>
+    );
+};
 
 const NotificationList = ({ notifications }: { notifications: INotificationSchema[] }) => {
     return <ul className="p-4 flex gap-4 flex-col">
@@ -78,14 +148,16 @@ const NotificationItem = ({ notification }: { notification: INotificationSchema 
 
 const NotificationPopover = ({ children }: { children: ReactNode }) => {
     const { data, isPending, isFetching, refetch } = useGetNotifications();
+    const { data: jobsData, isPending: jobsPending, refetch: refetchJobs } = useGetJobs();
     const [rotation, setRotation] = useState(0);
     const notifications = data ? data.results : [];
+    const jobs = jobsData?.results ?? [];
 
     const [filter, setFilter] = useState<EFilter>(EFilter.ALL);
 
     const refreshNotifications = async () => {
         setRotation((previousRotation) => previousRotation + 180);
-        await refetch();
+        await Promise.all([refetch(), refetchJobs()]);
     }
 
     return (
@@ -117,17 +189,19 @@ const NotificationPopover = ({ children }: { children: ReactNode }) => {
                     <NotificationFilter filter={filter} setFilter={setFilter} />
                 </div>
                 <div className="w-full h-[400px] overflow-y-auto">
-                    <NotificationListContainer notifications={(() => {
-                        switch (filter) {
-                            case EFilter.SYSTEM:
-                                return notifications.filter(n => n.Notif_Source === "SYSTEM");
-                            case EFilter.BACKGROUND:
-                                return notifications.filter(n => n.Notif_Source === "BACKGROUND");
-                            case EFilter.ALL:
-                            default:
-                                return notifications;
-                        }
-                    })()} isPending={isPending} />
+                    {filter === EFilter.BACKGROUND ? (
+                        <JobListContainer jobs={jobs} isPending={jobsPending} />
+                    ) : (
+                        <NotificationListContainer notifications={(() => {
+                            switch (filter) {
+                                case EFilter.SYSTEM:
+                                    return notifications.filter(n => n.Notif_Source === "SYSTEM");
+                                case EFilter.ALL:
+                                default:
+                                    return notifications;
+                            }
+                        })()} isPending={isPending} />
+                    )}
                 </div>
             </PopoverContent>
         </Popover>

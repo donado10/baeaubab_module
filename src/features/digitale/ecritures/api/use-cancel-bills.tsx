@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import useLoadEcrituresCheckBills from "./use-load-ecritures-check-bills";
 import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store";
 import { toast } from "sonner";
-import JobWatcher from "../components/JobWatcher";
 
 type RequestType = InferRequestType<(typeof client.api.digitale.ecritures.bills)["$delete"]>;
 type ResponseType = InferResponseType<(typeof client.api.digitale.ecritures.bills)["$delete"]>;

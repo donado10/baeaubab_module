@@ -13,6 +13,7 @@ import factureEvents from "@/features/digitale/bills/server/route_events";
 import modules from "@/features/modules/server/route";
 import notification from "@/features/server/notification/notification";
 import search from "@/features/server/search/search";
+import job from "@/features/server/job/job";
 
 export const runtime = "nodejs";
 
@@ -31,7 +32,8 @@ const routes = app
 	.route("/digitale/bonLivraison", bonLivraison2)
 	.route("/modules", modules)
 	.route("/notification", notification)
-	.route("/search", search);
+	.route("/search", search)
+	.route("/job", job);
 
 export const GET = handle(app);
 export const POST = handle(app);

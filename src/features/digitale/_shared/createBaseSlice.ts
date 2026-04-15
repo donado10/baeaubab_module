@@ -1,7 +1,7 @@
-import type { IBaseStore, IEvent } from "./types";
+import type { IBaseStore } from "./types";
 
 /**
- * Returns the shared state slice (event, billCart, periode) and its actions.
+ * Returns the shared state slice (billCart, periode) and its actions.
  * Spread this inside your Zustand store initializer so every feature store
  * gets the same baseline without copy-pasting.
  *
@@ -19,10 +19,8 @@ export function createBaseSlice<TCartItem = string>(
 	set: (fn: any) => void,
 ): IBaseStore<TCartItem> {
 	return {
-		event: null,
 		billCart: [] as TCartItem[],
 		periode: [],
-		setEvent: (event: IEvent) => set({ event }),
 		setAddBillCart: (item: TCartItem) =>
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			set((state: any) => ({ billCart: [...state.billCart, item] })),

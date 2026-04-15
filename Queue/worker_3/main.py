@@ -1,8 +1,8 @@
 from datetime import datetime
 import re
-from shared.worker_base import post_job_status
+from shared.worker_base import post_job_status, should_post_progress
 from shared.mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
-from shared.mysql_digital.database import database_objects as dbo_mysql, execute_select_all as mysql_execute_select_all
+from shared.mysql_digital.database import database_objects as dbo_mysql, execute_select_all as mysql_execute_select_all, execute_select_one as mysql_execute_select_one
 
 
 def insert_new_articles(articles: list):
@@ -630,8 +630,6 @@ def update_ligne(bl):
     """
     cursor_mssql.execute(script)
 
-    print(bl, flush=True)
-
     script = f"""
         update ligne1
         set ligne1.DO_PrixUnitaire = ligne2.DO_TotalHT / ligne2.ART_Qte
@@ -658,30 +656,55 @@ def handle_bl(bl: int):
 def handle_bl_documents(jobID, year, month):
     results = get_bls(year, month)
     count = 0
+    last_pct = 0
     for bl in results:
         count = count + 1
         handle_bl(bl)
-        post_job_status(
-            "digitale/bonLivraison/events/job-finished",
-            jobID, "pending",
-            ec_total=len(results),
-            ec_count=count
-        )
-
-
-def handle_some_bl_document(jobID, year, month, en_list):
-    for en_no in en_list:
-        results = get_one_company_bls(year, month, en_no)
-        count = 0
-        for bl in results:
-            count = count + 1
-            handle_bl(bl)
+        should, last_pct = should_post_progress(count, len(results), last_pct)
+        if should:
             post_job_status(
                 "digitale/bonLivraison/events/job-finished",
                 jobID, "pending",
-                ec_total=len(results),
-                ec_count=count
+                progress=last_pct
             )
+
+# function similar to get the number of bls of all the companies inside en_list and handle them with the same progress logic as handle_bl_documents
+
+
+def get_nbr_bls_some_companies(year, month, en_list):
+    script_mssql_en = f"""
+    SELECT  CT_No
+FROM TRANSIT.dbo.F_COMPTET_DIGITAL where CT_Entreprise_Sage in ({','.join([f"'{en}'" for en in en_list])})
+
+"""
+    result_en = execute_select_all(script_mssql_en)
+    result_en = [str(x[0]) for x in result_en]
+    script_mysql_en = f"""
+select count(id) from distribution_lines where year(created_at)={year} and month(created_at)={month} and client_id in ({','.join(result_en)})
+"""
+    print(script_mysql_en, flush=True)
+    result_en = mysql_execute_select_one(script_mysql_en)
+    print(result_en, flush=True)
+    return result_en[0] if result_en else 0
+
+
+def handle_some_bl_document(jobID, year, month, en_list):
+    nbr_bls = get_nbr_bls_some_companies(year, month, en_list)
+    count = 0
+    last_pct = 0
+    for en_no in en_list:
+        results = get_one_company_bls(year, month, en_no)
+        for bl in results:
+            count = count + 1
+            handle_bl(bl)
+            should, last_pct = should_post_progress(
+                count, nbr_bls, last_pct)
+            if should:
+                post_job_status(
+                    "digitale/bonLivraison/events/job-finished",
+                    jobID, "pending",
+                    progress=last_pct
+                )
 
 
 def update_entreprise_id():

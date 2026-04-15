@@ -3,7 +3,6 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useEffect, useState } from "react"
 import { EStatus, useEntrepriseBonLivraisonStore } from "../../store/store"
-import JobWatcher from "../JobWatcher"
 import { toast } from "sonner"
 import useGetBonLivraisonDigital from "../../api/use-get-bon-livraison-digital"
 import { DialogBonLivraisonAction } from "./dialog-shell"
@@ -74,22 +73,12 @@ export function DialogLoadBonLivraison({ children }: { children: ReactNode }) {
     }, [JSON.stringify(store.periode)])
 
     const submitHandler = () => {
-        const id_toast = toast(() => {
-            const s = useEntrepriseBonLivraisonStore()
-            return (
-                <div className="text-white">
-                    <h1>En cours</h1>
-                    {s.event && <JobWatcher jobId={s.event.jobId} />}
-                </div>
-            )
-        }, { duration: Infinity, style: { background: 'green' } })
-
         mutate({ json: { year, month } }, {
             onSuccess: (results: any) => {
+                toast.success("Chargement lancé")
                 store.clear()
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EStatus.ALL })
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
                 store.setPeriode(year, month)
             }
         })

@@ -3,7 +3,7 @@ import { IDocumentBonLivraison, IEntrepriseBonLivraison } from "../interface";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { getCurrentYearMonth } from "@/lib/utils";
 import { createBaseSlice } from "@/features/digitale/_shared/createBaseSlice";
-import { EStatus, IBaseStore, IEvent } from "@/features/digitale/_shared/types";
+import { EStatus, IBaseStore } from "@/features/digitale/_shared/types";
 
 // Re-export EStatus so existing imports (e.g. `import { EStatus } from "../store/store"`) keep working.
 export { EStatus };

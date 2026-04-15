@@ -17,7 +17,6 @@ import { GrRadial, GrRadialSelected } from "react-icons/gr";
 import { toast } from 'sonner';
 import { DialogCancelFactures } from '../DialogCancelFactures';
 import { MdCloudDownload } from 'react-icons/md';
-import { useQueryClient } from '@tanstack/react-query';
 
 
 const DocumentPDFView = dynamic(
@@ -211,15 +210,6 @@ export const FactureDetailSectionContainer = () => {
     const searchParams = useSearchParams()
     const { data, isPending } = useGetEnterpriseFactures(entreprise_id.toString(), searchParams.get('year') ?? '', searchParams.get('month') ?? '')
     const store = useEntrepriseDetailStore()
-    const queryClient = useQueryClient()
-
-    useEffect(() => {
-        if (store.event?.status === 'done' && store.periode.length > 0) {
-            store.clear()
-            queryClient.invalidateQueries({ queryKey: ["entreprise_factures", entreprise_id, store.periode[0], store.periode[1]], exact: true })
-            return
-        }
-    }, [JSON.stringify(store.event)])
 
     useEffect(() => {
         const year = searchParams.get('year') ?? ''

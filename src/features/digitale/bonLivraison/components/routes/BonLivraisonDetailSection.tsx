@@ -22,13 +22,10 @@ import { useEntrepriseDetailStore } from '../../store/entreprise-store';
 import { GrRadial, GrRadialSelected } from "react-icons/gr";
 import useGenerateFacturesFromBonLivraison from '../../api/use-generate-facture-from-bls';
 import { toast } from 'sonner';
-import JobWatcher from '../JobWatcher';
 import { DialogCancelFactures, DialogBonLivraisonAction, DialogActualiserOneEntrepriseBonLivraison, DialogActualiserAllBonLivraison } from '../dialogs';
 
 import { MdCloudDownload } from 'react-icons/md';
 import { fi, is, se } from 'date-fns/locale';
-import { useQueryClient } from '@tanstack/react-query';
-import JobWatcherEntrepriseDetail from '../JobWatcherEntrepriseDetail';
 
 
 const DocumentPDFView = dynamic(
@@ -214,17 +211,6 @@ const BonLivraisonSelected = ({ document }: { document: IDocumentBonLivraison })
                             entrepriseId={document.entete.EN_No.toString()}
                             year={store.periode[0]}
                             month={store.periode[1]}
-                            setEvent={store.setEvent}
-                            renderToast={() => {
-                                const detailStore = useEntrepriseDetailStore()
-
-                                return (
-                                    <div className="text-white">
-                                        <h1>En cours</h1>
-                                        {detailStore.event && <JobWatcherEntrepriseDetail jobId={detailStore.event.jobId} />}
-                                    </div>
-                                )
-                            }}
                         >
 
                             <Button variant={"ghost"} >
@@ -245,18 +231,7 @@ const BonLivraisonSelected = ({ document }: { document: IDocumentBonLivraison })
         </div>
     </>
 }
-const EventContent = () => {
-    const { event } = useEntrepriseDetailStore()
 
-
-    useEffect(() => {
-        if (event?.status === 'done') {
-            toast.success("Actualisation terminée")
-        }
-    }, [JSON.stringify(event)])
-
-    return event ? <JobWatcherEntrepriseDetail jobId={event.jobId} /> : null
-}
 
 
 const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgence, documentsBL: IDocumentBonLivraison[], month: string, year: string }) => {
@@ -286,30 +261,9 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
     }
 
     const submitHandler = () => {
-
-
-        const id_toast = toast(() => {
-
-            const store = useEntrepriseDetailStore()
-
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcherEntrepriseDetail jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
-                }
-            });
-
-
         mutate({ json: { en_list: [agence_dg.CT_Entreprise_Sage.toString()], year, month, bl_list: entrepriseStore.cart } }, {
-            onSuccess: (results: any) => {
-                entrepriseStore.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+            onSuccess: () => {
+                toast.success("Génération lancée")
             }
         })
 
@@ -348,8 +302,6 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
                         enListInvalid={enListInvalid}
                         year={entrepriseStore.periode[0]}
                         month={entrepriseStore.periode[1]}
-                        onSuccess={entrepriseStore.setEvent}
-                        EventContent={EventContent}
                     >
 
                         <Button variant={"ghost"} >
@@ -379,18 +331,6 @@ export const BonLivraisonDetailSectionContainer = () => {
     const searchParams = useSearchParams()
     const { data, isPending } = useGetEnterpriseBonLivraison(entreprise_id.toString(), searchParams.get('year') ?? '', searchParams.get('month') ?? '')
     const store = useEntrepriseDetailStore()
-    const queryClient = useQueryClient()
-
-    useEffect(() => {
-
-        if (store.event?.status === 'done' && store.periode.length > 0) {
-            store.clear()
-            queryClient.invalidateQueries({ queryKey: ["entreprise_bls", entreprise_id, store.periode[0], store.periode[1]], exact: true })
-            queryClient.invalidateQueries({ queryKey: ["entreprise_factures", entreprise_id, store.periode[0], store.periode[1]], exact: true })
-            return
-        }
-    }, [JSON.stringify(store.event)])
-
 
     useEffect(() => {
         const year = searchParams.get('year') ?? ''

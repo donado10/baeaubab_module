@@ -22,15 +22,16 @@ def get_api_base_url():
         return "http://172.30.0.1:3000"
 
 
-def post_job_status(api_endpoint, job_id, status, ec_total="", ec_count=""):
+def post_job_status(api_endpoint, job_id, status, progress=0, error=None):
     """POST job status to the API with error handling and retries."""
     url = f"{get_api_base_url()}/api/{api_endpoint}"
     payload = {
         "jobId": job_id,
         "status": status,
-        "ec_total": ec_total,
-        "ec_count": ec_count,
+        "progress": progress,
     }
+    if error is not None:
+        payload["error"] = str(error)
     for attempt in range(3):
         try:
             resp = requests.post(url, json=payload, timeout=10)
@@ -44,6 +45,24 @@ def post_job_status(api_endpoint, job_id, status, ec_total="", ec_count=""):
                 time.sleep(1)
     logger.error("POST %s failed after 3 attempts for job %s", url, job_id)
     return None
+
+
+def should_post_progress(ec_count, ec_total, last_pct, threshold=None):
+    """
+    Returns (should_post, new_last_pct).
+    Threshold adapts to job size:
+      - ec_total < 100   -> 10% steps  (<= 10 updates)
+      - 100 <= ec_total < 1000 -> 5% steps  (<= 20 updates)
+      - ec_total >= 1000  ->  2% steps  (<= 50 updates)
+    """
+    if ec_total == 0:
+        return False, last_pct
+    if threshold is None:
+        threshold = 10 if ec_total < 100 else (5 if ec_total < 1000 else 2)
+    current_pct = int((ec_count / ec_total) * 100)
+    if current_pct >= last_pct + threshold:
+        return True, current_pct
+    return False, last_pct
 
 
 def connect_with_retry(host="rabbitmq", tries=30, delay=2):
@@ -93,7 +112,7 @@ def run_worker(queue_name, handler_map, api_endpoint):
                 post_job_status(api_endpoint, data["jobId"], "failed")
                 return
 
-        post_job_status(api_endpoint, data["jobId"], "done")
+        post_job_status(api_endpoint, data["jobId"], "done", progress=100)
 
     channel.basic_consume(
         queue=queue_name,

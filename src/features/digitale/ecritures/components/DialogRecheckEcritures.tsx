@@ -17,7 +17,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
 import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
 import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 import { toast } from "sonner"
 import useLoadEcrituresCheckBills from "../api/use-load-ecritures-check-bills"
@@ -33,30 +32,12 @@ export function DialogRecheckEcritures({ children }: { children: ReactNode }) {
     const submitHandler = () => {
         setClose(false)
 
-
-        const id_toast = toast(() => {
-            const store = useEcritureEnteteLigneStore()
-
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
-                }
-            });
-
         mutateWithCheck({ json: { year: store.periode[0], month: store.periode[1], bills: store.billCart } }, {
             onSuccess: (results: any) => {
+                toast.success("Vérification lancée")
                 store.clear()
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })
 
@@ -94,30 +75,12 @@ export function DialogRecheckEcriture({ refpiece, open, setOpen }: { refpiece: s
     const submitHandler = () => {
         setOpen(false)
 
-
-        const id_toast = toast(() => {
-            const store = useEcritureEnteteLigneStore()
-
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
-                }
-            });
-
         mutateWithCheck({ json: { year: store.periode[0], month: store.periode[1], bills: [refpiece] } }, {
             onSuccess: (results: any) => {
+                toast.success("Vérification lancée")
                 store.clear()
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })
 

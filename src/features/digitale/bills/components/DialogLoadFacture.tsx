@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ReactNode, useEffect, useState } from "react"
 //import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { EStatus, useEntrepriseFactureStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useGetFacture from "../api/use-get-facture"
 import useGetFactureDigital from "../api/use-get-bon-livraison-digital"
@@ -100,31 +99,12 @@ export function DialogLoadFacture({ children }: { children: ReactNode }) {
         setClose(false)
         store.setPeriode(year, month)
 
-
-        const id_toast = toast(() => {
-            const store = useEntrepriseFactureStore()
-
-
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
-                }
-            });
-
         mutate({ json: { year, month } }, {
             onSuccess: (results: any) => {
+                toast.success("Job lancé")
                 store.clear()
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EStatus.ALL })
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })
 

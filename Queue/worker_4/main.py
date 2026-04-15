@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import re
-from shared.worker_base import post_job_status
+from shared.worker_base import post_job_status, should_post_progress
 from shared.mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
 from shared.mysql_digital.database import database_objects as dbo_mysql, execute_select_all as mysql_execute_select_all
 
@@ -230,6 +230,7 @@ def main_process_factures_from_bl(jobID, year, month, entreprises: list, bls: li
     latest_fact_id = get_latest_facture_id()
 
     count = 0
+    last_pct = 0
 
     for entreprise in entreprises:
         entetes = get_facture_entete_detail_by_company_id_and_bl(
@@ -243,12 +244,14 @@ def main_process_factures_from_bl(jobID, year, month, entreprises: list, bls: li
 
             count += 1
 
-            post_job_status(
-                "digitale/bonLivraison/events/job-finished",
-                jobID, "pending",
-                ec_total=len(entreprises),
-                ec_count=count
-            )
+            should, last_pct = should_post_progress(
+                count, len(entreprises), last_pct)
+            if should:
+                post_job_status(
+                    "digitale/facture/events/job-finished",
+                    jobID, "pending",
+                    progress=last_pct
+                )
 
 
 def main_process_factures(jobID, year, month):
@@ -261,6 +264,7 @@ def main_process_factures(jobID, year, month):
     latest_fact_id = get_latest_facture_id()
 
     count = 0
+    last_pct = 0
 
     for entreprise in entreprises:
         entetes = get_facture_entete_detail_by_company_id(
@@ -274,12 +278,14 @@ def main_process_factures(jobID, year, month):
 
             count += 1
 
-            post_job_status(
-                "digitale/bonLivraison/events/job-finished",
-                jobID, "pending",
-                ec_total=len(entreprises),
-                ec_count=count
-            )
+            should, last_pct = should_post_progress(
+                count, len(entreprises), last_pct)
+            if should:
+                post_job_status(
+                    "digitale/facture/events/job-finished",
+                    jobID, "pending",
+                    progress=last_pct
+                )
 
 
 def main_process_facture_by_entreprise(jobID, entreprises, year, month):
@@ -290,6 +296,7 @@ def main_process_facture_by_entreprise(jobID, entreprises, year, month):
     latest_fact_id = get_latest_facture_id()
 
     count = 0
+    last_pct = 0
 
     for entreprise in entreprises:
         entetes = get_facture_entete_detail_by_company_id(
@@ -303,9 +310,11 @@ def main_process_facture_by_entreprise(jobID, entreprises, year, month):
 
             count += 1
 
-            post_job_status(
-                "digitale/bonLivraison/events/job-finished",
-                jobID, "pending",
-                ec_total=len(entreprises),
-                ec_count=count
-            )
+            should, last_pct = should_post_progress(
+                count, len(entreprises), last_pct)
+            if should:
+                post_job_status(
+                    "digitale/facture/events/job-finished",
+                    jobID, "pending",
+                    progress=last_pct
+                )

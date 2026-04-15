@@ -5,6 +5,7 @@ import amqp from "amqplib";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
 import { sessionMiddleware } from "@/lib/session-middleware";
+import { createJob } from "@/features/server/job/create-job";
 import sql from "mssql";
 
 const getAdjacentEntreprises = async (
@@ -167,6 +168,7 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month } = c.req.valid("json");
+			const user = c.get("user");
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
@@ -174,6 +176,7 @@ const app = new Hono()
 			await channel.assertQueue("generate_digital_fact_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "facture", "all", user.$id);
 
 			channel.sendToQueue(
 				"generate_digital_fact_jobs",
@@ -203,6 +206,7 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month, en_list, bl_list } = c.req.valid("json");
+			const user = c.get("user");
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
@@ -210,6 +214,7 @@ const app = new Hono()
 			await channel.assertQueue("generate_digital_fact_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "facture", "fromBonLivraison", user.$id);
 
 			channel.sendToQueue(
 				"generate_digital_fact_jobs",
@@ -240,6 +245,7 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month, en_list } = c.req.valid("json");
+			const user = c.get("user");
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
@@ -247,6 +253,7 @@ const app = new Hono()
 			await channel.assertQueue("generate_digital_fact_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "facture", "byEntreprise", user.$id);
 
 			channel.sendToQueue(
 				"generate_digital_fact_jobs",

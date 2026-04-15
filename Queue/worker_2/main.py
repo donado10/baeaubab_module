@@ -1,7 +1,7 @@
 from datetime import datetime
 import re
 
-from shared.worker_base import post_job_status
+from shared.worker_base import post_job_status, should_post_progress
 from shared.mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
 from shared.mysql_digital.database import database_objects as dbo_mysql
 
@@ -377,6 +377,7 @@ def process_facture_detail(jobId, year, month, journal, database):
         return
 
     row_count = 0
+    last_pct = 0
 
     for row in rowsByBill:
         row_count = row_count + 1
@@ -384,12 +385,14 @@ def process_facture_detail(jobId, year, month, journal, database):
 
         data = process_data(filteredRows, row[0])
         insert_data(data, database, journal)
-        post_job_status(
-            "digitale/ecritures/events/job-finished",
-            jobId, "pending",
-            ec_total=len(rowsByBill),
-            ec_count=row_count
-        )
+        should, last_pct = should_post_progress(
+            row_count, len(rowsByBill), last_pct)
+        if should:
+            post_job_status(
+                "digitale/ecritures/events/job-finished",
+                jobId, "pending",
+                progress=last_pct
+            )
 
     change_status([f"'{x[0]}'" for x in rowsByBill], journal)
     conn_mssql.commit()

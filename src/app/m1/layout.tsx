@@ -1,6 +1,7 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import BreadcrumbContainer from "@/components/layout/breadcrumbContainer";
 import NotificationSection from "@/components/notification/notification";
+import ActiveJobWatcher from "@/components/notification/active-job-watcher";
 import SearchSection from "@/features/digitale/search/components/SearchSection";
 import Providers from "@/components/providers/queryProviders";
 
@@ -25,7 +26,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
 
   return (
     <Providers>
-
+      <ActiveJobWatcher />
       <SidebarProvider className="">
         <AppSidebar />
         <div className="flex flex-col w-full p-4 h-screen overflow-hidden">

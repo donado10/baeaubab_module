@@ -14,13 +14,14 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ReactNode, useState } from "react"
 //import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { EStatus, useEntrepriseFactureStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
 import useGenerateFactures from "../api/use-generate-factures"
 import useDeleteFactures from "../api/use-delete-factures"
 import { useQueryClient } from "@tanstack/react-query"
 import useGetFacture from "../api/use-get-facture"
+import useDeleteFactureByDocument from "../api/use-delete-facture"
+import { useEntrepriseDetailStore } from "../store/entreprise-store"
 
 
 const months = [
@@ -83,21 +84,21 @@ const SelectYear = ({ year, onSetYear }: { year: string; onSetYear: (value: stri
 
 export function DialogCancelFactures({ children }: { children: ReactNode }) {
 
-    const store = useEntrepriseFactureStore()
+    const store = useEntrepriseDetailStore()
 
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
     const queryClient = useQueryClient()
 
 
-    const { mutate } = useDeleteFactures()
+    const { mutate } = useDeleteFactureByDocument()
 
 
     const submitHandler = () => {
 
 
 
-        mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
+        mutate({ json: { year: store.periode[0], month: store.periode[1], en_no: store.entreprise.EN_No_Sage, fact_list: store.billCart } }, {
             onSuccess: (results: any) => {
 
                 toast.success("Factures annulées avec succès !", {

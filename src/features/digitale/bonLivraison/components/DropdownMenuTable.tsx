@@ -10,7 +10,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEntrepriseBonLivraisonStore } from "../store/store";
 import { toast } from "sonner";
-import JobWatcher from "./JobWatcher";
 import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise";
 import useUpdateBonLivraison from "../api/use-update-bon-livraison";
 
@@ -32,59 +31,20 @@ export function DropdownMenuTable({
   const entreprise = store.items.find((item) => item.EN_No.toString() === ref_enterprise)
 
   const submitHandler = () => {
-    const id_toast = toast(() => {
-      const entrepriseStore = useEntrepriseBonLivraisonStore()
-
-
-      return (
-        <div className="text-white">
-          <h1 >En cours</h1>
-          {entrepriseStore.event && <JobWatcher jobId={entrepriseStore.event.jobId} />}
-        </div >
-      )
-    },
-      {
-        duration: Infinity,
-        style: {
-          background: 'green'
-        }
-      });
-
     if (entreprise) {
       mutate({ json: { en_list_invalid: entreprise.EN_Valide === 0 ? [ref_enterprise] : [], en_list_valid: entreprise.EN_Valide === 1 ? [ref_enterprise] : [], year: store.periode[0], month: store.periode[1] } }, {
-        onSuccess: (results: any) => {
-          store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
-
+        onSuccess: () => {
+          toast.success("Actualisation lancée")
         }
       })
     }
   }
 
   const generateBillHandler = () => {
-    const id_toast = toast(() => {
-      const store = useEntrepriseBonLivraisonStore()
-
-
-      return (
-        <div className="text-white">
-          <h1 >En cours</h1>
-          {store.event && <JobWatcher jobId={store.event.jobId} />}
-        </div >
-      )
-    },
-      {
-        duration: Infinity,
-        style: {
-          background: 'green'
-        }
-      });
-
     if (entreprise) {
-
-
       mutateGenerateBill({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1] } }, {
-        onSuccess: (results: any) => {
-          store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
+        onSuccess: () => {
+          toast.success("Génération de facture lancée")
         }
       })
     }

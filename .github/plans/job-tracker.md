@@ -13,7 +13,7 @@ Replace the ephemeral in-memory SSE-only job tracking with a persistent `F_JOB_D
 
 ### Phase 1: Database & Schema
 
-**Step 1.1** — Create `TRANSIT.dbo.F_JOB_DIGITAL` table:
+**Step 1.1** — Create `TRANSIT.dbo.F_JOB_DIGITAL` table :
 
 - `Job_No` (INT IDENTITY PK), `Job_Id` (NVARCHAR(50) UNIQUE — Appwrite ID), `Job_Module` (ecritures/bonLivraison/facture), `Job_Type` (all/some/set_valid/facture_detail/etc.), `Job_Status` (pending/done/failed), **`Job_Progress INT` (0–100, percentage — not raw counts)**, `Job_Error` (NVARCHAR(MAX)), `Job_UserId`, `created_at`, `updated_at`
 

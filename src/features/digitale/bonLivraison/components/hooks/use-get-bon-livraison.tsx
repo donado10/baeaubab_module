@@ -2,7 +2,6 @@ import React, { useEffect } from 'react'
 import { useEntrepriseBonLivraisonStore } from '../../store/store'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useGetBonLivraisonStatsByCompany from '../../api/use-get-bon-livraison'
-import { useQueryClient } from '@tanstack/react-query'
 
 
 const useGetBonLivraison = () => {
@@ -10,17 +9,6 @@ const useGetBonLivraison = () => {
     const searchParams = useSearchParams()
     const { data, isPending } = useGetBonLivraisonStatsByCompany(store.periode[0], store.periode[1])
     const router = useRouter()
-    const queryClient = useQueryClient()
-
-
-    useEffect(() => {
-
-        if (store.event?.status === 'done' && store.periode.length > 0) {
-            queryClient.invalidateQueries({ queryKey: ["get-bon-livraison-stats-by-company", store.periode[0], store.periode[1]], exact: true })
-            queryClient.invalidateQueries({ queryKey: ["get-bon-livraison-stats", store.periode[0], store.periode[1]], exact: true })
-            return
-        }
-    }, [JSON.stringify(store.event)])
 
 
     useEffect(() => {

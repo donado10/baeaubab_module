@@ -1,13 +1,5 @@
 /** Shared types used across all digitale feature modules. */
 
-export interface IEvent {
-	jobId: string;
-	status: string;
-	ec_count: string;
-	ec_total: string;
-	id_toast_job: string;
-}
-
 export enum EStatus {
 	ALL = "Tout",
 	VALID = 1,
@@ -15,14 +7,12 @@ export enum EStatus {
 }
 
 /**
- * Minimum store shape required by shared infrastructure (JobWatcher, etc.).
+ * Minimum store shape required by shared infrastructure.
  * TCartItem defaults to string; use number for features like bills.
  */
 export interface IBaseStore<TCartItem = string> {
-	event: IEvent | null;
 	billCart: TCartItem[];
 	periode: string[];
-	setEvent: (event: IEvent) => void;
 	setAddBillCart: (item: TCartItem) => void;
 	setRemoveBillCart: (item: TCartItem) => void;
 	setAddAllBillCart: (items: TCartItem[]) => void;

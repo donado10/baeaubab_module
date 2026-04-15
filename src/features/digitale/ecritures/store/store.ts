@@ -1,14 +1,6 @@
 import { create } from "zustand";
 import { IEcritureEnteteLigne, IEcritureError } from "../interface";
 
-interface IEvent {
-	jobId: string;
-	status: string;
-	ec_count: string;
-	ec_total: string;
-	id_toast_job: string;
-}
-
 interface IDialogEcritures {
 	viewTable: [boolean, string];
 	viewTableCorrection: [boolean, string];
@@ -36,7 +28,6 @@ interface IEcritureEnteteLigneState {
 	items: IEcritureEnteteLigne;
 	sourceEc: "sage" | "digital";
 	periode: string[];
-	event: IEvent | null;
 	filter: IFilter;
 	billCart: string[];
 	errors: IEcritureError[];
@@ -48,7 +39,6 @@ interface IEcritureEnteteLigneState {
 	setAddAllBillCart: (bills: string[]) => void;
 	setRemoveAllBillCart: () => void;
 	setItems: (items: IEcritureEnteteLigne) => void;
-	setEvent: (event: IEvent) => void;
 	setErrors: (errors: IEcritureError[]) => void;
 	setFilter: (filter: IFilter) => void;
 	setSourceEc: (source: "sage" | "digital") => void;
@@ -62,7 +52,6 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		items: [],
 		periode: [],
 		billCart: [],
-		event: null,
 		sourceEc: "sage",
 		dialog: {
 			viewTable: [false, ""],
@@ -88,7 +77,6 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 		setDialogState: (dialogState: IDialogEcritures) =>
 			set({ dialog: { ...dialogState } }),
 		setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
-		setEvent: (event: IEvent) => set({ event: event }),
 		setSourceEc: (source: "sage" | "digital") => set({ sourceEc: source }),
 		setFilter: (filter: IFilter) => set({ filter: filter }),
 		setErrors: (errors: IEcritureError[]) => set({ errors: errors }),
@@ -112,7 +100,6 @@ export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
 					ecart_conformite: 0,
 				},
 				items: [],
-				event: null,
 			}),
 	}),
 );

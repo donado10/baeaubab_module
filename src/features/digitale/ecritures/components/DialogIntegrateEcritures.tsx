@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog"
 import { ReactNode, useState } from "react"
 import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useSetValidateBills from "../api/use-set-valid-bills"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -68,29 +67,10 @@ export function DialogIntegrateEcritures({ children }: { children: ReactNode }) 
     const submitHandler = () => {
         setClose(false)
 
-
-        const id_toast = toast(() => {
-            const store = useEcritureEnteteLigneStore()
-
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
-                }
-            });
-
         mutate({ json: { database: database, journal: journal, month: store.periode[1], year: store.periode[0] } }, {
-            onSuccess: (results: any) => {
-                store.event?.id_toast_job && toast.dismiss(store.event?.id_toast_job);
+            onSuccess: () => {
+                toast.success("Job d'intégration lancé")
                 store.clear()
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results?.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })
 

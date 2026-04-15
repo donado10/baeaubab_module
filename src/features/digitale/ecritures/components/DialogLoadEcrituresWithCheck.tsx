@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ReactNode, useState } from "react"
 import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { useEcritureEnteteLigneStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
+
 
 export function DialogLoadEcrituresWithCheck({ open, onOpen }: { open: boolean, onOpen: (value: boolean) => void }) {
 

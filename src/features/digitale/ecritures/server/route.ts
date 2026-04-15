@@ -9,6 +9,7 @@ import { pool } from "@/lib/db-mysql";
 import z from "zod";
 import { ID } from "node-appwrite";
 import { getConnection } from "@/lib/db-mssql";
+import { createJob } from "@/features/server/job/create-job";
 import { ecritureEnteteLigneSchema, ecritureSchema } from "../schema";
 
 const app = new Hono()
@@ -148,12 +149,15 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, check } = c.req.valid("json");
 
+			const user = c.get("user");
+
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
 			await channel.assertQueue("check_digital_ec_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "ecritures", "all", user.$id);
 
 			channel.sendToQueue(
 				"check_digital_ec_jobs",
@@ -186,12 +190,15 @@ const app = new Hono()
 		async (c) => {
 			const { year, month, bills } = c.req.valid("json");
 
+			const user = c.get("user");
+
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
 			await channel.assertQueue("check_digital_ec_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "ecritures", "some", user.$id);
 
 			channel.sendToQueue(
 				"check_digital_ec_jobs",
@@ -223,6 +230,7 @@ const app = new Hono()
 		),
 		async (c) => {
 			const { year, month, bills } = c.req.valid("json");
+			const user = c.get("user");
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
@@ -230,6 +238,7 @@ const app = new Hono()
 			await channel.assertQueue("check_digital_ec_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "ecritures", "set_valid", user.$id);
 
 			channel.sendToQueue(
 				"check_digital_ec_jobs",
@@ -287,12 +296,15 @@ const app = new Hono()
 		async (c) => {
 			const { journal, database, month, year } = c.req.valid("json");
 
+			const user = c.get("user");
+
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 			const channel = await conn.createChannel();
 
 			await channel.assertQueue("integrate_digital_ec_jobs");
 
 			const jobId = ID.unique();
+			await createJob(jobId, "ecritures", "facture_detail", user.$id);
 
 			channel.sendToQueue(
 				"integrate_digital_ec_jobs",

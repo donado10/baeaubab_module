@@ -1,13 +1,14 @@
 "use client"
 
 import { client } from "@/lib/rpc";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 
 type RequestType = InferRequestType<(typeof client.api["bon-livraison"]["updateBonLivraisonByEntreprise"])["$post"]>;
 type ResponseType = InferResponseType<(typeof client.api["bon-livraison"]["updateBonLivraisonByEntreprise"])["$post"]>;
 
 const useUpdateBonLivraison = () => {
+    const queryClient = useQueryClient();
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["update_bon_livraison"],
         mutationFn: async ({ json }) => {
@@ -21,6 +22,12 @@ const useUpdateBonLivraison = () => {
 
 
             return res_
+        },
+        onSuccess: () => {
+            // Invalidate and refetch
+            queryClient.invalidateQueries({ queryKey: ["get_bon_livraison"] });
+            queryClient.invalidateQueries({ queryKey: ["entreprise_bls"] });
+            queryClient.invalidateQueries({ queryKey: ["get-bon-livraison-stats-by-company"] });
         }
     });
 

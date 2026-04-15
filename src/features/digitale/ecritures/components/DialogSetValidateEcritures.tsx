@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog"
 import { ReactNode, useState } from "react"
 import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
 import { toast } from "sonner"
 import useSetValidateBills from "../api/use-set-valid-bills"
 import { MdStarBorderPurple500 } from "react-icons/md"
@@ -30,24 +29,6 @@ export function DialogSetValidateEcritures({ children }: { children: ReactNode }
     const submitHandler = () => {
         setClose(false)
 
-
-        const id_toast = toast(() => {
-            const store = useEcritureEnteteLigneStore()
-
-            return (
-                <div className="text-white">
-                    <h1 >En cours</h1>
-                    {store.event && <JobWatcher jobId={store.event.jobId} />}
-                </div >
-            )
-        },
-            {
-                duration: Infinity,
-                style: {
-                    background: 'green'
-                }
-            });
-
         const compliantBillsOnly = store.billCart.filter((bill) => {
             const { Compliance, CreatedDate, EC_RefPiece, date_facture, job_id, Marq, ...error } = store.items.filter((item) => item.entete.EC_RefPiece === bill)[0].error[0]
             return Object.values(error).every((val) => { return val == "1" })
@@ -55,10 +36,10 @@ export function DialogSetValidateEcritures({ children }: { children: ReactNode }
 
         mutateValidateBills({ json: { year: store.periode[0], month: store.periode[1], bills: compliantBillsOnly } }, {
             onSuccess: (results: any) => {
+                toast.success("Validation lancée")
                 store.clear()
                 store.setItems(results.results)
                 store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })
-                store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
             }
         })
 

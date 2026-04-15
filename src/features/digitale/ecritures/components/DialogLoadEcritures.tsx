@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ReactNode, useState } from "react"
 import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
 import { EEcritureStatut, useEcritureEnteteLigneStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
 import useLoadEcrituresWithCheck from "../api/use-load-ecritures-with-check"
 import { toast } from "sonner"
 import { RadioGroupChoiceCard } from "./ChoiceCardLoadEcritures"
@@ -101,29 +100,12 @@ export function DialogLoadEcritures({ children }: { children: ReactNode }) {
 
         if (withChecking) {
 
-            const id_toast = toast(() => {
-                const store = useEcritureEnteteLigneStore()
-
-                return (
-                    <div className="text-white">
-                        <h1 >En cours</h1>
-                        {store.event && <JobWatcher jobId={store.event.jobId} />}
-                    </div >
-                )
-            },
-                {
-                    duration: Infinity,
-                    style: {
-                        background: 'green'
-                    }
-                });
-
             mutateWithCheck({ json: { year, month, check: withChecking } }, {
                 onSuccess: (results: any) => {
+                    toast.success("Vérification lancée")
                     store.clear()
                     store.setItems(results.results)
                     store.setFilter({ ...store.filter, status: EEcritureStatut.ALL })
-                    store.setEvent({ ec_count: "", ec_total: "", jobId: results.jobId, status: "pending", id_toast_job: id_toast as string })
                 }
             })
 

@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { IDocumentFacture, IEntrepriseFacture } from "../interface";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { createBaseSlice } from "@/features/digitale/_shared/createBaseSlice";
-import { EStatus, IBaseStore, IEvent } from "@/features/digitale/_shared/types";
+import { EStatus, IBaseStore } from "@/features/digitale/_shared/types";
 
 // Re-export EStatus so existing imports keep working.
 export { EStatus };

@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button'
 import { IoNotifications } from 'react-icons/io5'
 import NotificationPopover from './popover'
 import useGetUnreadNotificationsCount from './use-get-unread-notifications-count'
+import useGetActiveJobs from '@/features/server/job/api/use-get-active-jobs'
 
 type Props = {}
 
 const NotificationSection = (props: Props) => {
     const { data } = useGetUnreadNotificationsCount();
-    const unreadCount = data?.unreadCount ?? 0;
+    const { data: activeJobsData } = useGetActiveJobs();
+    const unreadCount = (data?.unreadCount ?? 0) + (activeJobsData?.results?.length ?? 0);
 
     return (
         <NotificationPopover>

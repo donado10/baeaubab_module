@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react'
 import { cn, formatNumberToFrenchStandard, getFrenchMonthName } from '@/lib/utils'
 import { DialogLoadFacture } from '../DialogLoadFacture'
 import { EStatus, useEntrepriseFactureStore } from '../../store/store'
-import { DialogGetFacture } from '../DialogGetFacture'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -15,7 +14,6 @@ import FactureTableContainer from '../TableContainer'
 import { IEntrepriseFacture } from '../../interface'
 import useGetFactureStatsByCompany from '../../api/use-get-facture'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useQueryClient } from '@tanstack/react-query'
 import useGetFactureStats from '../../api/use-get-facture-stats'
 import { DialogCancelFactures } from '../DialogCancelFactures'
 
@@ -115,7 +113,7 @@ const FactureStatsContainer = () => {
 
     if (!data) {
         return <>
-            <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Clients' count={0} />
+            <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Factures' count={0} />
             <FactureStatCard background='bg-yellow-200' title="Chiffre d'Affaire Total" count={0} />
             <FactureStatCard background='bg-green-200' title="Chiffre d'Affaire Taxables" count={0} />
             <FactureStatCard background='bg-gray-200' title="Chiffre d'Affaire Exonorés" count={0} />
@@ -125,7 +123,7 @@ const FactureStatsContainer = () => {
 
 
     return <>
-        <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Clients' count={data.results.factures} />
+        <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Factures' count={data.results.factures} />
         <FactureStatCard background='bg-yellow-200' title="Chiffre d'Affaire Total" count={formatNumberToFrenchStandard(data.results.total)} />
         <FactureStatCard background='bg-green-200' title="Chiffre d'Affaire Taxables" count={formatNumberToFrenchStandard(data.results.taxable)} />
         <FactureStatCard background='bg-gray-200' title="Chiffre d'Affaire Exonorés" count={formatNumberToFrenchStandard(data.results.exonore)} />
@@ -162,17 +160,6 @@ const FactureSectionContainer = () => {
     const searchParams = useSearchParams()
     const { data, isPending } = useGetFactureStatsByCompany(store.periode[0], store.periode[1])
     const router = useRouter()
-    const queryClient = useQueryClient()
-
-
-    useEffect(() => {
-
-        if (store.event?.status === 'done' && store.periode.length > 0) {
-            queryClient.invalidateQueries({ queryKey: ["get-facture-stats-by-company", store.periode[0], store.periode[1]], exact: true })
-            queryClient.invalidateQueries({ queryKey: ["get-facture-stats", store.periode[0], store.periode[1]], exact: true })
-            return
-        }
-    }, [JSON.stringify(store.event)])
 
 
     useEffect(() => {
@@ -220,14 +207,10 @@ const FactureSectionContainer = () => {
 
 const FactureSection = ({ documents }: { documents: IEntrepriseFacture[] }) => {
 
-    const [dialogFacture, setDialogFacture] = useState(false)
-
-
     const store = useEntrepriseFactureStore()
 
     return (
         <section className='p-4 text-gray-700'>
-            {store.event?.status === 'done' && <DialogGetFacture open={dialogFacture} onOpen={setDialogFacture} />}
             <div className=''>
 
                 <div className='flex items-center justify-between mb-8 '>

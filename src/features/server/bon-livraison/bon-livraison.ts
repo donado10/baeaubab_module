@@ -5,6 +5,7 @@ import { getConnection } from "@/lib/db-mssql";
 import amqp from "amqplib";
 import { ID } from "node-appwrite";
 import { sessionMiddleware } from "@/lib/session-middleware";
+import { createJob } from "@/features/server/job/create-job";
 import sql from "mssql";
 
 const getAdjacentEntreprises = async (
@@ -211,6 +212,7 @@ const queueBonLivraisonUpdate = async (
 	year: string,
 	month: string,
 	en_list: string[],
+	userId: string,
 ) => {
 	const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
 	const channel = await conn.createChannel();
@@ -218,6 +220,7 @@ const queueBonLivraisonUpdate = async (
 	await channel.assertQueue("get_digital_bl_jobs");
 
 	const jobId = ID.unique();
+	await createJob(jobId, "bonLivraison", "bl_some", userId);
 
 	channel.sendToQueue(
 		"get_digital_bl_jobs",
@@ -291,7 +294,13 @@ const app = new Hono()
 			await deleteInvalidBonLivraisons(year, month, en_list_invalid);
 
 			const en_list = [...en_list_valid, ...en_list_invalid];
-			const jobId = await queueBonLivraisonUpdate(year, month, en_list);
+			const user = c.get("user");
+			const jobId = await queueBonLivraisonUpdate(
+				year,
+				month,
+				en_list,
+				user.$id,
+			);
 
 			return c.json({ results: [], jobId: jobId });
 		},
@@ -326,7 +335,13 @@ const app = new Hono()
 
 			await deleteBonLivraison(year, month, entreprise_id, bl_id);
 
-			const jobId = await queueBonLivraisonUpdate(year, month, [entreprise_id]);
+			const user = c.get("user");
+			const jobId = await queueBonLivraisonUpdate(
+				year,
+				month,
+				[entreprise_id],
+				user.$id,
+			);
 
 			return c.json({ results: [], jobId: jobId });
 		},

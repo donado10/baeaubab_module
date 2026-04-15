@@ -12,12 +12,9 @@ import { MdCloudDownload } from "react-icons/md";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import BonLivraisonTableContainer from '../TableContainer'
 import useGetBillStats from '../../api/use-get-bl-stats'
-import { IDocumentBonLivraison, IEntrepriseBonLivraison } from '../../interface'
-import JobWatcher from '../JobWatcher'
 import useGetBonLivraisonStatsByCompany from '../../api/use-get-bon-livraison'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useGetBonLivraisonStats from '../../api/use-get-bl-stats'
-import { useQueryClient } from '@tanstack/react-query'
 
 
 
@@ -133,11 +130,6 @@ const BonLivraisonStatsContainer = () => {
 }
 
 
-const EventContent = () => {
-    const { event } = useEntrepriseBonLivraisonStore()
-    return event ? <JobWatcher jobId={event.jobId} /> : null
-}
-
 const BonLivraisonButtonContainer = () => {
     const store = useEntrepriseBonLivraisonStore()
 
@@ -151,8 +143,6 @@ const BonLivraisonButtonContainer = () => {
             enListInvalid={enListInvalid}
             year={store.periode[0]}
             month={store.periode[1]}
-            onSuccess={store.setEvent}
-            EventContent={EventContent}
         >
 
             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
@@ -190,17 +180,6 @@ const BonLivraisonSectionContainer = () => {
     const searchParams = useSearchParams()
     const { data, isPending } = useGetBonLivraisonStatsByCompany(store.periode[0], store.periode[1])
     const router = useRouter()
-    const queryClient = useQueryClient()
-
-
-    useEffect(() => {
-
-        if (store.event?.status === 'done' && store.periode.length > 0) {
-            queryClient.invalidateQueries({ queryKey: ["get-bon-livraison-stats-by-company", store.periode[0], store.periode[1]], exact: true })
-            queryClient.invalidateQueries({ queryKey: ["get-bon-livraison-stats", store.periode[0], store.periode[1]], exact: true })
-            return
-        }
-    }, [JSON.stringify(store.event)])
 
 
     useEffect(() => {

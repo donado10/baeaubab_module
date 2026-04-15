@@ -1,7 +1,7 @@
 from shared.worker_base import run_worker
 from main import main_process_facture_by_entreprise, main_process_factures, main_process_factures_from_bl
 
-API_ENDPOINT = "digitale/bonLivraison/events/job-finished"
+API_ENDPOINT = "digitale/facture/events/job-finished"
 
 handler_map = {
     "all": lambda data: main_process_factures(data["jobId"], data["year"], data["month"]),

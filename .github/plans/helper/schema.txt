@@ -1,0 +1,27 @@
+USE TRANSIT;
+GO
+
+CREATE TABLE dbo.F_JOB_DIGITAL (
+    Job_No       INT            IDENTITY(1,1)  NOT NULL,
+    Job_Id       NVARCHAR(50)   NOT NULL,
+    Job_Module   NVARCHAR(50)   NOT NULL,  -- ecritures / bonLivraison / facture
+    Job_Type     NVARCHAR(50)   NOT NULL,  -- all / some / set_valid / facture_detail / etc.
+    Job_Status   NVARCHAR(20)   NOT NULL   CONSTRAINT DF_F_JOB_DIGITAL_Status   DEFAULT 'pending',  -- pending / done / failed
+    Job_Progress INT            NOT NULL   CONSTRAINT DF_F_JOB_DIGITAL_Progress DEFAULT 0,          -- 0–100
+    Job_Error    NVARCHAR(MAX)  NULL,
+    Job_UserId   NVARCHAR(50)   NOT NULL,
+    created_at   DATETIME       NOT NULL   CONSTRAINT DF_F_JOB_DIGITAL_created  DEFAULT GETDATE(),
+    updated_at   DATETIME       NOT NULL   CONSTRAINT DF_F_JOB_DIGITAL_updated  DEFAULT GETDATE(),
+
+    CONSTRAINT PK_F_JOB_DIGITAL         PRIMARY KEY CLUSTERED (Job_No),
+    CONSTRAINT UQ_F_JOB_DIGITAL_Job_Id  UNIQUE (Job_Id),
+    CONSTRAINT CK_F_JOB_DIGITAL_Status  CHECK (Job_Status  IN ('pending', 'done', 'failed')),
+    CONSTRAINT CK_F_JOB_DIGITAL_Progress CHECK (Job_Progress BETWEEN 0 AND 100)
+);
+GO
+
+-- Index for per-user active job lookups (used by GET /active)
+CREATE NONCLUSTERED INDEX IX_F_JOB_DIGITAL_UserId_Status
+    ON dbo.F_JOB_DIGITAL (Job_UserId, Job_Status)
+    INCLUDE (Job_Id, Job_Module, Job_Type, Job_Progress, created_at, updated_at);
+GO

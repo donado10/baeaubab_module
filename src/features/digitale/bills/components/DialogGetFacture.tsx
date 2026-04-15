@@ -18,7 +18,6 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ReactNode, useState } from "react"
 import useGetFacture from "../api/use-get-facture"
 import { useEntrepriseFactureStore } from "../store/store"
-import JobWatcher from "./JobWatcher"
 
 export function DialogGetFacture({ open, onOpen }: { open: boolean, onOpen: (value: boolean) => void }) {
 
@@ -32,7 +31,6 @@ export function DialogGetFacture({ open, onOpen }: { open: boolean, onOpen: (val
         mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: (results: any) => {
                 store.setItems(results.result)
-                store.setEvent(null)
             }
         })
 
