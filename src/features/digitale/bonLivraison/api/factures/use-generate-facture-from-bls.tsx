@@ -10,6 +10,7 @@ type ResponseType = InferResponseType<(typeof client.api.facture.generateFromBon
 
 const useGenerateFacturesFromBonLivraison = () => {
     const store = useEntrepriseDetailStore()
+    const queryClient = useQueryClient()
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["generate_factures_from_bon_livraison"],
         mutationFn: async ({ json }) => {
@@ -20,7 +21,12 @@ const useGenerateFacturesFromBonLivraison = () => {
             }
 
             return await res.json();
-        }
+        },
+        onSuccess: () => {
+            // Force an immediate re-poll so ActiveJobWatcher sees the new
+            // pending job before the next 5s interval fires.
+            queryClient.invalidateQueries({ queryKey: ["get-active-jobs"] });
+        },
     });
 
     return mutation;

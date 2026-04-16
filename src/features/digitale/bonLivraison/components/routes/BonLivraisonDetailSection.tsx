@@ -254,9 +254,11 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
     }
 
     const submitGenerateFacture = () => {
+
         mutate({ json: { en_no: agence_dg.CT_Entreprise_Sage, year, month, bl_list: entrepriseStore.cart } }, {
             onSuccess: () => {
                 toast.success("Génération lancée")
+                entrepriseStore.setClearCart()
             }
         })
 

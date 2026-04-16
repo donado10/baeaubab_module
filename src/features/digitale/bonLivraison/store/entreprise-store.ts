@@ -32,6 +32,7 @@ interface IDocumentBonLivraisonState extends IBaseStore {
 	setAddCart: (item: string) => void;
 	setRemoveCart: (item: string) => void;
 	setSelectedOption: (option: boolean) => void;
+	setClearCart: () => void;
 	clear: () => void;
 }
 
@@ -64,6 +65,7 @@ export const useEntrepriseDetailStore = create<IDocumentBonLivraisonState>()(
 			set((state) => ({
 				cart: state.cart.filter((cartItem) => cartItem !== item),
 			})),
+		setClearCart: () => set({ cart: [] }),
 		setSelectedOption: (option: boolean) => set({ selectedOption: option }),
 
 		clear: () =>

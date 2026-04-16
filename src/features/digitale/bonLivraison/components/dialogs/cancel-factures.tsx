@@ -7,6 +7,8 @@ import { useEntrepriseDetailStore } from "../../store/entreprise-store"
 import { DialogBonLivraisonAction } from "./dialog-shell"
 import useDeleteSelectedFactures from "@/features/digitale/_shared/api/use-delete-selected-factures"
 import useDeleteFacturesSingleEntreprise from "@/features/digitale/_shared/api/use-delete-all-factures-single-entreprise"
+import useDeleteFactures from "@/features/digitale/_shared/api/use-delete-all-factures"
+import { useEntrepriseFactureStore } from "@/features/digitale/bills/store/store"
 
 export function DialogCancelSelectedFactures({ children }: { children: ReactNode }) {
     const store = useEntrepriseDetailStore()
@@ -55,6 +57,39 @@ export function DialogCancelFacturesSingleEntreprise({ children }: { children: R
 
                 queryClient.invalidateQueries({ queryKey: ["entreprise_bls"] })
                 queryClient.invalidateQueries({ queryKey: ["entreprise_factures"] })
+            }
+        })
+    }
+
+    return (
+        <DialogBonLivraisonAction title="Annuler Factures" onConfirm={submitHandler} isPending={false}>
+            {children}
+        </DialogBonLivraisonAction>
+    )
+}
+
+export function DialogCancelAllFactures({ children }: { children: ReactNode }) {
+
+    const store = useEntrepriseFactureStore()
+
+    const queryClient = useQueryClient()
+
+    const { mutate } = useDeleteFactures()
+
+
+
+    const submitHandler = () => {
+        mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
+            onSuccess: (results: any) => {
+                toast.success("Factures annulées avec succès !", {
+                    style: {
+                        background: 'green',
+                        color: 'white'
+                    }
+                })
+                queryClient.invalidateQueries({ queryKey: ["get-facture-stats-by-company"] })
+                queryClient.invalidateQueries({ queryKey: ["get-facture-stats"] })
+
             }
         })
     }

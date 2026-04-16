@@ -353,8 +353,12 @@ const app = new Hono()
 			const { year, month } = c.req.valid("json");
 
 			const pool = await getConnection();
-			await pool.query(
-				`
+			await pool
+				.request()
+				.input("year", sql.Int, parseInt(year))
+				.input("month", sql.Int, parseInt(month))
+				.query(
+					`
 			delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6;
 			delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6;
 			update transit.dbo.f_docentete_digital
@@ -364,11 +368,11 @@ const app = new Hono()
 			set DO_FactureReference=NULL
 			where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference is not null;
 		`,
-				{
-					year: parseInt(year),
-					month: parseInt(month),
-				},
-			);
+					{
+						year: parseInt(year),
+						month: parseInt(month),
+					},
+				);
 
 			return c.json({ result: "done" });
 		},

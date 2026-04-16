@@ -34,17 +34,45 @@ export default function ActiveJobWatcher() {
     const { data } = useGetActiveJobs();
     const queryClient = useQueryClient();
     const sourcesRef = useRef<Map<string, EventSource>>(new Map());
+    // Tracks which module each open SSE connection belongs to, so we can
+    // still invalidate data queries when a job finishes between polls.
+    const moduleByJobId = useRef<Map<string, JobModule>>(new Map());
 
     useEffect(() => {
         const jobs = data?.results ?? [];
         const activeJobIds = new Set(jobs.map((j) => j.Job_Id));
 
         // Close SSE connections for jobs no longer active
-        for (const [jobId, es] of sourcesRef.current) {
+        const staleJobIds: string[] = [];
+        for (const [jobId] of sourcesRef.current) {
             if (!activeJobIds.has(jobId)) {
-                es.close();
-                sourcesRef.current.delete(jobId);
+                staleJobIds.push(jobId);
             }
+        }
+
+        let hadStaleFastJobs = false;
+        for (const jobId of staleJobIds) {
+            sourcesRef.current.get(jobId)?.close();
+            sourcesRef.current.delete(jobId);
+
+            // The job disappeared without us receiving a "done" SSE event
+            // (fast job finished between polls). Fire module invalidations now.
+            const module = moduleByJobId.current.get(jobId);
+            if (module) {
+                const keys = MODULE_QUERY_KEYS[module] ?? [];
+                for (const key of keys) {
+                    queryClient.invalidateQueries({ queryKey: key });
+                }
+                queryClient.invalidateQueries({ queryKey: ["get-jobs"] });
+                moduleByJobId.current.delete(jobId);
+                hadStaleFastJobs = true;
+            }
+        }
+
+        // If we had fast-finishing jobs, schedule one more active-jobs poll
+        // so any new pending job that arrived in the same window gets picked up.
+        if (hadStaleFastJobs) {
+            queryClient.invalidateQueries({ queryKey: ["get-active-jobs"] });
         }
 
         // Open SSE connections for new active jobs
@@ -64,12 +92,12 @@ export default function ActiveJobWatcher() {
                 // On completion, invalidate module-specific data queries
                 try {
                     const payload = JSON.parse((e as MessageEvent).data);
-                    if (payload.status === "done") {
+                    if (payload.status === "done" || payload.status === "failed") {
                         const keys = MODULE_QUERY_KEYS[job.Job_Module] ?? [];
-                        console.log(keys)
-                        for (const prefix of keys) {
-                            queryClient.invalidateQueries({ queryKey: prefix });
+                        for (const key of keys) {
+                            queryClient.invalidateQueries({ queryKey: key });
                         }
+                        moduleByJobId.current.delete(job.Job_Id);
                     }
                 } catch { /* ignore parse errors */ }
             });
@@ -77,8 +105,10 @@ export default function ActiveJobWatcher() {
             es.onerror = () => {
                 es.close();
                 sourcesRef.current.delete(job.Job_Id);
+                moduleByJobId.current.delete(job.Job_Id);
             };
 
+            moduleByJobId.current.set(job.Job_Id, job.Job_Module);
             sourcesRef.current.set(job.Job_Id, es);
         }
     }, [data, queryClient]);
@@ -90,6 +120,7 @@ export default function ActiveJobWatcher() {
                 es.close();
             }
             sourcesRef.current.clear();
+            moduleByJobId.current.clear();
         };
     }, []);
 

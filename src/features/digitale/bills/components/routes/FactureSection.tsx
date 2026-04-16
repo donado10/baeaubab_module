@@ -15,7 +15,7 @@ import { IEntrepriseFacture } from '../../interface'
 import useGetFactureStatsByCompany from '../../api/use-get-facture'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useGetFactureStats from '../../api/use-get-facture-stats'
-import { DialogCancelFactures } from '../DialogCancelFactures'
+import { DialogCancelAllFactures } from '@/features/digitale/bonLivraison/components/dialogs'
 
 
 
@@ -135,13 +135,13 @@ const FactureButtonContainer = () => {
     const store = useEntrepriseFactureStore()
     return <div className='flex items-center gap-4'>
 
-        {store.items.length > 0 && <DialogCancelFactures >
+        {store.items.length > 0 && <DialogCancelAllFactures >
 
             <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
                 <span><MdCloudDownload />
                 </span><span>Annuler Factures</span>
             </Button>
-        </DialogCancelFactures>}
+        </DialogCancelAllFactures>}
 
 
         <DialogLoadFacture >
