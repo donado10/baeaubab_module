@@ -16,16 +16,16 @@
 ┌───────────────────────────────────────────────────────────────┐
 │                    handlers.py  (dispatch layer)              │
 │                   FactureHandlerFactory                       │
-│   .create(job_type) → handler   .build_handler_map() → dict  │
+│   .create(job_type) → handler   .build_handler_map() → dict   │
 │                                                               │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │           BaseFactureHandler (ABC)                   │    │
-│  │  handle(data)  ← abstract                            │    │
-│  └──────────┬──────────────┬──────────────────┬─────────┘    │
+│  ┌──────────────────────────────────────────────────────┐     │
+│  │           BaseFactureHandler (ABC)                   │     │
+│  │  handle(data)  ← abstract                            │     │
+│  └──────────┬──────────────┬──────────────────┬─────────┘     │
 │             │              │                  │               │
 │   AllFactures          ByEntreprise    FromBonLivraison       │
 │    Handler              Handler            Handler            │
-└─────────────┼──────────────┼──────────────────┼──────────────┘
+└─────────────┼──────────────┼──────────────────┼───────────────┘
               │ delegates    │                  │
               ▼              ▼                  ▼
 ┌───────────────────────────────────────────────────────────────┐

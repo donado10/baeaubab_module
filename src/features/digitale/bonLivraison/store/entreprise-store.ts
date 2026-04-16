@@ -71,7 +71,6 @@ export const useEntrepriseDetailStore = create<IDocumentBonLivraisonState>()(
 				documents: [],
 				entreprise: null,
 				cart: [],
-				event: null,
 				billCart: [],
 				filter: {
 					status: EStatus.ALL,

@@ -17,10 +17,10 @@ import { EStatus, useEntrepriseFactureStore } from "../store/store"
 import { toast } from "sonner"
 import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
 import useGenerateFactures from "../api/use-generate-factures"
-import useDeleteFactures from "../api/use-delete-factures"
+import useDeleteFactures from "../../_shared/api/use-delete-factures-by-entreprise"
 import { useQueryClient } from "@tanstack/react-query"
 import useGetFacture from "../api/use-get-facture"
-import useDeleteFactureByDocument from "../api/use-delete-facture"
+import useDeleteFactureByDocument from "../../_shared/api/use-delete-selected-factures"
 import { useEntrepriseDetailStore } from "../store/entreprise-store"
 
 

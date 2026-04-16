@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from main import (
-    main_process_factures,
-    main_process_facture_by_entreprise,
-    main_process_factures_from_bl,
+    generate_factures,
+    generate_factures_by_entreprise,
+    generate_factures_for_entreprise,
+    generate_factures_from_bl,
 )
 
 
@@ -14,20 +15,27 @@ class BaseFactureHandler(ABC):
 
 class AllFacturesHandler(BaseFactureHandler):
     def handle(self, data: dict):
-        main_process_factures(data["jobId"], data["year"], data["month"])
+        generate_factures(data["jobId"], data["year"], data["month"])
 
 
 class ByEntrepriseHandler(BaseFactureHandler):
     def handle(self, data: dict):
-        main_process_facture_by_entreprise(
+        generate_factures_by_entreprise(
             data["jobId"], data["en_list"], data["year"], data["month"]
         )
 
 
 class FromBonLivraisonHandler(BaseFactureHandler):
     def handle(self, data: dict):
-        main_process_factures_from_bl(
-            data["jobId"], data["year"], data["month"], data["en_list"], data["bl_list"]
+        generate_factures_from_bl(
+            data["jobId"], data["year"], data["month"], data["en_no"], data["bl_list"]
+        )
+
+
+class ForEntrepriseHandler(BaseFactureHandler):
+    def handle(self, data: dict):
+        generate_factures_for_entreprise(
+            data["jobId"], data["en_no"], data["year"], data["month"]
         )
 
 
@@ -36,6 +44,7 @@ class FactureHandlerFactory:
         "all": AllFacturesHandler,
         "byEntreprise": ByEntrepriseHandler,
         "fromBonLivraison": FromBonLivraisonHandler,
+        "forEntreprise": ForEntrepriseHandler,
     }
 
     @classmethod

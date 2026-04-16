@@ -198,14 +198,14 @@ const app = new Hono()
 		zValidator(
 			"json",
 			z.object({
-				en_list: z.array(z.string()),
+				en_no: z.string(),
 				bl_list: z.array(z.string()),
 				year: z.string(),
 				month: z.string(),
 			}),
 		),
 		async (c) => {
-			const { year, month, en_list, bl_list } = c.req.valid("json");
+			const { year, month, en_no, bl_list } = c.req.valid("json");
 			const user = c.get("user");
 
 			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
@@ -224,7 +224,7 @@ const app = new Hono()
 						year: year,
 						month: month,
 						type: "fromBonLivraison",
-						en_list: en_list,
+						en_no: en_no,
 						bl_list: bl_list,
 					}),
 				),
@@ -271,8 +271,142 @@ const app = new Hono()
 			return c.json({ results: [], jobId: jobId });
 		},
 	)
+	.post(
+		"/generateForEntreprise",
+		zValidator(
+			"json",
+			z.object({
+				en_no: z.string(),
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { year, month, en_no } = c.req.valid("json");
+			const user = c.get("user");
+
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("facture-jobs");
+
+			const jobId = ID.unique();
+			await createJob(jobId, "facture", "forEntreprise", user.$id);
+
+			channel.sendToQueue(
+				"facture-jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						en_no: en_no,
+						type: "forEntreprise",
+					}),
+				),
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		},
+	)
 	.delete(
-		"/cancel",
+		"cancelAllSingleEntreprise",
+		zValidator(
+			"json",
+			z.object({
+				en_no: z.string(),
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { year, month, en_no } = c.req.valid("json");
+
+			const pool = await getConnection();
+			await pool
+				.request()
+				.input("year", sql.Int, parseInt(year))
+				.input("month", sql.Int, parseInt(month))
+				.input("en_no", sql.NVarChar, en_no).query(`
+					delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and do_entreprise_sage = @en_no;
+					delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and do_entreprise_sage = @en_no;
+					update transit.dbo.f_docentete_digital
+					set do_valide=0,DO_FactureReference=NULL
+					where year(created_at) = @year and month(created_at) = @month and do_type=3 and do_entreprise_sage = @en_no and DO_FactureReference is not null;
+					update transit.dbo.f_docligne_digital
+					set DO_FactureReference=NULL
+					where year(created_at) = @year and month(created_at) = @month and do_type=3 and do_entreprise_sage = @en_no and DO_FactureReference is not null;
+				`);
+			return c.json({ result: "done" });
+		},
+	)
+	.delete(
+		"cancelAll",
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { year, month } = c.req.valid("json");
+
+			const pool = await getConnection();
+			await pool.query(
+				`
+			delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6;
+			delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6;
+			update transit.dbo.f_docentete_digital
+			set do_valide=0,DO_FactureReference=NULL
+			where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference is not null;
+			update transit.dbo.f_docligne_digital
+			set DO_FactureReference=NULL
+			where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference is not null;
+		`,
+				{
+					year: parseInt(year),
+					month: parseInt(month),
+				},
+			);
+
+			return c.json({ result: "done" });
+		},
+	)
+	.delete(
+		"/cancelSingle",
+		zValidator(
+			"json",
+			z.object({
+				fact_no: z.string(),
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { year, month, fact_no } = c.req.valid("json");
+
+			const pool = await getConnection();
+			await pool
+				.request()
+				.input("year", sql.Int, parseInt(year))
+				.input("month", sql.Int, parseInt(month))
+				.input("fact_no", sql.NVarChar, fact_no).query(`
+					delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and DO_No = @fact_no;
+					delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and DO_No = @fact_no;
+					update transit.dbo.f_docentete_digital
+					set do_valide=0,DO_FactureReference=NULL
+					where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference = @fact_no;
+					update transit.dbo.f_docligne_digital
+					set DO_FactureReference=NULL
+					where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference = @fact_no;
+				`);
+
+			return c.json({ result: "done" });
+		},
+	)
+	.delete(
+		"/cancelByEntreprise",
 		zValidator(
 			"json",
 			z.object({
@@ -310,24 +444,22 @@ const app = new Hono()
 		},
 	)
 	.delete(
-		"/cancelByDocument",
+		"/cancelSelected",
 		zValidator(
 			"json",
 			z.object({
 				fact_list: z.array(z.string()),
-				en_no: z.string(),
 				year: z.string(),
 				month: z.string(),
 			}),
 		),
 		async (c) => {
-			const { year, month, fact_list, en_no } = c.req.valid("json");
+			const { year, month, fact_list } = c.req.valid("json");
 
 			const pool = await getConnection();
 			const req = pool.request();
 			req.input("year", sql.Int, parseInt(year));
 			req.input("month", sql.Int, parseInt(month));
-			req.input("en_no", sql.NVarChar, en_no);
 			const factParams = fact_list
 				.map((bl, i) => {
 					req.input(`fact${i}`, sql.NVarChar, bl);
@@ -336,14 +468,14 @@ const app = new Hono()
 				.join(",");
 
 			await req.query(`
-				delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and do_entreprise_sage in (@en_no) and DO_No in (${factParams});
-				delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and do_entreprise_sage in (@en_no) and DO_No in (${factParams});
+				delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and DO_No in (${factParams});
+				delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6 and DO_No in (${factParams});
 				update transit.dbo.f_docentete_digital
 				set do_valide=0,DO_FactureReference=NULL
-				where year(created_at) = @year and month(created_at) = @month and do_type=3 and do_entreprise_sage in (@en_no) and DO_FactureReference in (${factParams});
+				where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference in (${factParams});
 				update transit.dbo.f_docligne_digital
 				set DO_FactureReference=NULL
-				where year(created_at) = @year and month(created_at) = @month and do_type=3 and do_entreprise_sage in (@en_no) and DO_FactureReference in (${factParams});
+				where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference in (${factParams});
 			`);
 
 			return c.json({ result: "done" });

@@ -13,19 +13,18 @@ import { Button } from '@/components/ui/button';
 import useGetEntrepriseDG from '../../api/use-get-entreprise-dg';
 import { CiCircleChevLeft, CiCircleChevRight } from "react-icons/ci";
 import Link from 'next/link';
-import useGetEntrepriseResidence from '../../api/use-get-entreprise-residence';
-import useGetEnterpriseResidenceBonLivraison from '../../api/use-get-entreprise-residence-bls';
 import { TableFactureDetail } from '../Table/TableDetailFactures';
 import useGetEnterpriseFactures from '../../api/use-get-entreprise-factures';
 import { DataTable } from "../TableEntrepriseDetail/table";
 import { useEntrepriseDetailStore } from '../../store/entreprise-store';
 import { GrRadial, GrRadialSelected } from "react-icons/gr";
-import useGenerateFacturesFromBonLivraison from '../../api/use-generate-facture-from-bls';
+import useGenerateFacturesFromBonLivraison from '../../api/factures/use-generate-facture-from-bls';
 import { toast } from 'sonner';
-import { DialogCancelFactures, DialogBonLivraisonAction, DialogActualiserOneEntrepriseBonLivraison, DialogActualiserAllBonLivraison } from '../dialogs';
+import { DialogCancelSelectedFactures, DialogBonLivraisonAction, DialogActualiserOneEntrepriseBonLivraison, DialogActualiserAllBonLivraison, DialogCancelFacturesSingleEntreprise } from '../dialogs';
 
 import { MdCloudDownload } from 'react-icons/md';
 import { fi, is, se } from 'date-fns/locale';
+import { Dialog } from 'radix-ui';
 
 
 const DocumentPDFView = dynamic(
@@ -255,7 +254,7 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
     }
 
     const submitGenerateFacture = () => {
-        mutate({ json: { en_list: [agence_dg.CT_Entreprise_Sage.toString()], year, month, bl_list: entrepriseStore.cart } }, {
+        mutate({ json: { en_no: agence_dg.CT_Entreprise_Sage, year, month, bl_list: entrepriseStore.cart } }, {
             onSuccess: () => {
                 toast.success("Génération lancée")
             }
@@ -278,15 +277,21 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
                     <div>
                     </div>
                 </div>
-                <div>
+                <div className='flex items-center gap-2'>
 
-                    {entrepriseStore.billCart.length > 0 && !entrepriseStore.selectedOption && <DialogCancelFactures >
+                    {entrepriseStore.billCart.length <= 0 && !entrepriseStore.selectedOption && <DialogCancelFacturesSingleEntreprise >
 
-                        <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
-                            <span><MdCloudDownload />
-                            </span><span>Annuler Factures</span>
+                        <Button variant={"ghost"} >
+                            <span>Annuler Factures</span>
                         </Button>
-                    </DialogCancelFactures>}
+                    </DialogCancelFacturesSingleEntreprise>}
+
+                    {entrepriseStore.billCart.length > 0 && !entrepriseStore.selectedOption && <DialogCancelSelectedFactures >
+
+                        <Button variant={"ghost"} >
+                            <span>Annuler Factures Sélectionnées</span>
+                        </Button>
+                    </DialogCancelSelectedFactures>}
 
                     {entrepriseStore.cart.length > 0 && <DialogBonLivraisonAction title="Générer Facture" onConfirm={submitGenerateFacture} isPending={isGenerating}>
                         <Button variant='outline'>Générer Facture</Button>

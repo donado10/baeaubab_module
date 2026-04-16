@@ -11,7 +11,7 @@ import Link from "next/link";
 import { useEntrepriseFactureStore } from "../store/store";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import useDeleteFactureByDocument from "../api/use-delete-facture";
+import useDeleteFactureByDocument from "../../_shared/api/use-delete-selected-factures";
 
 
 

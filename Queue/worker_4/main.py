@@ -63,7 +63,7 @@ def build_facture(agence_dg: tuple, entetes: list, latest_fact_id, year, month):
     conn_mssql.commit()
 
 
-def main_process_factures(jobID, year, month):
+def generate_factures(jobID, year, month):
     year = int(year)
     month = int(month)
 
@@ -92,7 +92,7 @@ def main_process_factures(jobID, year, month):
                                 "pending", progress=last_pct)
 
 
-def main_process_facture_by_entreprise(jobID, entreprises, year, month):
+def generate_factures_by_entreprise(jobID, entreprises, year, month):
     year = int(year)
     month = int(month)
 
@@ -120,31 +120,49 @@ def main_process_facture_by_entreprise(jobID, entreprises, year, month):
                                 "pending", progress=last_pct)
 
 
-def main_process_factures_from_bl(jobID, year, month, entreprises: list, bls: list):
+def generate_factures_for_entreprise(jobID, entreprise, year, month):
     year = int(year)
     month = int(month)
 
-    print(entreprises)
+    latest_fact_id = get_latest_facture_id()
+
+    entetes = get_facture_entete_detail_by_company_id(
+        entreprise, year, month)
+    if not len(entetes):
+        return
+    agence_dg = get_agence_dg_by_company_id(entreprise)
+    if agence_dg:
+        build_facture(agence_dg, entetes, latest_fact_id, year, month)
+        latest_fact_id += 1
+
+    post_job_status(API_ENDPOINT, jobID,
+                    "pending", progress=100)
+
+
+def generate_factures_from_bl(jobID, year, month, entreprise, bls: list):
+    year = int(year)
+    month = int(month)
+
     latest_fact_id = get_latest_facture_id()
 
     count = 0
     last_pct = 0
 
-    for entreprise in entreprises:
-        entetes = get_facture_entete_detail_by_company_id_and_bl(
-            entreprise, bls, year, month
-        )
-        if not len(entetes):
-            continue
-        agence_dg = get_agence_dg_by_company_id(entreprise)
-        if agence_dg:
-            build_facture(agence_dg, entetes, latest_fact_id, year, month)
-            latest_fact_id += 1
+    entetes = get_facture_entete_detail_by_company_id_and_bl(
+        entreprise, bls, year, month
+    )
+    if not len(entetes):
+        return
 
-            count += 1
+    agence_dg = get_agence_dg_by_company_id(entreprise)
+    if agence_dg:
+        build_facture(agence_dg, entetes, latest_fact_id, year, month)
+        latest_fact_id += 1
 
-            should, last_pct = should_post_progress(
-                count, len(entreprises), last_pct)
-            if should:
-                post_job_status(API_ENDPOINT, jobID,
-                                "pending", progress=last_pct)
+        count += 1
+
+        should, last_pct = should_post_progress(
+            count, len(entreprise), last_pct)
+        if should:
+            post_job_status(API_ENDPOINT, jobID,
+                            "pending", progress=last_pct)

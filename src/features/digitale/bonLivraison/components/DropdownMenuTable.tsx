@@ -10,8 +10,9 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useEntrepriseBonLivraisonStore } from "../store/store";
 import { toast } from "sonner";
-import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise";
+import useGenerateFacturesByEntreprise from "../api/factures/use-generate-facture-by-entreprise";
 import useUpdateBonLivraison from "../api/use-update-bon-livraison";
+import useGenerateFactureForEntreprise from "../api/factures/use-generate-facture-for-entreprise";
 
 export function DropdownMenuTable({
   ref_enterprise,
@@ -25,7 +26,7 @@ export function DropdownMenuTable({
   const store = useEntrepriseBonLivraisonStore()
   const pathname = usePathname()
   const { mutate } = useUpdateBonLivraison()
-  const { mutate: mutateGenerateBill } = useGenerateFacturesByEntreprise()
+  const { mutate: mutateGenerateBillForEntreprise } = useGenerateFactureForEntreprise()
 
 
   const entreprise = store.items.find((item) => item.EN_No.toString() === ref_enterprise)
@@ -42,7 +43,7 @@ export function DropdownMenuTable({
 
   const generateBillHandler = () => {
     if (entreprise) {
-      mutateGenerateBill({ json: { en_list: [ref_enterprise], year: store.periode[0], month: store.periode[1] } }, {
+      mutateGenerateBillForEntreprise({ json: { year: store.periode[0], month: store.periode[1], en_no: entreprise.EN_No } }, {
         onSuccess: () => {
           toast.success("Génération de facture lancée")
         }

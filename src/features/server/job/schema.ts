@@ -10,6 +10,7 @@ export const jobTypeEnum = z.enum([
 	"bl_some",
 	"byEntreprise",
 	"fromBonLivraison",
+	"forEntreprise",
 ]);
 
 export const jobStatusEnum = z.enum(["pending", "done", "failed"]);

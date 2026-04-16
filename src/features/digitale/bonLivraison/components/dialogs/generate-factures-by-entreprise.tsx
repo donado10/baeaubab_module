@@ -3,7 +3,7 @@
 import { ReactNode } from "react"
 import { useEntrepriseBonLivraisonStore } from "../../store/store"
 import { toast } from "sonner"
-import useGenerateFacturesByEntreprise from "../../api/use-generate-facture-by-entreprise"
+import useGenerateFacturesByEntreprise from "../../api/factures/use-generate-facture-by-entreprise"
 import { DialogBonLivraisonAction } from "./dialog-shell"
 
 export function DialogGenerateFacturesByEntreprise({ children }: { children: ReactNode }) {

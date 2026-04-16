@@ -4,20 +4,18 @@ import { client } from "@/lib/rpc";
 import { useMutation } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 
-type RequestType = InferRequestType<(typeof client.api.digitale.facture.all)["$delete"]>;
-type ResponseType = InferResponseType<(typeof client.api.digitale.facture.all)["$delete"]>;
+type RequestType = InferRequestType<(typeof client.api.facture.cancelAllSingleEntreprise)["$delete"]>;
+type ResponseType = InferResponseType<(typeof client.api.facture.cancelAllSingleEntreprise)["$delete"]>;
 
-const useDeleteFactureByDocument = () => {
+const useDeleteFacturesSingleEntreprise = () => {
     const mutation = useMutation<ResponseType, Error, RequestType>({
-        mutationKey: ["delete_facture_by_document"],
+        mutationKey: ["delete_factures_single_entreprise"],
         mutationFn: async ({ json }) => {
-            const res = await client.api.facture.cancelByDocument.$delete({ json });
+            const res = await client.api.facture.cancelAllSingleEntreprise.$delete({ json });
 
             if (!res.ok) {
                 throw new Error("Failed to delete factures!");
             }
-
-
 
             const res_ = await res.json();
 
@@ -29,4 +27,4 @@ const useDeleteFactureByDocument = () => {
     return mutation;
 };
 
-export default useDeleteFactureByDocument;
+export default useDeleteFacturesSingleEntreprise;

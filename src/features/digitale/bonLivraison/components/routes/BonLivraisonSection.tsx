@@ -15,6 +15,7 @@ import useGetBillStats from '../../api/use-get-bl-stats'
 import useGetBonLivraisonStatsByCompany from '../../api/use-get-bon-livraison'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useGetBonLivraisonStats from '../../api/use-get-bl-stats'
+import { IEntrepriseBonLivraison } from '../../interface'
 
 
 

@@ -1,13 +1,14 @@
 "use client"
 
 import { client } from "@/lib/rpc";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { InferRequestType, InferResponseType } from "hono";
 
 type RequestType = InferRequestType<(typeof client.api.facture.generateByEntreprise)["$post"]>;
 type ResponseType = InferResponseType<(typeof client.api.facture.generateByEntreprise)["$post"]>;
 
 const useGenerateFacturesByEntreprise = () => {
+    const queryClient = useQueryClient();
     const mutation = useMutation<ResponseType, Error, RequestType>({
         mutationKey: ["generate_factures_by_entreprise"],
         mutationFn: async ({ json }) => {
@@ -24,6 +25,7 @@ const useGenerateFacturesByEntreprise = () => {
 
             return res_
         }
+
     });
 
     return mutation;

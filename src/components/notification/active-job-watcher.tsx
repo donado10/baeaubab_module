@@ -24,6 +24,9 @@ const MODULE_QUERY_KEYS: Record<JobModule, string[][]> = {
         ["get-facture-stats-by-company"],
         ["get-facture-stats"],
         ["entreprise_factures"],
+        ["get-bon-livraison-stats-by-company"],
+        ["get-bon-livraison-stats"],
+        ["entreprise_bls"],
     ],
 };
 
@@ -63,6 +66,7 @@ export default function ActiveJobWatcher() {
                     const payload = JSON.parse((e as MessageEvent).data);
                     if (payload.status === "done") {
                         const keys = MODULE_QUERY_KEYS[job.Job_Module] ?? [];
+                        console.log(keys)
                         for (const prefix of keys) {
                             queryClient.invalidateQueries({ queryKey: prefix });
                         }
