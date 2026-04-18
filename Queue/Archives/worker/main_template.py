@@ -1,7 +1,7 @@
-from mssql_baeaubab.database import execute_select_all
+from Queue.Archives.worker.mssql_baeaubab.database import execute_select_all
 from utils import get_log_timestamp, ini_settings, write_to_file
-from mssql_baeaubab.database import database_objects as dbo_mssql
-from mysql_digital.database import database_objects as dbo_mysql
+from Queue.Archives.worker.mssql_baeaubab.database import database_objects as dbo_mssql
+from Queue.Archives.worker.mysql_digital.database import database_objects as dbo_mysql
 
 conn_mssql, cursor_mssql = dbo_mssql()
 conn_mysql, cursor_mysql = dbo_mysql()

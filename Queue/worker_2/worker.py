@@ -1,12 +1,8 @@
 from shared.worker_base import run_worker
-from main import main_process_facture_detail
+from handlers import FactureHandlerFactory
 
-API_ENDPOINT = "digitale/ecritures/events/job-finished"
-
-handler_map = {
-    "facture_detail": lambda data: main_process_facture_detail(
-        data["jobId"], data["year"], data["month"], data["journal"], data["database"]),
-}
+API_ENDPOINT = "digitale/facture/events/job-finished"
 
 if __name__ == "__main__":
-    run_worker("integrate_digital_ec_jobs", handler_map, API_ENDPOINT)
+    run_worker("facture-jobs",
+               FactureHandlerFactory.build_handler_map(), API_ENDPOINT)

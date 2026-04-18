@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from main import (
+    generate_ecritures_from_facture,
     generate_factures,
     generate_factures_by_entreprise,
     generate_factures_for_entreprise,
@@ -39,12 +40,20 @@ class ForEntrepriseHandler(BaseFactureHandler):
         )
 
 
+class EcrituresFromFactureHandler(BaseFactureHandler):
+    def handle(self, data: dict):
+        generate_ecritures_from_facture(
+            data["jobId"], data["year"], data["month"], data["do_no"]
+        )
+
+
 class FactureHandlerFactory:
     _handlers = {
         "all": AllFacturesHandler,
         "byEntreprise": ByEntrepriseHandler,
         "fromBonLivraison": FromBonLivraisonHandler,
         "forEntreprise": ForEntrepriseHandler,
+        "ecrituresFromFacture": EcrituresFromFactureHandler,
     }
 
     @classmethod

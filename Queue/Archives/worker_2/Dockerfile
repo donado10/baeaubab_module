@@ -1,7 +1,7 @@
 FROM python:3.12
 WORKDIR /app
 COPY shared/ ./shared/
-COPY worker_4/ .
+COPY worker_2/ .
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates gnupg2 \
     unixodbc unixodbc-dev \

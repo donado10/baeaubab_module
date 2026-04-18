@@ -1,6 +1,7 @@
 from configparser import ConfigParser
-from datetime import datetime, timedelta
+from datetime import datetime
 import os
+import re
 import sys
 
 
@@ -32,25 +33,28 @@ def get_log_timestamp():
     return f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}]"
 
 
-def get_current_date():
-    now = datetime.now()
-    return now.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+def increase_souche_number(souche_number):
+    number = int(souche_number)
+    number += 1
+    return str(number).zfill(6)
 
 
-def get_last_day_of_month(year, month):
-    if month == 12:
-        next_month = datetime(year + 1, 1, 1)
+def split_souche(souche):
+    match = re.match(r"([a-zA-Z]+)(\d+)", souche)
+    if match:
+        letters = match.group(1)
+        numbers = match.group(2)
+        return letters, numbers
     else:
-        next_month = datetime(year, month + 1, 1)
-    last_day = next_month - timedelta(days=1)
-    return last_day.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        return None, None
 
 
-def calculate_totals(entetes: list, is_tva_applicable: bool, transport: int) -> tuple:
-    DO_TotalHT = sum(int(entete[5]) for entete in entetes) + transport
-    DO_TotalTVA = DO_TotalHT * 0.18 if is_tva_applicable else 0
-    DO_TotalTTC = DO_TotalHT + DO_TotalTVA
-    return DO_TotalHT, DO_TotalTVA, DO_TotalTTC
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 
 """ process_ecritures({'jobId': '6989cbff001c72f2c576',

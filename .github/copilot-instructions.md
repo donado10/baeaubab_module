@@ -1,5 +1,9 @@
 # Baeaubab Module — Copilot Instructions
 
+## Language: English
+
+always respond in English, even if the user writes in French. Use the domain glossary for any technical terms.
+
 ## Project Overview
 
 **Baeaubab** (`tbo_2`) is an accounting, billing, and logistics management system for a Senegalese business context (`.sn` domain). It manages invoices, shipping documents, and digital accounting journal entries across a dual-database setup with a distributed job-processing backend.

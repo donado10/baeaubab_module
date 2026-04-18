@@ -22,12 +22,6 @@ const useUpdateBonLivraison = () => {
 
 
             return res_
-        },
-        onSuccess: () => {
-            // Invalidate and refetch
-            queryClient.invalidateQueries({ queryKey: ["get_bon_livraison"] });
-            queryClient.invalidateQueries({ queryKey: ["entreprise_bls"] });
-            queryClient.invalidateQueries({ queryKey: ["get-bon-livraison-stats-by-company"] });
         }
     });
 

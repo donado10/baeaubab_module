@@ -8,6 +8,6 @@ setup(
     author_email='Adama@adotwotimes.me',
     # Dynamically find packages
     packages=find_packages(
-        include=['utils', 'utils.*', '../shared', '../shared.*', 'Queue.worker_2', 'Queue.worker_2.*']),
+        include=['utils', 'utils.*']),
     install_requires=[],  # Add dependencies if needed
 )

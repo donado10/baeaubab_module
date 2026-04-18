@@ -34,17 +34,3 @@ def database_objects():
     conn, cursor = set_connexion()
     add_database_object([conn, cursor])
     return [conn, cursor]
-
-
-def execute_select_one(script):
-    conn, cursor = database_objects()
-    select_query = script
-    cursor.execute(select_query)
-    return cursor.fetchone()
-
-
-def execute_select_all(script):
-    conn, cursor = database_objects()
-    select_query = script
-    cursor.execute(select_query)
-    return cursor.fetchall()

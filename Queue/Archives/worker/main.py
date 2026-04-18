@@ -352,8 +352,8 @@ def set_in_temp_table_sage(valid_rows):
         valid_rows_list[index].append(None)
 
     valid_rows_query_sage = f"""
-        insert into transit.dbo.f_ecriturec_temp(
-        [JO_Num]
+       insert into transit.dbo.f_ecriturec_temp(
+       [JO_Num]
       ,[EC_No]
       ,[JM_Date]
       ,[EC_Jour]

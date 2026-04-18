@@ -1,42 +1,32 @@
 from abc import ABC, abstractmethod
+from main import main_process_bl_detail, main_process_bl_one
 
 
-class BaseComptaHandler(ABC):
+class BaseBLHandler(ABC):
     @abstractmethod
     def handle(self, data: dict):
         raise NotImplementedError
 
 
-class AllFacturesHandler(BaseComptaHandler):
+class AllBLHandler(BaseBLHandler):
     def handle(self, data: dict):
-        pass
+        main_process_bl_detail(data["jobId"], data["year"], data["month"])
 
 
-class ByEntrepriseHandler(BaseComptaHandler):
+class SomeBLHandler(BaseBLHandler):
     def handle(self, data: dict):
-        pass
+        main_process_bl_one(data["jobId"], data["year"],
+                            data["month"], data["en_list"])
 
 
-class FromBonLivraisonHandler(BaseComptaHandler):
-    def handle(self, data: dict):
-        pass
-
-
-class ForEntrepriseHandler(BaseComptaHandler):
-    def handle(self, data: dict):
-        pass
-
-
-class FactureHandlerFactory:
+class BLHandlerFactory:
     _handlers = {
-        "all": AllFacturesHandler,
-        "byEntreprise": ByEntrepriseHandler,
-        "fromBonLivraison": FromBonLivraisonHandler,
-        "forEntreprise": ForEntrepriseHandler,
+        "all": AllBLHandler,
+        "bl_some": SomeBLHandler,
     }
 
     @classmethod
-    def create(cls, job_type: str) -> BaseComptaHandler:
+    def create(cls, job_type: str) -> BaseBLHandler:
         handler_cls = cls._handlers.get(job_type)
         if handler_cls is None:
             raise ValueError(f"Unknown job type: {job_type}")

@@ -1,5 +1,5 @@
 from shared.worker_base import run_worker
-from main import main_process_all, main_process_some, main_process_set_valid
+from Queue.Archives.worker.main import main_process_all, main_process_some, main_process_set_valid
 
 API_ENDPOINT = "digitale/ecritures/events/job-finished"
 

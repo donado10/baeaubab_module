@@ -1,0 +1,617 @@
+from shared.mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
+from shared.mysql_digital.database import execute_select_all as mysql_execute_select_all, execute_select_one as mysql_execute_select_one
+from utils import increase_souche_number, split_souche, is_number
+
+
+# ── Pure insert functions ─────────────────────────────────────────────────────
+
+def insert_new_articles(articles: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        INSERT INTO [TRANSIT].[dbo].[F_ARTICLE_DIGITAL]
+           ([Art_No]
+           ,[Art_Code]
+           ,[Art_Design]
+           ,[Art_Price]
+           ,[CG_Num_exo]
+           ,[CG_Num_non_exo]
+           ,[created_at])
+     VALUES
+           (?,?,?,?,?,?)
+"""
+    cursor_mssql.executemany(script, articles)
+    conn_mssql.commit()
+
+
+def insert_new_enterprises(enterprises: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        INSERT INTO [TRANSIT].[dbo].[F_ENTREPRISE_DIGITAL]
+           ([EN_No_Digital]
+           ,[EN_Intitule]
+           ,[created_at])
+     VALUES
+           (?,?,?)
+"""
+    cursor_mssql.executemany(script, enterprises)
+    conn_mssql.commit()
+
+
+def insert_new_clients(clients: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        INSERT INTO [TRANSIT].[dbo].[F_COMPTET_DIGITAL]
+           ([CT_No]
+           ,[CT_Intitule]
+           ,[CT_Num]
+           ,[CT_TVA]
+           ,[CT_DG]
+           ,[CT_Entreprise_Digital]
+           ,[CT_Phone]
+           ,[CT_Addresse]
+           ,[CT_Email]
+           ,[created_at]
+           ,[type_client_id])
+     VALUES
+           (?,?,?,?,?,?,?,?,?,?,?)
+"""
+    cursor_mssql.executemany(script, clients)
+    conn_mssql.commit()
+
+
+def insert_new_transports(clients: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        INSERT INTO [TRANSIT].[dbo].[F_TRANSPORT_DIGITAL]
+           ([Trans_No]
+           ,[Trans_Montant]
+           ,[Trans_Client]
+           ,[created_at])
+     VALUES
+           (?,?,?,?)
+"""
+    cursor_mssql.executemany(script, clients)
+    conn_mssql.commit()
+    script = """
+        UPDATE tr
+        set Trans_EN_Sage = ct.CT_Entreprise_Sage,
+        Trans_En_Digital = ct.CT_Entreprise_Digital
+        from TRANSIT.dbo.F_TRANSPORT_DIGITAL tr inner join TRANSIT.dbo.F_COMPTET_DIGITAL ct
+        on tr.Trans_Client = ct.CT_No 
+"""
+    cursor_mssql.execute(script)
+    conn_mssql.commit()
+
+
+def insert_new_client_prices(ArtPrix: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        INSERT INTO [TRANSIT].[dbo].[F_ARTPRIX_DIGITAL]
+           ([ArtPrice_No]
+           ,[ART_No]
+           ,[CT_No]
+           ,[ArtPrice_Value]
+           ,[ArtPrice_StartDate]
+           ,[ArtPrice_EndDate]
+           ,[created_at])
+     VALUES
+           (?,?,?,?,?,?,?)
+"""
+    cursor_mssql.executemany(script, ArtPrix)
+
+    script = """
+        update artprix
+set artprix.ct_num= ct.CT_Num
+from [TRANSIT].[dbo].[F_ARTPRIX_DIGITAL] artprix inner join [TRANSIT].[dbo].F_COMPTET_DIGITAL ct on artprix.CT_No = ct.CT_No
+
+"""
+    cursor_mssql.execute(script)
+
+
+def update_new_client_prices():
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        update art
+        set CT_Num = ct.ct_num
+        from [TRANSIT].[dbo].[F_ARTPRIX_DIGITAL] art inner join [TRANSIT].[dbo].F_comptet_digital ct on art.CT_No = ct.CT_No
+"""
+    cursor_mssql.execute(script)
+
+
+def insert_new_livreurs(livreurs: list):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        INSERT INTO [TRANSIT].[dbo].[F_LIVREUR_DIGITAL]
+           ([LIV_No]
+           ,[LIV_Nom]
+           ,[LIV_Prenom]
+           ,[LIV_Email]
+           ,[LIV_Status]
+           ,[created_at])
+     VALUES
+           (?,?,?,?,?,?)
+"""
+    cursor_mssql.executemany(script, livreurs)
+    conn_mssql.commit()
+
+
+# ── Sync functions (query MySQL → insert MSSQL) ──────────────────────────────
+
+def handle_new_articles():
+    script_mssql = """
+    SELECT  [Art_No]
+  FROM [TRANSIT].[dbo].[F_ARTICLE_DIGITAL]
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    if len(result):
+        script_mysql = f"""
+        select art.id as id,code,art.name as name,prices.valeur,code_exo,code_non_exo,art.created_at as created_at from articles art inner join prices
+        on art.id = prices.article_id 
+        where art.id not in ({','.join(result)})
+    """
+    else:
+        script_mysql = """
+        select art.id as id,code,art.name as name,prices.valeur,code_exo,code_non_exo,art.created_at as created_at from articles art inner join prices
+        on art.id = prices.article_id 
+    """
+
+    result = mysql_execute_select_all(script_mysql)
+    if not len(result):
+        return
+    insert_new_articles(result)
+
+
+def handle_entreprise():
+    script_mssql = """
+    SELECT  EN_No_Digital
+  FROM TRANSIT.dbo.F_ENTREPRISE_DIGITAL where EN_No_Digital is not null
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    if len(result):
+        script_mysql = f"""
+        SELECT id,name,created_at FROM entreprises where id not in ({','.join(result)})
+    """
+    else:
+        script_mysql = """
+        SELECT id,name,created_at FROM entreprises 
+    """
+
+    result = mysql_execute_select_all(script_mysql)
+    if not len(result):
+        return
+    insert_new_enterprises(result)
+
+
+def handle_livreurs():
+    script_mssql = """
+    SELECT  LIV_No
+  FROM TRANSIT.dbo.F_LIVREUR_DIGITAL
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    if len(result):
+        script_mysql = f"""
+        SELECT id,nom,prenom,username,status,created_at FROM livreurs where id not in ({','.join(result)})
+    """
+    else:
+        script_mysql = """
+        SELECT id,nom,prenom,username,status,created_at FROM livreurs 
+    """
+
+    result = mysql_execute_select_all(script_mysql)
+    if not len(result):
+        return
+    insert_new_livreurs(result)
+
+
+def handle_new_client():
+    script_mssql = """
+    SELECT  CT_No
+  FROM TRANSIT.dbo.F_COMPTET_DIGITAL
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    if len(result):
+        script_mysql = f"""
+        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id,mobile,adresse,email ,created_at,type_client_id from clients where id not in ({','.join(result)})
+    """
+    else:
+        script_mysql = """
+        select id,prenom,code_compta,tva_id,is_entreprise,entreprise_id,mobile,adresse,email ,created_at,type_client_id from clients 
+    """
+
+    result = mysql_execute_select_all(script_mysql)
+    if not len(result):
+        return
+    insert_new_clients(result)
+
+
+def handle_transport():
+    script_mssql = """
+    SELECT  Trans_No
+  FROM TRANSIT.dbo.F_TRANSPORT_DIGITAL
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    if len(result):
+        script_mysql = f"""
+        select id,montant,client_id,created_at from transports where id not in ({','.join(result)})
+    """
+    else:
+        script_mysql = """
+        select id,montant,client_id,created_at from transports
+    """
+
+    result = mysql_execute_select_all(script_mysql)
+    if not len(result):
+        return
+    insert_new_transports(result)
+
+
+def handle_client_price():
+    script_mssql = """
+    SELECT  ArtPrice_No
+  FROM TRANSIT.dbo.F_ARTPRIX_DIGITAL
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    if len(result):
+        script_mysql = f"""
+        SELECT  id,article_id,client_id,valeur,start_date,end_date,created_at FROM client_prices  where id not in ({','.join(result)}) order by client_id
+    """
+    else:
+        script_mysql = """
+        SELECT  id,article_id,client_id,valeur,start_date,end_date,created_at FROM client_prices order by client_id 
+    """
+
+    result = mysql_execute_select_all(script_mysql)
+    if not len(result):
+        return
+    insert_new_client_prices(result)
+    update_new_client_prices()
+
+
+# ── Entreprise functions ──────────────────────────────────────────────────────
+
+def latest_souche_number():
+    script_mssql = """
+        select top 1 EN_No_Sage from transit.dbo.F_ENTREPRISE_DIGITAL order by en_no_sage desc
+    """
+    result = execute_select_one(script_mssql)
+    if result and result[0]:
+        return result[0]
+    else:
+        return "EN000000"
+
+
+def set_entreprise_sage(script: str):
+    conn_mssql, cursor_mssql = dbo_mssql()
+
+    result = execute_select_all(script)
+
+    for res in result:
+        souche = latest_souche_number()
+        souche_letters, souche_numbers = split_souche(souche)
+
+        script_mssql = f"""
+            update transit.dbo.F_ENTREPRISE_DIGITAL
+            set EN_No_Sage = '{souche_letters}{increase_souche_number(souche_numbers)}'
+            where EN_No_Digital = {res[0]}
+        """
+
+        cursor_mssql.execute(script_mssql)
+        conn_mssql.commit()
+
+
+def update_comptet_digital_entreprise():
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script_mssql = """
+            update ct
+            set CT_ENTREPRISE_SAGE = en.EN_No_Sage
+            from transit.dbo.F_COMPTET_DIGITAL ct inner join transit.dbo.F_ENTREPRISE_DIGITAL en on ct.CT_Entreprise_Digital = en.EN_No_Digital
+        """
+    cursor_mssql.execute(script_mssql)
+    conn_mssql.commit()
+
+    script_mssql = """
+            update ct
+            set CT_ENTREPRISE_SAGE = en.EN_No_Sage,ct_Entreprise_Digital = -ct.ct_no
+            from transit.dbo.F_COMPTET_DIGITAL ct inner join transit.dbo.F_ENTREPRISE_DIGITAL en on -ct.CT_No = en.EN_No_Digital
+        """
+    cursor_mssql.execute(script_mssql)
+    conn_mssql.commit()
+
+
+def build_entreprise_residence():
+    conn_mssql, cursor_mssql = dbo_mssql()
+
+    script_mssql = """
+
+    insert into [TRANSIT].[dbo].[F_ENTREPRISE_DIGITAL] ([EN_No_Digital]
+      ,[EN_Intitule]
+      ,[EN_TVA]
+      ,[created_at])
+    select -CT_No as CT_No,CT_Intitule,CT_TVA,created_at from transit.dbo.F_COMPTET_DIGITAL where CT_Entreprise_digital is null and type_client_id=1
+"""
+    cursor_mssql.execute(script_mssql)
+    conn_mssql.commit()
+
+
+def update_entreprise_tva(year, month):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script_mssql = """
+        update en
+  set en.EN_TVA = ct.CT_TVA
+  from transit.dbo.f_entreprise_digital en inner join transit.dbo.f_comptet_digital ct on en.EN_No_Digital = ct.CT_Entreprise_Digital where ct_dg = 1 
+"""
+
+    cursor_mssql.execute(script_mssql)
+    script_mssql = f"""
+        with lev1 as (select DO_Entreprise_Digital from transit.dbo.F_DOCENTETE_DIGITAL where year(created_at)={year} and month(created_at)={month} and
+        DO_Entreprise_Digital not in (select  CT_Entreprise_Digital from transit.dbo.F_COMPTET_DIGITAL where CT_DG = 1 and CT_Entreprise_Digital is not null) 
+        and DO_Entreprise_Digital is not null and DO_Status !=2 group by DO_Entreprise_Digital),
+        lev2 as (select lev1.*,ct.CT_TVA from lev1 inner join transit.dbo.F_COMPTET_DIGITAL ct on lev1.DO_Entreprise_Digital = ct.CT_Entreprise_Digital)
+        update en
+        set en.EN_TVA = lev2.CT_TVA
+        from transit.dbo.f_entreprise_digital en inner join lev2 on en.EN_No_Digital = lev2.DO_Entreprise_Digital
+
+        """
+    cursor_mssql.execute(script_mssql)
+    conn_mssql.commit()
+
+
+def update_entreprise_id():
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        update ent
+        set DO_Entreprise_Digital =ct.CT_Entreprise_Digital,DO_entreprise_sage = ct.CT_Entreprise_Sage
+        from transit.dbo.F_DOCENTETE_DIGITAL ent inner join transit.dbo.F_COMPTET_DIGITAL ct on ent.Client_ID = ct.CT_No 
+"""
+    script2 = """
+        update ligne
+        set DO_Entreprise_Digital =ct.CT_Entreprise_Digital,DO_entreprise_sage = ct.CT_Entreprise_Sage
+        from transit.dbo.F_DOCLiGNE_DIGITAL ligne inner join transit.dbo.F_COMPTET_DIGITAL ct on ligne.Client_ID = ct.CT_No 
+"""
+
+    cursor_mssql.execute(script)
+    cursor_mssql.execute(script2)
+    conn_mssql.commit()
+
+
+# ── BL query / write functions ────────────────────────────────────────────────
+
+def get_bls(year, month):
+    script_mssql = """
+    SELECT  DO_No
+  FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL
+"""
+    result = execute_select_all(script_mssql)
+    result = [str(x[0]) for x in result]
+
+    if len(result):
+        script_mysql = f"select id from distribution_lines where year(created_at)={year} and month(created_at)={month} and id not in ({','.join(result)})"
+
+    else:
+        script_mysql = f"select id from distribution_lines where year(created_at)={year} and month(created_at)={month}"
+
+    results = mysql_execute_select_all(script_mysql)
+    return [x[0] for x in results]
+
+
+def get_one_company_bls(year, month, en_no):
+    script_mssql_do = f"""
+    SELECT  DO_No
+  FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL where DO_Entreprise_Sage = '{en_no}'
+"""
+    result_do = execute_select_all(script_mssql_do)
+    result_do = [str(x[0]) for x in result_do]
+
+    script_mssql_en = f"""
+    SELECT  CT_No
+  FROM TRANSIT.dbo.F_COMPTET_DIGITAL where CT_Entreprise_Sage = '{en_no}'
+"""
+    result_en = execute_select_all(script_mssql_en)
+    result_en = [str(x[0]) for x in result_en]
+
+    if len(result_do):
+        script_mysql = f"select id from distribution_lines where year(created_at)={year} and month(created_at)={month} and client_id in ({','.join(result_en)}) and id not in ({','.join(result_do)})"
+
+    else:
+        script_mysql = f"select id from distribution_lines where year(created_at)={year} and month(created_at)={month} and client_id in ({','.join(result_en)})"
+
+    results = mysql_execute_select_all(script_mysql)
+    return [x[0] for x in results]
+
+
+def get_bl(bl: int):
+    script = f"""SELECT dl.id,3 as do_type,client_id,cl.code_compta,qte,article_ids,date,dl.created_at,dl.status,dl.livreur_id FROM distribution_lines dl inner join clients cl
+    on dl.client_id = cl.id
+    where dl.id = {bl}
+    ORDER BY dl.id ASC """
+
+    results = mysql_execute_select_all(script)
+    return results[0]
+
+
+def get_nbr_bls_some_companies(year, month, en_list):
+    script_mssql_en = f"""
+    SELECT  CT_No
+FROM TRANSIT.dbo.F_COMPTET_DIGITAL where CT_Entreprise_Sage in ({','.join([f"'{en}'" for en in en_list])})
+
+"""
+    result_en = execute_select_all(script_mssql_en)
+    result_en = [str(x[0]) for x in result_en]
+    script_mysql_en = f"""
+select count(id) from distribution_lines where year(created_at)={year} and month(created_at)={month} and client_id in ({','.join(result_en)})
+"""
+    print(script_mysql_en, flush=True)
+    result_en = mysql_execute_select_one(script_mysql_en)
+    print(result_en, flush=True)
+    return result_en[0] if result_en else 0
+
+
+def handle_bl_entete(bl: tuple) -> list:
+    entete = []
+    entete.append(bl[0])
+    entete.append(bl[1])
+    entete.append(bl[2])
+    entete.append(bl[3])
+    entete.append(bl[7])
+    entete.append(bl[8])
+    entete.append(bl[9])
+
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+        set dateformat ymd;
+        INSERT INTO [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL]
+           ([DO_No]
+           ,[DO_Type]
+           ,[Client_ID]
+           ,[CT_Num]
+           ,[created_at]
+           ,[DO_Status]
+           ,[LIV_No])
+     VALUES
+           (?,?,?,?,?,?,?)
+"""
+    cursor_mssql.execute(script, entete)
+
+    return entete
+
+
+def get_price(client_id, art: str):
+    script_get_ct = f"""
+    select ct_num from [TRANSIT].[dbo].[F_comptet_digital] where ct_no = '{client_id}'
+"""
+    result = execute_select_one(script_get_ct)
+
+    script_mssql = f"""
+    select [ArtPrice_Value] from [TRANSIT].[dbo].[F_ARTPRIX_DIGITAL]
+      where ct_num = '{result[0]}' and art_no = '{art}' order by created_at desc
+      """
+
+    result = execute_select_one(script_mssql)
+
+    if result:
+        return result[0]
+    else:
+        script_mssql = f"""
+    select [Art_price] from [TRANSIT].[dbo].[F_ARTICLE_DIGITAL]
+      where  art_no = '{art}' 
+      """
+
+        result = execute_select_one(script_mssql)
+        return result[0]
+
+
+def handle_artqteprix(client_id: str, qte: str, art: str):
+
+    qte_format = []
+    art_format = []
+    price_format = []
+
+    if not qte == None:
+        qte_format = qte.split(';')
+        qte_format = [x for x in qte_format if x != '']
+    if not art == None:
+        art_format = art.split(';')
+        art_format = [x for x in art_format if x != '']
+
+    if len(qte_format) and len(art_format):
+        for art in art_format:
+            price_format.append(get_price(client_id, art))
+
+    return qte_format, art_format, price_format
+
+
+def insert_bl_ligne(ligne: list):
+
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = """
+                set dateformat ymd;
+                INSERT INTO [TRANSIT].[dbo].[F_DOCLIGNE_DIGITAL]
+                ([DO_No]
+                ,[DO_Type]
+                ,[Client_ID]
+                ,[CT_Num]
+                ,[created_at]
+                ,[DO_Status]
+                ,[ART_No]
+                ,[ART_Qte]
+                ,[DO_TotalHT])
+            VALUES
+                (?,?,?,?,?,?,?,?,?)
+        """
+    cursor_mssql.execute(script, ligne)
+
+
+def handle_bl_ligne(bl: tuple) -> list:
+    ligne = []
+
+    qte, articles, prices = handle_artqteprix(bl[2], bl[4], bl[5])
+
+    if len(articles):
+        for index, art in enumerate(articles):
+            ligne = []
+            ligne.append(bl[0])
+            ligne.append(bl[1])
+            ligne.append(bl[2])
+            ligne.append(bl[3])
+            ligne.append(bl[7])
+            ligne.append(bl[8])
+            ligne.append(art)
+            if index < len(qte) and is_number(qte[index]):
+                ligne.append(qte[index])
+            else:
+                ligne.append(None)
+
+            if index < len(prices) and index < len(qte) and is_number(qte[index]):
+                ligne.append(int(prices[index]) * int(qte[index]))
+            else:
+                ligne.append(None)
+
+            insert_bl_ligne(ligne)
+
+
+def update_entete(bl):
+    _, cursor_mssql = dbo_mssql()
+    script = f"""
+    select do_no, sum(DO_TotalHT) as total from TRANSIT.DBO.F_DOCLIGNE_DIGITAL where do_no in ({bl[0]}) group by do_no
+"""
+    result = execute_select_one(script)
+
+    if result and result[1]:
+
+        script = f"""
+        update TRANSIT.DBO.F_DOCENTETE_DIGITAL
+        set DO_TOTALHT = {result[1]}
+        where do_no in ({bl[0]})
+    """
+        cursor_mssql.execute(script)
+
+
+def update_ligne(bl):
+    _, cursor_mssql = dbo_mssql()
+    script = f"""
+        update ligne
+        set ligne.ART_Design = art.Art_Design
+        from TRANSIT.dbo.F_DOCLIGNE_DIGITAL ligne inner join TRANSIT.dbo.F_ARTICLE_DIGITAL art on ligne.ART_No = art.Art_No
+        where do_no in ({bl[0]})
+    """
+    cursor_mssql.execute(script)
+
+    script = f"""
+        update ligne1
+        set ligne1.DO_PrixUnitaire = ligne2.DO_TotalHT / ligne2.ART_Qte
+        from TRANSIT.dbo.F_DOCLIGNE_DIGITAL ligne1 inner join TRANSIT.dbo.F_DOCLIGNE_DIGITAL ligne2 on ligne1.DO_No = ligne2.DO_No
+        where ligne1.do_no in ({bl[0]})
+    """
+    cursor_mssql.execute(script)

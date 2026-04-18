@@ -94,6 +94,8 @@ def run_worker(queue_name, handler_map, api_endpoint):
         data = json.loads(body)
         logger.info("Received: %s", data)
 
+        time.sleep(5)  # Simulate processing delay
+
         post_job_status(api_endpoint, data["jobId"], "pending")
 
         job_type = data.get("type")
