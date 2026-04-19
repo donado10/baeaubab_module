@@ -16,6 +16,9 @@ import useGetFactureStatsByCompany from '../../api/use-get-facture'
 import { useRouter, useSearchParams } from 'next/navigation'
 import useGetFactureStats from '../../api/use-get-facture-stats'
 import { DialogCancelAllFactures } from '@/features/digitale/bonLivraison/components/dialogs'
+import { DialogEcrituresFromAllFactures } from '../DialogEcrituresFromAllFactures'
+import { DialogEcrituresFromFacture, DialogEcrituresFromSelectedFactures } from '../dialogs'
+import { DialogEcrituresFromSelectedFacturesContainerEntreprise } from '../DialogEcrituresFromSelectedFactures'
 
 
 
@@ -142,6 +145,25 @@ const FactureButtonContainer = () => {
                 </span><span>Annuler Factures</span>
             </Button>
         </DialogCancelAllFactures>}
+
+        {
+            store.billCart.length > 0 && <DialogEcrituresFromSelectedFacturesContainerEntreprise year={store.periode[0]} month={store.periode[1]} en_list={store.billCart.map(item => String(item))} >
+
+                <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
+                    <span><MdCloudDownload />
+                    </span><span>Générer Ecritures Comptables</span>
+                </Button>
+            </DialogEcrituresFromSelectedFacturesContainerEntreprise>
+        }
+
+        {store.items.length > 0 && store.billCart.length === 0 && <DialogEcrituresFromAllFactures >
+
+            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
+                <span><MdCloudDownload />
+                </span><span>Générer Ecritures Comptables</span>
+            </Button>
+        </DialogEcrituresFromAllFactures>}
+
 
 
         <DialogLoadFacture >

@@ -259,12 +259,19 @@ def insert_ecriture(ecriture: dict):
 def update_facture_status(do_no):
     # This function will update the status of the facture to "comptabilised" in the database
     conn_mssql, cursor_mssql = dbo_mssql()
-    script = f"""
+    script_entete = f"""
         UPDATE [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL]
         SET DO_Valide = 1,do_type=7
         WHERE do_no = {do_no} and do_type = 6
         """
-    cursor_mssql.execute(script)
+
+    script_ligne = f"""
+        UPDATE [TRANSIT].[dbo].[F_DOCLIGNE_DIGITAL]
+        SET do_type=7
+        WHERE do_no = {do_no} and do_type = 6
+        """
+    cursor_mssql.execute(script_entete)
+    cursor_mssql.execute(script_ligne)
 
 
 def insert_ecritures(do_no, ecritures):

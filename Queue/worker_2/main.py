@@ -199,5 +199,7 @@ def generate_ecritures_from_facture(jobID, year, month, do_no):
                     "pending", progress=100)
 
 
+""" 
 if __name__ == "__main__":
     generate_ecritures_from_all_factures("test_job_id", 2026, 3)
+ """

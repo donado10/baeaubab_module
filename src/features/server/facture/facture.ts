@@ -83,6 +83,54 @@ const getEntreprise = async (entreprise_id: string) => {
 	return result.recordset[0];
 };
 
+// Function to get factures from selected entreprises
+
+const getFacturesByEntreprises = async (
+	entreprise_ids: string[],
+	year: string,
+	month: string,
+) => {
+	const pool = await getConnection();
+
+	const query_entete = `
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_TotalTVA,DO_TotalTTC,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 and do_entreprise_sage in (${entreprise_ids
+			.map((_, i) => `@en${i}`)
+			.join(",")}) )
+			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No
+	`;
+	const query_ligne = `
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,Art_Design,ART_Qte,DO_TotalHT,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 and do_entreprise_sage in (${entreprise_ids
+				.map((_, i) => `@en${i}`)
+				.join(",")}) )
+			select lev1.*, NULL as Art_Code from lev1
+	`;
+
+	let request = pool.request();
+	request.input("year", sql.Int, parseInt(year));
+	request.input("month", sql.Int, parseInt(month));
+	entreprise_ids.forEach((id, i) => {
+		request.input(`en${i}`, sql.NVarChar, id);
+	});
+
+	let result_entete = await request.query(query_entete);
+	let result_ligne = await request.query(query_ligne);
+
+	const entetes = [...result_entete.recordset];
+	const lignes = [...result_ligne.recordset];
+
+	const documents = entetes.map((entete) => {
+		const ligne = lignes.filter((li) => {
+			return entete.DO_No === li.DO_No;
+		});
+		return {
+			entete: entete,
+			lignes: ligne,
+		};
+	});
+
+	return documents;
+};
+
 const getFactureEntreprise = async (
 	entreprise_id: string,
 	year: string,
@@ -129,6 +177,27 @@ const getFactureEntreprise = async (
 
 const app = new Hono()
 	.use(sessionMiddleware)
+	.get(
+		"/selectedEntreprises",
+		zValidator(
+			"query",
+			z.object({
+				en_list: z.string(),
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { year, month, en_list } = c.req.valid("query");
+			const documents = await getFacturesByEntreprises(
+				en_list.split(","),
+				year,
+				month,
+			);
+			return c.json({ results: documents });
+		},
+	)
+
 	.get(
 		"/entreprise/:entreprise_id",
 		zValidator(
@@ -353,26 +422,14 @@ const app = new Hono()
 			const { year, month } = c.req.valid("json");
 
 			const pool = await getConnection();
+
+			// get do_entreprise_sage for all factures in the month to cancel related ones in bon livraison
+
 			await pool
 				.request()
 				.input("year", sql.Int, parseInt(year))
 				.input("month", sql.Int, parseInt(month))
-				.query(
-					`
-			delete from transit.dbo.f_docentete_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6;
-			delete from transit.dbo.f_docligne_digital where year(DO_Date) = @year and month(DO_Date) = @month and do_type=6;
-			update transit.dbo.f_docentete_digital
-			set do_valide=0,DO_FactureReference=NULL
-			where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference is not null;
-			update transit.dbo.f_docligne_digital
-			set DO_FactureReference=NULL
-			where year(created_at) = @year and month(created_at) = @month and do_type=3 and DO_FactureReference is not null;
-		`,
-					{
-						year: parseInt(year),
-						month: parseInt(month),
-					},
-				);
+				.execute("transit.dbo.CancelAllFactures");
 
 			return c.json({ result: "done" });
 		},
