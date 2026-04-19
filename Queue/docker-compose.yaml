@@ -15,11 +15,11 @@ services:
         ipv4_address: 172.30.0.10
       default: {}
 
-  worker_3:
+  worker_1:
     restart: on-failure
     build:
       context: .
-      dockerfile: worker_3/Dockerfile
+      dockerfile: worker_1/Dockerfile
     depends_on:
       - rabbitmq
     environment:
@@ -28,11 +28,11 @@ services:
       bridge-baeaubab: {}
       default: {}
 
-  worker_4:
+  worker_2:
     restart: on-failure
     build:
       context: .
-      dockerfile: worker_4/Dockerfile
+      dockerfile: worker_2/Dockerfile
     depends_on:
       - rabbitmq
     environment:

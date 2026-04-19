@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from main import (
+    generate_ecritures_from_all_factures,
     generate_ecritures_from_facture,
+    generate_ecritures_from_selected_factures,
     generate_factures,
     generate_factures_by_entreprise,
     generate_factures_for_entreprise,
@@ -47,6 +49,20 @@ class EcrituresFromFactureHandler(BaseFactureHandler):
         )
 
 
+class EcrituresFromAllFacturesHandler(BaseFactureHandler):
+    def handle(self, data: dict):
+        generate_ecritures_from_all_factures(
+            data["jobId"], data["year"], data["month"]
+        )
+
+
+class EcrituresFromSelectedFacturesHandler(BaseFactureHandler):
+    def handle(self, data: dict):
+        generate_ecritures_from_selected_factures(
+            data["jobId"], data["year"], data["month"], data["do_nos"]
+        )
+
+
 class FactureHandlerFactory:
     _handlers = {
         "all": AllFacturesHandler,
@@ -54,6 +70,8 @@ class FactureHandlerFactory:
         "fromBonLivraison": FromBonLivraisonHandler,
         "forEntreprise": ForEntrepriseHandler,
         "ecrituresFromFacture": EcrituresFromFactureHandler,
+        "ecrituresFromAllFactures": EcrituresFromAllFacturesHandler,
+        "ecrituresFromSelectedFactures": EcrituresFromSelectedFacturesHandler,
     }
 
     @classmethod
