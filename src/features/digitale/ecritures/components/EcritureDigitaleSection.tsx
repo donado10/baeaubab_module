@@ -162,7 +162,7 @@ const EcritureDigitaleSection = () => {
                 <div className='flex items-center justify-between mb-8 '>
                     <div>
 
-                        <h1 className='text-2xl text-[#101010] font-bold'>Ecritures Digitales</h1>
+                        <h1 className='text-2xl text-[#101010] font-bold'>Ecritures Comptables</h1>
                         {store.periode.length > 0 && <h2 className='text-xs'>{getFrenchMonthName(Number(store.periode[1]))} {store.periode[0]}</h2>}
                     </div>
                     <div className='flex items-center gap-4'>

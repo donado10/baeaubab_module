@@ -256,7 +256,18 @@ def insert_ecriture(ecriture: dict):
     ))
 
 
-def insert_ecritures(ecritures):
+def update_facture_status(do_no):
+    # This function will update the status of the facture to "comptabilised" in the database
+    conn_mssql, cursor_mssql = dbo_mssql()
+    script = f"""
+        UPDATE [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL]
+        SET DO_Valide = 1,do_type=7
+        WHERE do_no = {do_no} and do_type = 6
+        """
+    cursor_mssql.execute(script)
+
+
+def insert_ecritures(do_no, ecritures):
     # This function would contain the logic to insert the ecritures into the database
     # For demonstration, we will just print the ecritures
     conn_mssql, cursor_mssql = dbo_mssql()
@@ -295,6 +306,8 @@ def insert_ecritures(ecritures):
         }
         print("Inserting HT Ecriture:", ligne)
         insert_ecriture(ligne)
+
+    update_facture_status(do_no)
 
     conn_mssql.commit()
 

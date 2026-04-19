@@ -42,9 +42,9 @@ const data = {
       isActive: false,
     },
     {
-      title: "Ecritures Digitales",
-      endpoint: 'ecritures-digitales',
-      url: "/m1/ecritures-digitales",
+      title: "Ecritures Comptables",
+      endpoint: 'ecritures-comptables',
+      url: "/m1/ecritures-comptables",
       isActive: false,
     },]
 };

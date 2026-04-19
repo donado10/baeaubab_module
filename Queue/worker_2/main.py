@@ -194,7 +194,9 @@ def generate_ecritures_from_facture(jobID, year, month, do_no):
         "transport": transport,
     }
 
-    insert_ecritures(ecritures)
+    insert_ecritures(do_no, ecritures)
+    post_job_status(API_ENDPOINT, jobID,
+                    "pending", progress=100)
 
 
 if __name__ == "__main__":
