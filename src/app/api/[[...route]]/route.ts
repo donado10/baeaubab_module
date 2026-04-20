@@ -15,6 +15,7 @@ import modules from "@/features/modules/server/route";
 import notification from "@/features/server/notification/notification";
 import search from "@/features/server/search/search";
 import job from "@/features/server/job/job";
+import ecritureComptableStats from "@/features/server/ecriture-comptable/stats";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,7 @@ const routes = app
 	.route("/facture", facture)
 	.route("/facture", factureStats)
 	.route("/ecriture-comptable", ecritureComptable)
+	.route("/ecriture-comptable/stats", ecritureComptableStats)
 	.route("/digitale/ecritures", ecritureDigitale)
 	.route("/digitale/ecritures/events", ecritureDigitaleEvents)
 	.route("/digitale/bonLivraison/events", bonLivraisonEvents)

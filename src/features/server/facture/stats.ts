@@ -43,39 +43,30 @@ const app = new Hono()
 			.input("year", sql.Int, parseInt(year))
 			.input("month", sql.Int, parseInt(month))
 			.query(
-				`select count(DO_ENTREPRISE_sage) as total_factures  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6`,
+				`select count(DO_ENTREPRISE_sage) as total_factures  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type in (6,7)`,
 			);
 
-		const result_total = await pool
+		const result_factures = await pool
 			.request()
 			.input("year", sql.Int, parseInt(year))
 			.input("month", sql.Int, parseInt(month))
 			.query(
-				`select sum(DO_TotalTTC) as ca_total  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6`,
+				`select count(DO_No) as factures  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type in (6)`,
 			);
 
-		const result_exonore = await pool
+		const result_comptabilises = await pool
 			.request()
 			.input("year", sql.Int, parseInt(year))
 			.input("month", sql.Int, parseInt(month))
 			.query(
-				`select sum(DO_TotalTTC) as ca_exonore  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)= @month and do_type=6 and DO_TotalHT = DO_TotalTTC`,
-			);
-
-		const result_taxable = await pool
-			.request()
-			.input("year", sql.Int, parseInt(year))
-			.input("month", sql.Int, parseInt(month))
-			.query(
-				`select sum(DO_TotalTTC) as ca_taxable  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)= @month and do_type=6 and DO_TotalHT != DO_TotalTTC`,
+				`select count(DO_No) as comptabilises  FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)= @month and do_type in (7) `,
 			);
 
 		return c.json({
 			results: {
-				factures: result_total_factures.recordset[0].total_factures,
-				total: result_total.recordset[0].ca_total,
-				exonore: result_exonore.recordset[0].ca_exonore,
-				taxable: result_taxable.recordset[0].ca_taxable,
+				total_factures: result_total_factures.recordset[0].total_factures,
+				factures: result_factures.recordset[0].factures,
+				comptabilises: result_comptabilises.recordset[0].comptabilises,
 			},
 		});
 	});

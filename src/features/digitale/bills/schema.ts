@@ -7,6 +7,7 @@ export const entrepriseFactureSchema = z.object({
 	DO_TotalHT: z.coerce.number(),
 	DO_TotalTVA: z.coerce.number(),
 	DO_TotalTTC: z.coerce.number(),
+	EN_Valide: z.coerce.number(),
 });
 
 export const factureEnteteSchema = z.object({

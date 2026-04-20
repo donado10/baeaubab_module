@@ -12,6 +12,7 @@ import { useEntrepriseFactureStore } from "../store/store";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import useDeleteFactureByDocument from "../../_shared/api/use-delete-selected-factures";
+import useGenerateEcrituresFromSelectedFactures from "../api/use-generate-ecritures-from-selected-factures";
 
 
 
@@ -28,10 +29,11 @@ export function DropdownMenuTable({
   const store = useEntrepriseFactureStore()
   const pathname = usePathname()
   const { mutate } = useDeleteFactureByDocument()
+  const { mutate: mutateComptabiliser } = useGenerateEcrituresFromSelectedFactures()
   const queryClient = useQueryClient()
 
 
-  const submitHandler = () => {
+  const submitCancelHandler = () => {
 
 
     mutate({ json: { fact_list: [ref_bill], en_no: ref_enterprise, year: store.periode[0], month: store.periode[1] } }, {
@@ -51,6 +53,8 @@ export function DropdownMenuTable({
 
   }
 
+
+
   return (
     <>
       <DropdownMenu>
@@ -64,7 +68,13 @@ export function DropdownMenuTable({
               </span>
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-red-600" onClick={submitHandler}>
+          <DropdownMenuItem className="text-blue-600" onClick={() => { store.setClearDialogState(); store.setDialogState({ ...store.dialog, confirmGenerateEcriture: [true, ref_enterprise] }) }}>
+            <span
+            >
+              Comptabiliser
+            </span>
+          </DropdownMenuItem>
+          <DropdownMenuItem className="text-red-600" onClick={submitCancelHandler}>
             <span
             >
               Annuler

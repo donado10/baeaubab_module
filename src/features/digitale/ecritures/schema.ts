@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const ecritureLigneDigitalSchema = z.object({
-	id: z.coerce.number(),
 	JO_Num: z.coerce.string(),
 	EC_No: z.coerce.number(),
 	JM_Date: z.coerce.string(),
@@ -15,7 +14,7 @@ export const ecritureLigneDigitalSchema = z.object({
 	EC_Echeance: z.coerce.number(),
 	EC_Sens: z.coerce.number(),
 	EC_Montant: z.coerce.number(),
-	status: z.coerce.number(),
+	EC_Valide: z.coerce.number(),
 });
 
 export const ecritureEnteteDigitalSchema = z.object({
@@ -24,7 +23,7 @@ export const ecritureEnteteDigitalSchema = z.object({
 	EC_RefPiece: z.coerce.string(),
 	CT_Num: z.coerce.string(),
 	EC_Montant: z.coerce.number(),
-	Status: z.coerce.number(),
+	EC_Valide: z.coerce.number(),
 });
 
 export const ecritureSchema = z.object({

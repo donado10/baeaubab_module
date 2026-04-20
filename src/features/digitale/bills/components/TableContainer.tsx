@@ -3,18 +3,20 @@
 import React, { useEffect, useState } from "react";
 import { DataTable } from "./Table/table";
 
-import { EStatus, useEntrepriseFactureStore } from "../store/store";
+import { useEntrepriseFactureStore } from "../store/store";
+import { EStatusComptabilisation } from "../../_shared/types";
+
 
 
 const TableFactureDigitalContainer = () => {
 
   const store = useEntrepriseFactureStore()
-  const blMapByStatus = new Map<number, EStatus>([[1, EStatus.VALID], [2, EStatus.WAITING]])
+  const blMapByStatus = new Map<number, EStatusComptabilisation>([[1, EStatusComptabilisation.COMPTABILISE], [0, EStatusComptabilisation.NON_COMPTABILISE]])
   const [factures, setFactures] = useState(store.items)
 
   useEffect(() => {
 
-    const filterByStatus = [...store.items]
+    const filterByStatus = store.filter.status !== EStatusComptabilisation.ALL ? store.items.filter((value) => blMapByStatus.get(value.EN_Valide) === store.filter.status) : [...store.items]
 
     const filterBySearch = store.filter.search?.value ? filterByStatus.filter((value) => {
       if (store.filter.search.type === 'Intitule') {

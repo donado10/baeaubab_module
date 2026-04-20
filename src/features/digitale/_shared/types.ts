@@ -6,6 +6,12 @@ export enum EStatus {
 	WAITING = 0,
 }
 
+export enum EStatusComptabilisation {
+	ALL = "Tout",
+	COMPTABILISE = 1,
+	NON_COMPTABILISE = 0,
+}
+
 /**
  * Minimum store shape required by shared infrastructure.
  * TCartItem defaults to string; use number for features like bills.

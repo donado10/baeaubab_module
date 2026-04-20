@@ -18,7 +18,7 @@ const getAdjacentEntreprises = async (
     SELECT 
         DO_Entreprise_Sage,
         ROW_NUMBER() OVER (ORDER BY DO_Entreprise_Sage) AS rn
-    FROM F_DOCENTETE_DIGITAL where year(do_date) = @year and month(do_date) = @month and DO_Type=6 group by DO_Entreprise_Sage
+    FROM F_DOCENTETE_DIGITAL where year(do_date) = @year and month(do_date) = @month and DO_Type in (6,7) group by DO_Entreprise_Sage
 	)
 	SELECT 
 		prev.DO_Entreprise_Sage as previous ,
@@ -139,11 +139,11 @@ const getFactureEntreprise = async (
 	const pool = await getConnection();
 
 	const query_entete = `
-		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_TotalTVA,DO_TotalTTC,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 )
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_TotalTVA,DO_TotalTTC,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type in (6,7) )
 			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No where lev1.EN_No = @entreprise_id
 	`;
 	const query_ligne = `
-			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,Art_Design,ART_Qte,DO_TotalHT,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 )
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,Art_Design,ART_Qte,DO_TotalHT,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type in (6,7) )
 			select lev1.*, NULL as Art_Code from lev1 where lev1.EN_No = @entreprise_id
 			`;
 	let result_entete = await pool

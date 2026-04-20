@@ -211,6 +211,28 @@ export const columns: ColumnDef<IEntrepriseFacture>[] = [
     ),
   },
   {
+    accessorKey: "EN_Valide",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <span>
+            Valide
+          </span>
+          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
+        </Button>
+      )
+    },
+    cell: ({ row }) => (
+      <>
+        <div className="capitalize">{Number(row.getValue("EN_Valide"))}</div>
+      </>
+    ),
+  },
+  {
     header: "Action",
     cell: ({ row }) => (
       <DropdownMenuTable ref_bill={row.original.DO_Entreprise_Sage.toString()} ref_enterprise={row.original.DO_Entreprise_Sage.toString()} >

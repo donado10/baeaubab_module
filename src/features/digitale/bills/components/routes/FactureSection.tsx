@@ -19,6 +19,7 @@ import { DialogCancelAllFactures } from '@/features/digitale/bonLivraison/compon
 import { DialogEcrituresFromAllFactures } from '../DialogEcrituresFromAllFactures'
 import { DialogEcrituresFromFacture, DialogEcrituresFromSelectedFactures } from '../dialogs'
 import { DialogEcrituresFromSelectedFacturesContainerEntreprise } from '../DialogEcrituresFromSelectedFactures'
+import { EStatusComptabilisation } from '@/features/digitale/_shared/types'
 
 
 
@@ -71,9 +72,9 @@ const FactureFilterSection = () => {
         <div className='border-b border-gray-200 flex items-center justify-between  gap-8 p-2'>
 
             <div className=' border-gray-200 flex items-center gap-8'>
-                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.ALL ? 'text-primary font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.ALL })} disabled={store.items.length <= 0}>Tout</Button>
-                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.VALID ? 'text-green-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.VALID })} disabled={store.items.length <= 0}>Valide</Button>
-                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatus.WAITING ? ' text-yellow-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatus.WAITING })} disabled={store.items.length <= 0}>Attente</Button>
+                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatusComptabilisation.ALL ? 'text-primary font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatusComptabilisation.ALL })} disabled={store.items.length <= 0}>Tout</Button>
+                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatusComptabilisation.COMPTABILISE ? 'text-green-600 font-semibold text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatusComptabilisation.COMPTABILISE })} disabled={store.items.length <= 0}>Comptabilisé</Button>
+                <Button variant={"ghost"} className={cn(classNameButton, store.filter?.status === EStatusComptabilisation.NON_COMPTABILISE ? ' text-yellow-600 font-semibold  text-base' : '')} onClick={() => store.setFilter({ ...store.filter, status: EStatusComptabilisation.NON_COMPTABILISE })} disabled={store.items.length <= 0}>Non Comptabilisé</Button>
             </div>
             <div className='flex items-center gap-4'>
                 <FactureSearch />
@@ -89,7 +90,7 @@ const FactureFilterResumeCard = ({ value }: { value: string }) => {
 
 const FactureFilterResume = () => {
     const store = useEntrepriseFactureStore()
-    if (store.filter.status !== EStatus.ALL) {
+    if (store.filter.status !== EStatusComptabilisation.ALL) {
         return <></>
     }
     return <ul className='flex items-center gap-4'>
@@ -108,28 +109,25 @@ const FactureStatsContainer = () => {
     if (isPending) {
         return <>
             <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Factures' count={0} />
-            <FactureStatCard background='bg-yellow-200' title="Chiffre d'Affaire Total" count={0} />
-            <FactureStatCard background='bg-green-200' title="Chiffre d'Affaire Taxables" count={0} />
-            <FactureStatCard background='bg-gray-200' title="Chiffre d'Affaire Exonorés" count={0} />
+            <FactureStatCard background='bg-yellow-200' title="Factures Comptabilisées" count={0} />
+            <FactureStatCard background='bg-green-200' title="Factures Non Comptabilisées" count={0} />
         </>
     }
 
     if (!data) {
         return <>
             <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Factures' count={0} />
-            <FactureStatCard background='bg-yellow-200' title="Chiffre d'Affaire Total" count={0} />
-            <FactureStatCard background='bg-green-200' title="Chiffre d'Affaire Taxables" count={0} />
-            <FactureStatCard background='bg-gray-200' title="Chiffre d'Affaire Exonorés" count={0} />
+            <FactureStatCard background='bg-green-200' title="Factures Comptabilisées" count={0} />
+            <FactureStatCard background='bg-gray-200' title="Factures Non Comptabilisées" count={0} />
         </>
     }
 
 
 
     return <>
-        <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Factures' count={data.results.factures} />
-        <FactureStatCard background='bg-yellow-200' title="Chiffre d'Affaire Total" count={formatNumberToFrenchStandard(data.results.total)} />
-        <FactureStatCard background='bg-green-200' title="Chiffre d'Affaire Taxables" count={formatNumberToFrenchStandard(data.results.taxable)} />
-        <FactureStatCard background='bg-gray-200' title="Chiffre d'Affaire Exonorés" count={formatNumberToFrenchStandard(data.results.exonore)} />
+        <FactureStatCard background='bg-primary text-white' text='text-white' title='Total Factures' count={formatNumberToFrenchStandard(data.results.total_factures)} />
+        <FactureStatCard background='bg-green-200' title="Factures Comptabilisées" count={formatNumberToFrenchStandard(data.results.comptabilises)} />
+        <FactureStatCard background='bg-gray-200' title="Factures Non Comptabilisées" count={formatNumberToFrenchStandard(data.results.factures)} />
     </>
 }
 
@@ -231,9 +229,16 @@ const FactureSection = ({ documents }: { documents: IEntrepriseFacture[] }) => {
 
     const store = useEntrepriseFactureStore()
 
+
+    useEffect(() => {
+        store.clear()
+    }, [])
+
+
     return (
         <section className='p-4 text-gray-700'>
             <div className=''>
+                {store.dialog.confirmGenerateEcriture && store.dialog.confirmGenerateEcriture[0] && <DialogEcrituresFromSelectedFacturesContainerEntreprise year={store.periode[0]} onOpenChange={(value) => store.setDialogState({ ...store.dialog, confirmGenerateEcriture: [value, store.dialog.confirmGenerateEcriture[1]] })} month={store.periode[1]} en_list={[store.dialog.confirmGenerateEcriture[1]]} open={store.dialog.confirmGenerateEcriture[0]} />}
 
                 <div className='flex items-center justify-between mb-8 '>
                     <div>
@@ -246,7 +251,7 @@ const FactureSection = ({ documents }: { documents: IEntrepriseFacture[] }) => {
                     </div>
 
                 </div>
-                <div className='h-32 mb-4 shadow-none  grid grid-cols-4 gap-4 '>
+                <div className='h-32 mb-4 shadow-none  grid grid-cols-3 gap-4 '>
                     <FactureStatsContainer />
                 </div>
             </div>

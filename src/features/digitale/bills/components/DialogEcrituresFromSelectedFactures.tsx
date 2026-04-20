@@ -12,8 +12,7 @@ import useGetSelectedEntrepriseFactures from "../api/use-get-selected-entreprise
 // I want to absract the store
 
 
-export function DialogEcrituresFromSelectedFacturesContainerEntreprise({ children, year, month, en_list }: { children: ReactNode, year: string, month: string, en_list?: string[] }) {
-    console.log(en_list)
+export function DialogEcrituresFromSelectedFacturesContainerEntreprise({ children, year, month, en_list, open, onOpenChange }: { children?: ReactNode, year: string, month: string, en_list?: string[], open?: boolean; onOpenChange?: (open: boolean) => void; }) {
 
     const { data, isPending } = useGetSelectedEntrepriseFactures(en_list || [], year, month)
 
@@ -41,20 +40,23 @@ export function DialogEcrituresFromSelectedFacturesContainerEntreprise({ childre
         )
     }
 
-    console.log(data)
 
 
     return (
-        <DialogEcrituresFromSelectedFactures year={year} month={month} do_nos={data.results.map(facture => facture.entete.DO_No) || []}>
-            {children}
-        </DialogEcrituresFromSelectedFactures>
+        <>
+            {children && <DialogEcrituresFromSelectedFactures year={year} month={month} do_nos={data.results.map(facture => facture.entete.DO_No) || []}>
+                {children}
+            </DialogEcrituresFromSelectedFactures>}
+            {!children && <DialogEcrituresFromSelectedFactures open={open} onOpenChange={onOpenChange} year={year} month={month} do_nos={data.results.map(facture => facture.entete.DO_No) || []} />}
+        </>
     )
 }
 
 
 
 
-export function DialogEcrituresFromSelectedFactures({ children, year, month, do_nos }: { children: ReactNode, year: string, month: string, do_nos?: string[] }) {
+
+export function DialogEcrituresFromSelectedFactures({ children, year, month, do_nos, open, onOpenChange }: { children?: ReactNode, year: string, month: string, do_nos?: string[], open?: boolean, onOpenChange?: (open: boolean) => void }) {
     const { mutate, isPending } = useGenerateEcrituresFromSelectedFactures()
 
     const onConfirm = () => {
@@ -74,14 +76,26 @@ export function DialogEcrituresFromSelectedFactures({ children, year, month, do_
     }
 
     return (
-        <DialogShell
-            title="Générer les écritures — factures sélectionnées"
-            description={`Les écritures comptables seront générées pour ${do_nos?.length || 0} facture(s) sélectionnée(s).`}
-            onConfirm={onConfirm}
-            isPending={isPending}
-            confirmLabel={do_nos?.length === 0 ? "Confirmer" : `Confirmer (${do_nos?.length})`}
-        >
-            {children}
-        </DialogShell>
+        <>
+            {children && <DialogShell
+                title="Générer les écritures — factures sélectionnées"
+                description={`Les écritures comptables seront générées pour ${do_nos?.length || 0} facture(s) sélectionnée(s).`}
+                onConfirm={onConfirm}
+                isPending={isPending}
+                confirmLabel={do_nos?.length === 0 ? "Confirmer" : `Confirmer (${do_nos?.length})`}
+            >
+                {children}
+            </DialogShell>}
+            {!children && <DialogShell
+                open={open}
+                title="Générer les écritures — factures sélectionnées"
+                description={`Les écritures comptables seront générées pour ${do_nos?.length || 0} facture(s) sélectionnée(s).`}
+                onConfirm={onConfirm}
+                isPending={isPending}
+                onOpenChange={onOpenChange}
+                confirmLabel={do_nos?.length === 0 ? "Confirmer" : `Confirmer (${do_nos?.length})`}
+            />}
+        </>
     )
 }
+

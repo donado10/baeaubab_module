@@ -2,7 +2,11 @@ import { create } from "zustand";
 import { IDocumentFacture, IEntrepriseFacture } from "../interface";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { createBaseSlice } from "@/features/digitale/_shared/createBaseSlice";
-import { EStatus, IBaseStore } from "@/features/digitale/_shared/types";
+import {
+	EStatus,
+	EStatusComptabilisation,
+	IBaseStore,
+} from "@/features/digitale/_shared/types";
 
 // Re-export EStatus so existing imports keep working.
 export { EStatus };
@@ -11,9 +15,10 @@ interface IDialogEcritures {
 	viewTable: [boolean, string];
 	viewTableCorrection: [boolean, string];
 	checkEcriture: [boolean, string];
+	confirmGenerateEcriture: [boolean, string];
 }
 interface IFilter {
-	status: EStatus;
+	status: EStatusComptabilisation;
 	search: {
 		type: "entreprise_id" | "Intitule";
 		value: string;
@@ -48,9 +53,10 @@ export const useEntrepriseFactureStore = create<IEntrepriseFactureState>()(
 				viewTable: [false, ""],
 				viewTableCorrection: [false, ""],
 				checkEcriture: [false, ""],
+				confirmGenerateEcriture: [false, ""],
 			},
 			filter: {
-				status: EStatus.ALL,
+				status: EStatusComptabilisation.ALL,
 				search: { type: "Intitule", value: "" },
 				searchByBL: "",
 				invalide: [],
@@ -65,6 +71,7 @@ export const useEntrepriseFactureStore = create<IEntrepriseFactureState>()(
 						viewTable: [false, ""],
 						viewTableCorrection: [false, ""],
 						checkEcriture: [false, ""],
+						confirmGenerateEcriture: [false, ""],
 					},
 				}),
 			setDialogState: (dialogState: IDialogEcritures) =>
@@ -79,11 +86,17 @@ export const useEntrepriseFactureStore = create<IEntrepriseFactureState>()(
 					selectedFacture: null,
 					items: [],
 					filter: {
-						status: EStatus.ALL,
+						status: EStatusComptabilisation.ALL,
 						searchByBL: "",
 						search: { type: "Intitule", value: "" },
 						invalide: [],
 						ecart_conformite: 0,
+					},
+					dialog: {
+						viewTable: [false, ""],
+						viewTableCorrection: [false, ""],
+						checkEcriture: [false, ""],
+						confirmGenerateEcriture: [false, ""],
 					},
 				}),
 		}),

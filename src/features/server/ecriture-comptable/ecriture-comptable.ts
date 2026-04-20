@@ -6,10 +6,47 @@ import { ID } from "node-appwrite";
 import { sessionMiddleware } from "@/lib/session-middleware";
 import { adminActionMiddleware } from "@/lib/admin-action-middleware";
 import { createJob } from "@/features/server/job/create-job";
+import { getConnection } from "@/lib/db-mssql";
 
 const app = new Hono()
 	.use(sessionMiddleware)
 	.use(adminActionMiddleware)
+	.get(
+		"/",
+		sessionMiddleware,
+		adminActionMiddleware,
+		zValidator(
+			"query",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { year, month } = c.req.valid("query");
+
+			const pool = await getConnection();
+
+			let query_refpiece = `select JO_Num,JM_Date,EC_RefPiece,CT_Num,EC_Montant,EC_Valide from transit.dbo.f_ecriturec_temp   where year(jm_date)='${year}' and month(jm_date)='${month}' and ec_sens=0 `;
+
+			let result_refpiece = await pool.request().query(query_refpiece);
+
+			let query_ecritures = `select * from transit.dbo.f_ecriturec_temp where year(jm_date)='${year}' and month(jm_date)='${month}' and ec_refpiece like 'FACT%'`;
+
+			let result_ecritures = await pool.request().query(query_ecritures);
+
+			const ecritures_formated = Array.from(result_refpiece.recordset).map(
+				(ref) => ({
+					entete: ref,
+					ligne: result_ecritures.recordset.filter(
+						(ec) => ec.EC_RefPiece === ref.EC_RefPiece,
+					),
+				}),
+			);
+
+			return c.json({ results: ecritures_formated });
+		},
+	)
 	.post(
 		"/fromFacture",
 		zValidator(
