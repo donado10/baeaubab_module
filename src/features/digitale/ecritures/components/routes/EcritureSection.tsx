@@ -14,7 +14,9 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { IoDocumentTextOutline } from "react-icons/io5";
+import { MdCloudDownload } from "react-icons/md";
 import { cn, getFrenchMonthName } from "@/lib/utils";
+import { DialogShell } from "@/components/dialogs/dialog-shell";
 import { useEcritureEnteteLigneStore, EEcritureStatut } from "../../store/store";
 import { useGetEcrituresStats } from "../../api/use-get-ecritures-stats";
 import { useGetEcritures } from "../../api/use-get-ecritures";
@@ -105,6 +107,73 @@ const EcritureStatsContainer = () => {
                 count={data.result.invalid}
             />
         </>
+    );
+};
+
+// ---------------------------------------------------------------------------
+// Dialog Charger
+// ---------------------------------------------------------------------------
+
+const MONTHS = [
+    { label: "Janvier", value: "1" },
+    { label: "Février", value: "2" },
+    { label: "Mars", value: "3" },
+    { label: "Avril", value: "4" },
+    { label: "Mai", value: "5" },
+    { label: "Juin", value: "6" },
+    { label: "Juillet", value: "7" },
+    { label: "Août", value: "8" },
+    { label: "Septembre", value: "9" },
+    { label: "Octobre", value: "10" },
+    { label: "Novembre", value: "11" },
+    { label: "Décembre", value: "12" },
+];
+
+const DialogLoadEcriture = ({ children }: { children: React.ReactNode }) => {
+    const store = useEcritureEnteteLigneStore();
+    const [year, setYear] = useState(store.periode[0] ?? new Date().getFullYear().toString());
+    const [month, setMonth] = useState(store.periode[1] ?? "1");
+    const years: string[] = [];
+    for (let y = 2020; y <= new Date().getFullYear(); y++) years.push(y.toString());
+
+    const content = (
+        <div className="flex items-center justify-between w-full gap-4">
+            <Select value={month} onValueChange={setMonth}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Mois" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {MONTHS.map((m) => (
+                            <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+            <Select value={year} onValueChange={setYear}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Année" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {years.map((y) => (
+                            <SelectItem key={y} value={y}>{y}</SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div>
+    );
+
+    return (
+        <DialogShell
+            title="Chargement des écritures comptables"
+            confirmLabel="Charger"
+            onConfirm={() => store.setPeriode(year, month)}
+            content={content}
+        >
+            {children}
+        </DialogShell>
     );
 };
 
@@ -255,9 +324,16 @@ const EcritureFilterSection = () => {
 // Button container (placeholder)
 // ---------------------------------------------------------------------------
 
-const EcritureButtonContainer = () => {
-    return <div className="flex items-center gap-4" />;
-};
+const EcritureButtonContainer = () => (
+    <div className="flex items-center gap-4">
+        <DialogLoadEcriture>
+            <Button variant="default" className="bg-primary hover:bg-primary/70">
+                <span><MdCloudDownload /></span>
+                <span>Charger</span>
+            </Button>
+        </DialogLoadEcriture>
+    </div>
+);
 
 // ---------------------------------------------------------------------------
 // Display section

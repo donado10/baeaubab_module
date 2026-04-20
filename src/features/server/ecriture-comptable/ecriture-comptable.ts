@@ -44,6 +44,8 @@ const app = new Hono()
 				}),
 			);
 
+			console.log(ecritures_formated);
+
 			return c.json({ results: ecritures_formated });
 		},
 	)

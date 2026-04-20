@@ -22,6 +22,7 @@ export const useGetEcritures = ({ year, month }: UseGetEcrituresProps) => {
             }
 
             const { results } = await response.json();
+
             return results;
         },
         enabled: !!year && !!month,
