@@ -24,21 +24,21 @@ const app = new Hono().use(sessionMiddleware).get(
 			.input("year", sql.Int, parseInt(year))
 			.input("month", sql.Int, parseInt(month))
 			.query(
-				`  select count(*) as total FROM [TRANSIT].[dbo].[F_ECRITUREC_TEMP]`,
+				`  select count(*) as total FROM [TRANSIT].[dbo].[F_ECRITUREC_TEMP] where year(jm_date)='${year}' and month(jm_date)='${month}'`,
 			);
 		const result_valid = await pool
 			.request()
 			.input("year", sql.Int, parseInt(year))
 			.input("month", sql.Int, parseInt(month))
 			.query(
-				`  select count(*) as valid FROM [TRANSIT].[dbo].[F_ECRITUREC_TEMP] where ec_valide=1`,
+				`  select count(*) as valid FROM [TRANSIT].[dbo].[F_ECRITUREC_TEMP] where year(jm_date)='${year}' and month(jm_date)='${month}' and ec_valide=1`,
 			);
 		const result_invalid = await pool
 			.request()
 			.input("year", sql.Int, parseInt(year))
 			.input("month", sql.Int, parseInt(month))
 			.query(
-				`  select count(*) as invalid FROM [TRANSIT].[dbo].[F_ECRITUREC_TEMP] where ec_valide=0`,
+				`  select count(*) as invalid FROM [TRANSIT].[dbo].[F_ECRITUREC_TEMP] where year(jm_date)='${year}' and month(jm_date)='${month}' and ec_valide=0`,
 			);
 
 		return c.json({

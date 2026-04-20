@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { IEcritureEnteteLigne, IEcritureError } from "../interface";
 
 interface IDialogEcritures {
@@ -48,58 +49,65 @@ interface IEcritureEnteteLigneState {
 }
 
 export const useEcritureEnteteLigneStore = create<IEcritureEnteteLigneState>()(
-	(set) => ({
-		items: [],
-		periode: [],
-		billCart: [],
-		sourceEc: "sage",
-		dialog: {
-			viewTable: [false, ""],
-			viewTableCorrection: [false, ""],
-			checkEcriture: [false, ""],
-		},
-		errors: [],
-		filter: {
-			status: EEcritureStatut.ALL,
-			search: { type: "facture", value: "" },
-			invalide: [],
-			ecart_conformite: 0,
-		},
-		setClearDialogState: () => {
-			set({
-				dialog: {
-					viewTable: [false, ""],
-					viewTableCorrection: [false, ""],
-					checkEcriture: [false, ""],
-				},
-			});
-		},
-		setDialogState: (dialogState: IDialogEcritures) =>
-			set({ dialog: { ...dialogState } }),
-		setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
-		setSourceEc: (source: "sage" | "digital") => set({ sourceEc: source }),
-		setFilter: (filter: IFilter) => set({ filter: filter }),
-		setErrors: (errors: IEcritureError[]) => set({ errors: errors }),
-		setAddBillCart: (bill: string) =>
-			set((state) => ({ billCart: [...state.billCart, bill] })),
-		setAddAllBillCart: (bills: string[]) =>
-			set((state) => ({ billCart: [...bills] })),
-		setRemoveAllBillCart: () => set((state) => ({ billCart: [] })),
-		setRemoveBillCart: (bill: string) =>
-			set((state) => ({ billCart: state.billCart.filter((b) => b !== bill) })),
-		setPeriode: (year: string, month: string) =>
-			set({ periode: [year, month] }),
+	persist(
+		(set) => ({
+			items: [],
+			periode: [],
+			billCart: [],
+			sourceEc: "sage",
+			dialog: {
+				viewTable: [false, ""],
+				viewTableCorrection: [false, ""],
+				checkEcriture: [false, ""],
+			},
+			errors: [],
+			filter: {
+				status: EEcritureStatut.ALL,
+				search: { type: "facture", value: "" },
+				invalide: [],
+				ecart_conformite: 0,
+			},
+			setClearDialogState: () => {
+				set({
+					dialog: {
+						viewTable: [false, ""],
+						viewTableCorrection: [false, ""],
+						checkEcriture: [false, ""],
+					},
+				});
+			},
+			setDialogState: (dialogState: IDialogEcritures) =>
+				set({ dialog: { ...dialogState } }),
+			setItems: (items: IEcritureEnteteLigne) => set({ items: [...items] }),
+			setSourceEc: (source: "sage" | "digital") => set({ sourceEc: source }),
+			setFilter: (filter: IFilter) => set({ filter: filter }),
+			setErrors: (errors: IEcritureError[]) => set({ errors: errors }),
+			setAddBillCart: (bill: string) =>
+				set((state) => ({ billCart: [...state.billCart, bill] })),
+			setAddAllBillCart: (bills: string[]) => set({ billCart: [...bills] }),
+			setRemoveAllBillCart: () => set({ billCart: [] }),
+			setRemoveBillCart: (bill: string) =>
+				set((state) => ({
+					billCart: state.billCart.filter((b) => b !== bill),
+				})),
+			setPeriode: (year: string, month: string) =>
+				set({ periode: [year, month] }),
 
-		clear: () =>
-			set({
-				billCart: [],
-				filter: {
-					status: EEcritureStatut.ALL,
-					search: { type: "facture", value: "" },
-					invalide: [],
-					ecart_conformite: 0,
-				},
-				items: [],
-			}),
-	}),
+			clear: () =>
+				set({
+					billCart: [],
+					filter: {
+						status: EEcritureStatut.ALL,
+						search: { type: "facture", value: "" },
+						invalide: [],
+						ecart_conformite: 0,
+					},
+					items: [],
+				}),
+		}),
+		{
+			name: "ecritures-storage",
+			storage: createJSONStorage(() => localStorage),
+		},
+	),
 );
