@@ -21,26 +21,26 @@ const EcritureTableContainer = () => {
         const filterByStatus =
             store.filter.status !== EEcritureStatut.ALL
                 ? store.items.filter(
-                      (item) =>
-                          ecritureStatutByValide.get(item.entete.EC_Valide) ===
-                          store.filter.status
-                  )
+                    (item) =>
+                        ecritureStatutByValide.get(item.entete.EC_Valide) ===
+                        store.filter.status
+                )
                 : [...store.items];
 
         const filterBySearch = store.filter.search?.value
             ? filterByStatus.filter((item) => {
-                  if (store.filter.search.type === "facture") {
-                      return item.entete.EC_RefPiece.toLowerCase().includes(
-                          store.filter.search.value.toLowerCase()
-                      );
-                  }
-                  if (store.filter.search.type === "tiers") {
-                      return item.entete.CT_Num.toLowerCase().includes(
-                          store.filter.search.value.toLowerCase()
-                      );
-                  }
-                  return true;
-              })
+                if (store.filter.search.type === "facture") {
+                    return item.entete.EC_RefPiece.toLowerCase().includes(
+                        store.filter.search.value.toLowerCase()
+                    );
+                }
+                if (store.filter.search.type === "tiers") {
+                    return item.entete.CT_Num.toLowerCase().includes(
+                        store.filter.search.value.toLowerCase()
+                    );
+                }
+                return true;
+            })
             : [...filterByStatus];
 
         setEcritures(filterBySearch);
