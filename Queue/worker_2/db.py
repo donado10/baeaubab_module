@@ -65,7 +65,7 @@ def get_agence_dg_by_residence_id(residence_id):
 
 def get_latest_facture_id():
     query = """
-    SELECT MAX(DO_No) FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL where do_type=6
+    SELECT MAX(DO_No) FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL where do_type in (6,7)
 """
     result = execute_select_all(query)
     return result[0][0] if result and result[0][0] else 127311
@@ -235,9 +235,10 @@ def insert_ecriture(ecriture: dict):
             ,[CT_Num]
             ,[EC_Intitule]
             ,[EC_Sens]
-            ,[EC_Montant])
+            ,[EC_Montant]
+            ,[EC_Valide])
      VALUES
-           (?,?,?,?,?,?,?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 """
     cursor_mssql.execute(script, (
         ecriture["JO_Num"],
@@ -253,6 +254,7 @@ def insert_ecriture(ecriture: dict):
         ecriture["EC_Intitule"],
         ecriture["EC_Sens"],
         ecriture["EC_Montant"],
+        ecriture["EC_Valide"],
     ))
 
 
@@ -310,6 +312,7 @@ def insert_ecritures(do_no, ecritures):
             "EC_Intitule": ligne["EC_Intitule"],
             "EC_Sens": ligne["EC_Sens"],
             "EC_Montant": ligne["EC_Montant"],
+            "EC_Valide": ht["EC_Valide"],
         }
         print("Inserting HT Ecriture:", ligne)
         insert_ecriture(ligne)

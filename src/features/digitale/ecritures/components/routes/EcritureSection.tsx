@@ -16,11 +16,17 @@ import {
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { MdCloudDownload } from "react-icons/md";
 import { cn, getFrenchMonthName } from "@/lib/utils";
-import { DialogShell } from "@/components/dialogs/dialog-shell";
+import { DialogShell } from "@/features/digitale/_shared/components/DialogShell";
 import { useEcritureEnteteLigneStore, EEcritureStatut } from "../../store/store";
 import { useGetEcrituresStats } from "../../api/use-get-ecritures-stats";
 import { useGetEcritures } from "../../api/use-get-ecritures";
+import {
+    useIntegrateAllEcritures,
+    useIntegrateSelectedEcritures,
+} from "../../api/use-integrate-ecritures";
+import type { IEcritureEnteteLigne } from "../../interface";
 import EcritureTableContainer from "../TableContainer";
+import { toast } from "sonner";
 
 // ---------------------------------------------------------------------------
 // Stat card
@@ -129,6 +135,9 @@ const MONTHS = [
     { label: "Décembre", value: "12" },
 ];
 
+const JOURNALS = ["VTED", "VTEDC2", "VTEDC3"];
+const TARGET_DATABASES = ["GBAEAUBAB23", "F_GBAEAUBAB23"];
+
 const DialogLoadEcriture = ({ children }: { children: React.ReactNode }) => {
     const store = useEcritureEnteteLigneStore();
     const [year, setYear] = useState(store.periode[0] ?? new Date().getFullYear().toString());
@@ -170,6 +179,177 @@ const DialogLoadEcriture = ({ children }: { children: React.ReactNode }) => {
             title="Chargement des écritures comptables"
             confirmLabel="Charger"
             onConfirm={() => store.setPeriode(year, month)}
+            content={content}
+        >
+            {children}
+        </DialogShell>
+    );
+};
+
+const DialogIntegrateSelectedEcritures = ({
+    children,
+}: {
+    children: React.ReactNode;
+}) => {
+    const store = useEcritureEnteteLigneStore();
+    const [journal, setJournal] = useState("VTEDC3");
+    const [database, setDatabase] = useState("F_GBAEAUBAB23");
+    const { mutate, isPending } = useIntegrateSelectedEcritures();
+    const selectedCount = store.billCart.length;
+
+    const content = (
+        <div className="flex items-center justify-between w-full gap-4">
+            <Select value={journal} onValueChange={setJournal}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Journal" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {JOURNALS.map((value) => (
+                            <SelectItem key={value} value={value}>
+                                {value}
+                            </SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+            <Select value={database} onValueChange={setDatabase}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Base cible" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {TARGET_DATABASES.map((value) => (
+                            <SelectItem key={value} value={value}>
+                                {value}
+                            </SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div>
+    );
+
+    const submitHandler = () => {
+        if (selectedCount === 0 || store.periode.length < 2) {
+            return;
+        }
+
+        mutate(
+            {
+                json: {
+                    year: store.periode[0],
+                    month: store.periode[1],
+                    journal,
+                    database,
+                    refpieces: store.billCart,
+                },
+            },
+            {
+                onSuccess: () => {
+                    store.setRemoveAllBillCart();
+                    toast.success(
+                        `${selectedCount} écriture${selectedCount > 1 ? "s" : ""} déversée${selectedCount > 1 ? "s" : ""}`
+                    );
+                },
+                onError: () => {
+                    toast.error("Erreur lors du déversement des écritures sélectionnées");
+                },
+            }
+        );
+    };
+
+    return (
+        <DialogShell
+            title="Déversement des écritures"
+            description={`${selectedCount} écriture${selectedCount > 1 ? "s" : ""} sélectionnée${selectedCount > 1 ? "s" : ""}`}
+            confirmLabel="Déverser"
+            isPending={isPending}
+            onConfirm={submitHandler}
+            content={content}
+        >
+            {children}
+        </DialogShell>
+    );
+};
+
+const DialogIntegrateAllEcritures = ({
+    children,
+}: {
+    children: React.ReactNode;
+}) => {
+    const store = useEcritureEnteteLigneStore();
+    const [journal, setJournal] = useState("VTEDC3");
+    const [database, setDatabase] = useState("F_GBAEAUBAB23");
+    const { mutate, isPending } = useIntegrateAllEcritures();
+    const totalCount = store.items.length;
+
+    const content = (
+        <div className="flex items-center justify-between w-full gap-4">
+            <Select value={journal} onValueChange={setJournal}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Journal" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {JOURNALS.map((value) => (
+                            <SelectItem key={value} value={value}>
+                                {value}
+                            </SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+            <Select value={database} onValueChange={setDatabase}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Base cible" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        {TARGET_DATABASES.map((value) => (
+                            <SelectItem key={value} value={value}>
+                                {value}
+                            </SelectItem>
+                        ))}
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        </div>
+    );
+
+    const submitHandler = () => {
+        if (totalCount === 0 || store.periode.length < 2) {
+            return;
+        }
+
+        mutate(
+            {
+                json: {
+                    year: store.periode[0],
+                    month: store.periode[1],
+                    journal,
+                    database,
+                },
+            },
+            {
+                onSuccess: () => {
+                    store.setRemoveAllBillCart();
+                    toast.success("Toutes les écritures de la période ont été déversées");
+                },
+                onError: () => {
+                    toast.error("Erreur lors du déversement de toutes les écritures");
+                },
+            }
+        );
+    };
+
+    return (
+        <DialogShell
+            title="Déversement de toutes les écritures"
+            description={`${totalCount} écriture${totalCount > 1 ? "s" : ""} pour la période sélectionnée`}
+            confirmLabel="Déverser tout"
+            isPending={isPending}
+            onConfirm={submitHandler}
             content={content}
         >
             {children}
@@ -321,19 +501,47 @@ const EcritureFilterSection = () => {
 };
 
 // ---------------------------------------------------------------------------
-// Button container (placeholder)
+// Button container
 // ---------------------------------------------------------------------------
 
-const EcritureButtonContainer = () => (
-    <div className="flex items-center gap-4">
-        <DialogLoadEcriture>
-            <Button variant="default" className="bg-primary hover:bg-primary/70">
-                <span><MdCloudDownload /></span>
-                <span>Charger</span>
-            </Button>
-        </DialogLoadEcriture>
-    </div>
-);
+const EcritureButtonContainer = () => {
+    const store = useEcritureEnteteLigneStore();
+    const canIntegrate =
+        store.filter.status === EEcritureStatut.ATTENTE &&
+        store.items.length > 0 &&
+        store.periode.length >= 2;
+
+    return (
+        <div className="flex items-center gap-4">
+            {canIntegrate && (
+                <DialogIntegrateAllEcritures>
+                    <Button
+                        variant="default"
+                        className="bg-[#101010] hover:bg-[#101010]/80"
+                    >
+                        <span>Déverser tout</span>
+                    </Button>
+                </DialogIntegrateAllEcritures>
+            )}
+            {canIntegrate && store.billCart.length > 0 && (
+                    <DialogIntegrateSelectedEcritures>
+                        <Button
+                            variant="default"
+                            className="bg-[#101010] hover:bg-[#101010]/80"
+                        >
+                            <span>Déverser la sélection</span>
+                        </Button>
+                    </DialogIntegrateSelectedEcritures>
+                )}
+            <DialogLoadEcriture>
+                <Button variant="default" className="bg-primary hover:bg-primary/70">
+                    <span><MdCloudDownload /></span>
+                    <span>Charger</span>
+                </Button>
+            </DialogLoadEcriture>
+        </div>
+    );
+};
 
 // ---------------------------------------------------------------------------
 // Display section
@@ -341,10 +549,11 @@ const EcritureButtonContainer = () => (
 
 const EcritureSection = () => {
     const store = useEcritureEnteteLigneStore();
+    const clear = store.clear;
 
     useEffect(() => {
-        store.clear();
-    }, []);
+        clear();
+    }, [clear]);
 
     return (
         <section className="p-4 text-gray-700">
@@ -389,35 +598,38 @@ const EcritureSectionContainer = () => {
     const store = useEcritureEnteteLigneStore();
     const searchParams = useSearchParams();
     const router = useRouter();
+    const periode = store.periode;
+    const setPeriode = store.setPeriode;
+    const setItems = store.setItems;
+    const yearParam = searchParams.get("year");
+    const monthParam = searchParams.get("month");
 
-    const { data, isPending } = useGetEcritures({
-        year: Number(store.periode[0]),
-        month: Number(store.periode[1]),
+    const { data: rawData, isPending } = useGetEcritures({
+        year: Number(periode[0]),
+        month: Number(periode[1]),
     });
+    const data = rawData as IEcritureEnteteLigne | undefined;
 
     // Sync store periode → URL
     useEffect(() => {
-        if (store.periode.length === 0) return;
+        if (periode.length === 0) return;
         router.push(
-            `/m1/ecritures-comptables?year=${store.periode[0]}&month=${store.periode[1]}`
+            `/m1/ecritures-comptables?year=${periode[0]}&month=${periode[1]}`
         );
-    }, [JSON.stringify(store.periode)]);
+    }, [router, periode]);
 
     // Sync URL → store periode
     useEffect(() => {
-        if (searchParams.get("year") && searchParams.get("month")) {
-            store.setPeriode(
-                searchParams.get("year")!,
-                searchParams.get("month")!
-            );
+        if (yearParam && monthParam) {
+            setPeriode(yearParam, monthParam);
         }
-    }, [searchParams.get("year"), searchParams.get("month")]);
+    }, [yearParam, monthParam, setPeriode]);
 
     // Populate store items when data arrives
     useEffect(() => {
         if (isPending || !data) return;
-        store.setItems(data);
-    }, [JSON.stringify(data)]);
+        setItems(data);
+    }, [data, isPending, setItems]);
 
     return <EcritureSection />;
 };

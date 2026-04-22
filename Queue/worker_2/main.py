@@ -113,6 +113,8 @@ def generate_ecritures_from_all_factures(jobID, year, month):
     year = int(year)
     month = int(month)
 
+    print(f"Fetching factures for {year}-{month}...", flush=True)
+
     factures = get_facture_ids(year, month)
     print(f"Factures to process: {factures}")
 
@@ -153,10 +155,10 @@ def generate_ecritures_from_selected_factures(jobID, year, month, do_no_list):
 def generate_ecritures_from_facture(jobID, year, month, do_no):
 
     # check if do_no is present in the database
+    print(f"Processing facture {do_no}...", flush=True)
     if fact_comptabilise(do_no):
         print(f"Facture {do_no} is already comptabilised.")
         return
-    print(f"Processing facture {do_no}...")
     entete_facture = get_entete_facture(do_no, year, month)
     lignes_facture = get_lignes_facture(do_no, year, month)
     bls = get_bls(lignes_facture[0][0], year, month)
@@ -174,6 +176,7 @@ def generate_ecritures_from_facture(jobID, year, month, do_no):
         "EC_RefPiece": "FACT-" + str(do_no),
         "CT_Num": entete_facture[3],
         "EC_Date": datetime.datetime.now(),
+        "EC_Valide": 0,
     }
 
     ttc = build_ttc_ecriture(param, entete_facture)
@@ -182,10 +185,10 @@ def generate_ecritures_from_facture(jobID, year, month, do_no):
     transport = build_transport_ecriture(
         param, entete_facture) if entete_facture[16] > 0 else None
 
-    print("TTC Ecriture:", ttc)
-    print("TVA Ecriture:", tva)
-    print("HT Ecritures:", ht)
-    print("Transport Ecriture:", transport)
+    print("TTC Ecriture:", ttc, flush=True)
+    print("TVA Ecriture:", tva, flush=True)
+    print("HT Ecritures:", ht, flush=True)
+    print("Transport Ecriture:", transport, flush=True)
 
     ecritures = {
         "ttc": ttc,
