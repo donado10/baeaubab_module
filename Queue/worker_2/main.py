@@ -12,15 +12,13 @@ from db import (
     get_bls,
     get_entete_facture,
     get_entreprises,
-    get_facture_entete_detail_by_company_id,
-    get_facture_entete_detail_by_company_id_and_bl,
+    get_facturation_type,
     get_facture_ids,
     get_lignes_facture,
     insert_ecritures,
     is_tva_applicable,
 )
 from builders import FactureBuilderFactory
-from collections import defaultdict
 
 
 API_ENDPOINT = "digitale/facture/events/job-finished"
@@ -36,13 +34,20 @@ def generate_factures(jobID, year, month):
     last_pct = 0
 
     for entreprise in entreprises:
-        entetes = get_facture_entete_detail_by_company_id(
-            entreprise, year, month)
-        if not len(entetes):
-            continue
-        builder = FactureBuilderFactory.create(
-            "FC1", entreprise, year, month)
-        success, _ = builder.build(entetes)
+
+        fact_type_list = get_facturation_type(entreprise)
+
+        success = False
+        for fact_type in fact_type_list:
+
+            builder = FactureBuilderFactory.create(
+                fact_type, entreprise, year, month)
+            success, _ = builder.execute()
+            if success:
+                success = True
+                continue
+            success = False
+
         if success:
             count += 1
 
@@ -61,13 +66,21 @@ def generate_factures_by_entreprise(jobID, entreprises, year, month):
     last_pct = 0
 
     for entreprise in entreprises:
-        entetes = get_facture_entete_detail_by_company_id(
-            entreprise, year, month)
-        if not len(entetes):
-            continue
-        builder = FactureBuilderFactory.create(
-            "FC1", entreprise, year, month)
-        success, _ = builder.build(entetes)
+        fact_type_list = get_facturation_type(entreprise)
+
+        success = False
+        for fact_type in fact_type_list:
+            print(
+                f"Processing entreprise {entreprise} with facturation type: {fact_type}", flush=True)
+
+            builder = FactureBuilderFactory.create(
+                fact_type, entreprise, year, month)
+            success, _ = builder.execute()
+            if success:
+                success = True
+                continue
+            success = False
+
         if success:
             count += 1
 
@@ -82,12 +95,17 @@ def generate_factures_for_entreprise(jobID, entreprise, year, month):
     year = int(year)
     month = int(month)
 
-    entetes = get_facture_entete_detail_by_company_id(
-        entreprise, year, month)
-    if not len(entetes):
-        return
-    builder = FactureBuilderFactory.create("FC1", entreprise, year, month)
-    builder.build(entetes)
+    fact_type_list = get_facturation_type(entreprise)
+    success = False
+    for fact_type in fact_type_list:
+
+        builder = FactureBuilderFactory.create(
+            fact_type, entreprise, year, month)
+        success, _ = builder.execute()
+        if success:
+            success = True
+            continue
+        success = False
 
     post_job_status(API_ENDPOINT, jobID,
                     "pending", progress=100)
@@ -97,16 +115,18 @@ def generate_factures_from_bl(jobID, year, month, entreprise, bls: list):
     year = int(year)
     month = int(month)
 
-    entetes = get_facture_entete_detail_by_company_id_and_bl(
-        entreprise, bls, year, month
-    )
-    if not len(entetes):
-        return
-
-    builder = FactureBuilderFactory.create("FC1", entreprise, year, month)
-    success, _ = builder.build(entetes)
+    builder = FactureBuilderFactory.create("FC3", entreprise, bls, year, month)
+    success, _ = builder.execute()
     if success:
         post_job_status(API_ENDPOINT, jobID, "pending", progress=100)
+
+
+"""
+Section for generating ecritures from factures. This is the second step after generating factures.
+It will fetch all the factures for a given month and year, then generate ecritures for each facture 
+and insert them into the database.
+
+"""
 
 
 def generate_ecritures_from_all_factures(jobID, year, month):

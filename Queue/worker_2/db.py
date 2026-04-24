@@ -95,9 +95,10 @@ def handle_fact_entete(entete: list):
             ,[DO_Status]
             ,[created_at]
             ,[DO_Entreprise_Sage]
-            ,[DO_Transport])
+            ,[DO_Transport]
+            ,[DO_Generale])
      VALUES
-           (?,?,?,?,?,?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?,?,?,?,?,?,?)
 """
     cursor_mssql.execute(script, entete)
 
@@ -124,19 +125,19 @@ def handle_fact_lignes(lignes: list):
         cursor_mssql.execute(script, ligne)
 
 
-def set_bl_valide(entetes: list, latest_fact_id):
+def set_bl_valide(entetes: list, facture_id):
     conn_mssql, cursor_mssql = dbo_mssql()
     for entete in entetes:
         script = f"""
         UPDATE [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL]
-        SET do_valide = 1,do_facturereference = {latest_fact_id + 1}
+        SET do_valide = 1,do_facturereference = {facture_id}
         WHERE do_no = {entete[0]} and do_type = 3
         """
         cursor_mssql.execute(script)
 
         script = f"""
         UPDATE [TRANSIT].[dbo].[F_DOCLIGNE_DIGITAL]
-        SET do_facturereference = {latest_fact_id + 1}
+        SET do_facturereference = {facture_id}
         WHERE do_no = {entete[0]} and do_type = 3
         """
         cursor_mssql.execute(script)
@@ -342,7 +343,33 @@ def is_tva_applicable(ct_num):
 
 def get_facture_ids(year, month):
     query = f"""
-    select  DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where year(do_date) = {year} and month(do_date) = {month} and do_type=6 and DO_Valide != 2
+    select  DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where year(do_date) = {year} and month(do_date) = {month} and do_type=6 and DO_Valide != 2 and DO_Generale = 1
 """
     results = execute_select_all(query)
     return [x[0] for x in results]
+
+
+def get_facturation_type(company_id):
+    query = f"""
+        select FA_CODE from [TRANSIT].[dbo].[F_FACTCOMPTET_DIGITAL] fct 
+        inner join [TRANSIT].[dbo].F_FACTURATION_DIGITAL ft on fct.FA_No = ft.FA_No
+        where fct.EN_NO_Sage = '{company_id}'"""
+    result = execute_select_all(query)
+    return [x[0] for x in result] if result else None
+
+
+def get_agences_by_year_month_company_id(year, month, company_id):
+    query = f"""
+        with lev1 as (select  distinct client_id from TRANSIT.dbo.F_DOCENTETE_DIGITAL where do_type=3 and DO_entreprise_Sage='{company_id}' and year(created_at)={year} and month(created_at)={month})
+        select * from TRANSIT.dbo.F_COMPTET_DIGITAL where CT_No in (select client_id from lev1)
+    """
+    result = execute_select_all(query)
+    return result if result else None
+
+
+def get_document_by_agence_year_month(agence, year, month):
+    query = f"""
+        select  * from TRANSIT.dbo.F_DOCENTETE_DIGITAL where year(created_at) = {year} and month(created_at) = {month} and do_type=3 and DO_Status != 2 and client_id='{agence[0]}' and DO_TotalHT is not null and do_valide != 1
+    """
+    results = execute_select_all(query)
+    return results if results else None

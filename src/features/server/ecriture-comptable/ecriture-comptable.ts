@@ -109,8 +109,6 @@ const app = new Hono()
 				ligne: ecritures.filter((ec) => ec.EC_RefPiece === ref.EC_RefPiece),
 			}));
 
-			console.log(ecritures_formated);
-
 			return c.json({ results: ecritures_formated });
 		},
 	)
