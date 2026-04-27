@@ -382,7 +382,7 @@ const app = new Hono()
 		},
 	)
 	.delete(
-		"cancelAllSingleEntreprise",
+		"/deleteAllSingleEntreprise",
 		zValidator(
 			"json",
 			z.object({
@@ -413,7 +413,7 @@ const app = new Hono()
 		},
 	)
 	.delete(
-		"cancelAll",
+		"/deleteAll",
 		zValidator(
 			"json",
 			z.object({
@@ -438,7 +438,7 @@ const app = new Hono()
 		},
 	)
 	.delete(
-		"/cancelSingle",
+		"/deleteSingle",
 		zValidator(
 			"json",
 			z.object({
@@ -470,7 +470,7 @@ const app = new Hono()
 		},
 	)
 	.delete(
-		"/cancelByEntreprise",
+		"/deleteByEntreprise",
 		zValidator(
 			"json",
 			z.object({
@@ -508,7 +508,7 @@ const app = new Hono()
 		},
 	)
 	.delete(
-		"/cancelSelected",
+		"/deleteSelected",
 		zValidator(
 			"json",
 			z.object({

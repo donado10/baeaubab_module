@@ -10,7 +10,7 @@ import useDeleteFacturesSingleEntreprise from "@/features/digitale/_shared/api/u
 import useDeleteFactures from "@/features/digitale/_shared/api/use-delete-all-factures"
 import { useEntrepriseFactureStore } from "@/features/digitale/bills/store/store"
 
-export function DialogCancelSelectedFactures({ children }: { children: ReactNode }) {
+export function DialogDeleteSelectedFactures({ children }: { children: ReactNode }) {
     const store = useEntrepriseDetailStore()
     const queryClient = useQueryClient()
     const { mutate, isPending } = useDeleteSelectedFactures()
@@ -18,7 +18,7 @@ export function DialogCancelSelectedFactures({ children }: { children: ReactNode
     const submitHandler = () => {
         mutate({ json: { fact_list: store.billCart, year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: () => {
-                toast.success("Factures annulées avec succès !", {
+                toast.success("Factures supprimées avec succès !", {
                     style: { background: 'green', color: 'white' }
                 })
                 queryClient.invalidateQueries({ queryKey: ["entreprise_bls"] })
@@ -28,13 +28,13 @@ export function DialogCancelSelectedFactures({ children }: { children: ReactNode
     }
 
     return (
-        <DialogBonLivraisonAction title="Annuler Factures" onConfirm={submitHandler} isPending={isPending}>
+        <DialogBonLivraisonAction title="Supprimer Factures" onConfirm={submitHandler} isPending={isPending}>
             {children}
         </DialogBonLivraisonAction>
     )
 }
 
-export function DialogCancelFacturesSingleEntreprise({ children }: { children: ReactNode }) {
+export function DialogDeleteFacturesSingleEntreprise({ children }: { children: ReactNode }) {
 
     const store = useEntrepriseDetailStore()
 
@@ -48,7 +48,7 @@ export function DialogCancelFacturesSingleEntreprise({ children }: { children: R
         mutate({ json: { year: store.periode[0], month: store.periode[1], en_no: store.entreprise.EN_No_Sage } }, {
             onSuccess: (results: any) => {
 
-                toast.success("Factures annulées avec succès !", {
+                toast.success("Factures supprimées avec succès !", {
                     style: {
                         background: 'green',
                         color: 'white'
@@ -62,13 +62,13 @@ export function DialogCancelFacturesSingleEntreprise({ children }: { children: R
     }
 
     return (
-        <DialogBonLivraisonAction title="Annuler Factures" onConfirm={submitHandler} isPending={false}>
+        <DialogBonLivraisonAction title="Supprimer Factures" onConfirm={submitHandler} isPending={false}>
             {children}
         </DialogBonLivraisonAction>
     )
 }
 
-export function DialogCancelAllFactures({ children }: { children: ReactNode }) {
+export function DialogDeleteAllFactures({ children }: { children: ReactNode }) {
 
     const store = useEntrepriseFactureStore()
 
@@ -81,7 +81,7 @@ export function DialogCancelAllFactures({ children }: { children: ReactNode }) {
     const submitHandler = () => {
         mutate({ json: { year: store.periode[0], month: store.periode[1] } }, {
             onSuccess: (results: any) => {
-                toast.success("Factures annulées avec succès !", {
+                toast.success("Factures supprimées avec succès !", {
                     style: {
                         background: 'green',
                         color: 'white'
@@ -95,7 +95,7 @@ export function DialogCancelAllFactures({ children }: { children: ReactNode }) {
     }
 
     return (
-        <DialogBonLivraisonAction title="Annuler Factures" onConfirm={submitHandler} isPending={false}>
+        <DialogBonLivraisonAction title="Supprimer Factures" onConfirm={submitHandler} isPending={false}>
             {children}
         </DialogBonLivraisonAction>
     )

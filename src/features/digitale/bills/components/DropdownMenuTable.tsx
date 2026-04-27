@@ -33,7 +33,7 @@ export function DropdownMenuTable({
   const queryClient = useQueryClient()
 
 
-  const submitCancelHandler = () => {
+  const submitSupprimerHandler = () => {
 
 
     mutate({ json: { fact_list: [ref_bill], en_no: ref_enterprise, year: store.periode[0], month: store.periode[1] } }, {
@@ -74,10 +74,10 @@ export function DropdownMenuTable({
               Comptabiliser
             </span>
           </DropdownMenuItem>
-          <DropdownMenuItem className="text-red-600" onClick={submitCancelHandler}>
+          <DropdownMenuItem className="text-red-600" onClick={submitSupprimerHandler}>
             <span
             >
-              Annuler
+              Supprimer
             </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
