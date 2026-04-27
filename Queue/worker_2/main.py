@@ -1,5 +1,8 @@
 import datetime
 
+from utils import check_facture_cancellation
+from utils import update_facture_as_canceled
+from utils import generate_facture_retour
 from utils import build_transport_ecriture
 from utils import build_ttc_ecriture
 from utils import build_tva_ecriture
@@ -14,11 +17,13 @@ from db import (
     get_entreprises,
     get_facturation_type,
     get_facture_ids,
+    get_latest_facture_id,
     get_lignes_facture,
     insert_ecritures,
     is_tva_applicable,
 )
 from builders import FactureBuilderFactory
+from shared.mssql_baeaubab.database import database_objects as dbo_mssql, execute_select_all, execute_select_one
 
 
 API_ENDPOINT = "digitale/facture/events/job-finished"
@@ -222,7 +227,44 @@ def generate_ecritures_from_facture(jobID, year, month, do_no):
                     "pending", progress=100)
 
 
-""" 
+"""
+Section for handling cancellation of factures. 
+This will be used when a user wants to cancel a facture . 
+The logic for cancellation will depend on the business rules, 
+but it typically involves marking the facture as canceled in the database, 
+and possibly creating reversal entries.
+"""
+
+
+def cancel_facture(jobID, year, month, do_no):
+    # Implement the logic for canceling a facture
+
+    if check_facture_cancellation(jobID, year, month, do_no):
+        print(f"Facture {do_no} is already canceled.")
+        return
+
+    conn_mssql, cursor_mssql = dbo_mssql()
+    entete_facture = get_entete_facture(do_no, year, month)
+    lignes_facture = get_lignes_facture(do_no, year, month)
+
+    facture_id = get_latest_facture_id() + 1
+
+    generate_facture_retour(entete_facture, lignes_facture, facture_id)
+
+    update_facture_as_canceled(do_no, year, month)
+
+    conn_mssql.commit()
+
+
+def cancel_factures(jobID, year, month):
+    # Implement the logic for canceling factures
+    pass
+
+
+def cancel_selected_factures(jobID, year, month, do_no_list):
+    # Implement the logic for canceling selected factures
+    pass
+
+
 if __name__ == "__main__":
-    generate_ecritures_from_all_factures("test_job_id", 2026, 3)
- """
+    cancel_facture("test_job_id", 2026, 3, 131594)

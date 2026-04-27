@@ -20,7 +20,7 @@ import { useEntrepriseDetailStore } from '../../store/entreprise-store';
 import { GrRadial, GrRadialSelected } from "react-icons/gr";
 import useGenerateFacturesFromBonLivraison from '../../api/factures/use-generate-facture-from-bls';
 import { toast } from 'sonner';
-import { DialogCancelSelectedFactures, DialogBonLivraisonAction, DialogActualiserOneEntrepriseBonLivraison, DialogActualiserAllBonLivraison, DialogCancelFacturesSingleEntreprise } from '../dialogs';
+import { DialogDeleteSelectedFactures, DialogBonLivraisonAction, DialogActualiserOneEntrepriseBonLivraison, DialogActualiserAllBonLivraison, DialogDeleteFacturesSingleEntreprise } from '../dialogs';
 
 import { MdCloudDownload } from 'react-icons/md';
 import { fi, is, se } from 'date-fns/locale';
@@ -281,19 +281,19 @@ const FactureList = ({ agence_dg, documentsBL, month, year }: { agence_dg: IAgen
                 </div>
                 <div className='flex items-center gap-2'>
 
-                    {entrepriseStore.billCart.length <= 0 && !entrepriseStore.selectedOption && <DialogCancelFacturesSingleEntreprise >
+                    {entrepriseStore.billCart.length <= 0 && !entrepriseStore.selectedOption && <DialogDeleteFacturesSingleEntreprise >
 
                         <Button variant={"ghost"} >
                             <span>Annuler Factures</span>
                         </Button>
-                    </DialogCancelFacturesSingleEntreprise>}
+                    </DialogDeleteFacturesSingleEntreprise>}
 
-                    {entrepriseStore.billCart.length > 0 && !entrepriseStore.selectedOption && <DialogCancelSelectedFactures >
+                    {entrepriseStore.billCart.length > 0 && !entrepriseStore.selectedOption && <DialogDeleteSelectedFactures >
 
                         <Button variant={"ghost"} >
                             <span>Annuler Factures Sélectionnées</span>
                         </Button>
-                    </DialogCancelSelectedFactures>}
+                    </DialogDeleteSelectedFactures>}
 
                     {entrepriseStore.cart.length > 0 && <DialogBonLivraisonAction title="Générer Facture" onConfirm={submitGenerateFacture} isPending={isGenerating}>
                         <Button variant='outline'>Générer Facture</Button>

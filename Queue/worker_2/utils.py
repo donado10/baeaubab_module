@@ -5,8 +5,8 @@ import sys
 
 from collections import defaultdict
 
-from shared.mssql_baeaubab.database import execute_select_one
-from db import get_article_cg_num, get_client_info
+from shared.mssql_baeaubab.database import execute_select_one, database_objects as dbo_mssql
+from db import get_article_cg_num, get_client_info, handle_fact_entete, handle_fact_lignes
 
 
 def group_bls_by_article(bls: list) -> list:
@@ -49,6 +49,11 @@ def get_log_timestamp():
 def get_current_date():
     now = datetime.now()
     return now.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
+
+def get_current_month_year():
+    now = datetime.now()
+    return now.year, now.month
 
 
 def get_last_day_of_month(year, month):
@@ -116,6 +121,72 @@ def build_transport_ecriture(param, entete_facture):
     transport["EC_Intitule"] = None
     transport["CG_Num"] = "707110"
     return transport
+
+
+def generate_facture_retour(entete_facture, lignes_facture, facture_id):
+
+    current_date = get_current_date()
+    year, month = get_current_month_year()
+    last_day = get_last_day_of_month(year, month)
+
+    entete = [
+        facture_id,   # DO_No
+        6,            # DO_Type
+        entete_facture[2],    # Client_ID
+        entete_facture[3],    # CT_Num
+        -entete_facture[4],  # DO_TotalTTC
+        -entete_facture[5],  # DO_TotalHT
+        -entete_facture[6],  # DO_TotalTVA
+        last_day,     # DO_Date à changer
+        0,            # DO_Status
+        current_date,  # created_at
+        entete_facture[10],    # DO_Entreprise_Sage
+        -entete_facture[16],  # DO_Transport
+        1 if entete_facture[17] else 0,  # DO_FactureGenerale
+        entete_facture[0],  # DO_FactureReference
+        entete_facture[11],  # DO_Entreprise_Digital
+    ]
+    handle_fact_entete(entete)
+
+    lignes = []
+    for ligne in lignes_facture:
+        lignes.append([
+            facture_id,   # DO_No
+            6,            # DO_Type
+            ligne[2],    # Client_ID
+            ligne[3],    # CT_Num
+            ligne[6],    # ART_Design
+            -ligne[9],    # DO_TotalHT
+            last_day,     # DO_Date
+            0,            # DO_Status
+            current_date,  # created_at
+            ligne[12],    # DO_Entreprise_Sage
+            ligne[13],    # DO_Entreprise_Digital
+            ligne[0],   # DO_FactureReference
+        ])
+
+    handle_fact_lignes(lignes)
+
+
+def update_facture_as_canceled(do_no, year, month):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    query = f"""
+    UPDATE TRANSIT.dbo.F_DOCENTETE_DIGITAL
+    SET DO_Status = 2
+    WHERE DO_No = {do_no} AND DO_Type in (6, 7) AND YEAR(DO_Date) = {year} AND MONTH(DO_Date) = {month}
+    """
+    cursor_mssql.execute(query)
+    conn_mssql.commit()
+
+
+def check_facture_cancellation(jobID, year, month, do_no):
+    conn_mssql, cursor_mssql = dbo_mssql()
+    query = f"""
+    SELECT DO_Status FROM TRANSIT.dbo.F_DOCENTETE_DIGITAL
+    WHERE DO_No = {do_no} AND DO_Type in (6, 7) AND YEAR(DO_Date) = {year} AND MONTH(DO_Date) = {month}
+    """
+    result = execute_select_one(query)
+    return result[0] == 2 if result else False
 
 
 """ process_ecritures({'jobId': '6989cbff001c7f2c576',

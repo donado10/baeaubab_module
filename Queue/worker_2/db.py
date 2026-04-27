@@ -96,9 +96,11 @@ def handle_fact_entete(entete: list):
             ,[created_at]
             ,[DO_Entreprise_Sage]
             ,[DO_Transport]
-            ,[DO_Generale])
+            ,[DO_Generale]
+            ,[DO_FactureReference]
+            ,[DO_Entreprise_Digital])
      VALUES
-           (?,?,?,?,?,?,?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 """
     cursor_mssql.execute(script, entete)
 
@@ -117,9 +119,11 @@ def handle_fact_lignes(lignes: list):
             ,[DO_Date]
             ,[DO_Status]
             ,[created_at]
-            ,[DO_Entreprise_Sage])
+            ,[DO_Entreprise_Sage]
+            ,[DO_Entreprise_Digital]
+            ,[DO_FactureReference])
      VALUES
-           (?,?,?,?,?,?,?,?,?,?)
+           (?,?,?,?,?,?,?,?,?,?,?,?)
 """
     for ligne in lignes:
         cursor_mssql.execute(script, ligne)

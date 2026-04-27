@@ -45,6 +45,8 @@ def generate_facture(agence, entetes: list, year: int, month: int, facture_id, i
         agence[5],    # DO_Entreprise_Sage
         do_transport,  # DO_Transport
         1 if isGeneral else 0,  # DO_FactureGenerale
+        None,         # DO_FactureReference
+        agence[6],    # DO_Entreprise_Digital
     ]
     handle_fact_entete(facture_entete)
 
@@ -61,6 +63,8 @@ def generate_facture(agence, entetes: list, year: int, month: int, facture_id, i
             0,            # DO_Status
             current_date,  # created_at
             agence[5],    # DO_Entreprise_Sage
+            agence[6],    # DO_Entreprise_Digital
+            None
         ])
 
     handle_fact_lignes(facture_lignes)

@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from main import (
+    cancel_facture,
+    cancel_factures,
+    cancel_selected_factures,
     generate_ecritures_from_all_factures,
     generate_ecritures_from_facture,
     generate_ecritures_from_selected_factures,
@@ -63,6 +66,26 @@ class EcrituresFromSelectedFacturesHandler(BaseFactureHandler):
         )
 
 
+class CancelFactureHandler(BaseFactureHandler):
+    def handle(self, data: dict):
+        # Implement the logic for canceling a facture
+        cancel_facture(data["jobId"], data['year'],
+                       data['month'], data['do_no'])
+
+
+class CancelFacturesHandler(BaseFactureHandler):
+    def handle(self, data: dict):
+        # Implement the logic for canceling factures
+        cancel_factures(data["jobId"], data['year'], data['month'])
+
+
+class CancelSelectedFacturesHandler(BaseFactureHandler):
+    def handle(self, data: dict):
+        # Implement the logic for canceling selected factures
+        cancel_selected_factures(data["jobId"], data['year'],
+                                 data['month'], data['do_no_list'])
+
+
 class FactureHandlerFactory:
     _handlers = {
         "all": AllFacturesHandler,
@@ -72,6 +95,9 @@ class FactureHandlerFactory:
         "ecrituresFromFacture": EcrituresFromFactureHandler,
         "ecrituresFromAllFactures": EcrituresFromAllFacturesHandler,
         "ecrituresFromSelectedFactures": EcrituresFromSelectedFacturesHandler,
+        "cancelFacture": CancelFactureHandler,
+        "cancelFactures": CancelFacturesHandler,
+        "cancelSelectedFactures": CancelSelectedFacturesHandler,
     }
 
     @classmethod
