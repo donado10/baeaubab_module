@@ -345,10 +345,12 @@ def is_tva_applicable(ct_num):
     return False if result[0] == 2 else True
 
 
-def get_facture_ids(year, month):
+def get_facture_ids(year, month, onlyGenerale=True):
     query = f"""
-    select  DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where year(do_date) = {year} and month(do_date) = {month} and do_type=6 and DO_Valide != 2 and DO_Generale = 1
+    select  DO_No from TRANSIT.dbo.F_DOCENTETE_DIGITAL where year(do_date) = {year} and month(do_date) = {month} and do_type=6 and DO_Valide != 2
 """
+    if onlyGenerale:
+        query += " and DO_Generale = 1"
     results = execute_select_all(query)
     return [x[0] for x in results]
 

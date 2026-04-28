@@ -13,11 +13,11 @@ import {
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ReactNode, useState } from "react"
 //import { useLoadEcrituresFromDigital, useLoadEcrituresFromSage } from "../api/use-load-ecritures"
-import { EStatus, useEntrepriseFactureStore } from "../store/store"
+import { useEntrepriseFactureStore } from "../store/store"
 import { toast } from "sonner"
-import useGetBonLivraisonDigital from "../api/use-get-bon-livraison-digital"
-import useGenerateFactures from "../api/use-generate-factures"
-import useGenerateFacturesByEntreprise from "../api/use-generate-facture-by-entreprise"
+import { useQueryClient } from "@tanstack/react-query"
+import useDeleteFactureByDocument from "../../_shared/api/use-delete-selected-factures"
+import { useEntrepriseDetailStore } from "../store/entreprise-store"
 
 
 const months = [
@@ -78,21 +78,42 @@ const SelectYear = ({ year, onSetYear }: { year: string; onSetYear: (value: stri
     </Select>
 }
 
-export function DialogCancelFacturesByEntrepriseID({ children }: { children: ReactNode }) {
+export function DialogDeleteFactures({ children }: { children: ReactNode }) {
 
-    const store = useEntrepriseFactureStore()
+    const store = useEntrepriseDetailStore()
 
     const [close, setClose] = useState<boolean | undefined>(undefined)
 
-    const { mutate } = useGenerateFacturesByEntreprise()
+    const queryClient = useQueryClient()
+
+
+    const { mutate } = useDeleteFactureByDocument()
 
 
     const submitHandler = () => {
-        setClose(false)
 
-        mutate({ json: { en_list: store.billCart, year: store.periode[0], month: store.periode[1] } }, {
-            onSuccess: () => {
-                toast.success("Génération lancée")
+
+
+        mutate({ json: { year: store.periode[0], month: store.periode[1], en_no: store.entreprise.EN_No_Sage, fact_list: store.billCart } }, {
+            onSuccess: (results: any) => {
+
+                toast.success("Factures annulées avec succès !", {
+                    style: {
+                        background: 'green',
+                        color: 'white'
+                    }
+                })
+
+                /* mutateGetFacture({ json: { year: store.periode[0], month: store.periode[1] } }, {
+                    onSuccess: (results: any) => {
+                        store.setItems(results.result)
+                        store.setEvent(null)
+                        queryClient.invalidateQueries({ queryKey: ["document_stats_facture", store.periode[0], store.periode[1]], exact: true })
+                        setClose(false)
+                    }
+                }) */
+
+
             }
         })
 

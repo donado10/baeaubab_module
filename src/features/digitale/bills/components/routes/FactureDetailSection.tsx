@@ -15,7 +15,7 @@ import { DataTable } from "../TableEntrepriseDetail/table";
 import { useEntrepriseDetailStore } from '../../store/entreprise-store';
 import { GrRadial, GrRadialSelected } from "react-icons/gr";
 import { toast } from 'sonner';
-import { DialogCancelFactures } from '../DialogCancelFactures';
+import { DialogDeleteFactures } from '../DialogDeleteFactures';
 import { MdCloudDownload } from 'react-icons/md';
 
 
@@ -190,11 +190,11 @@ const FactureOverview = ({ agence_dg }: { agence_dg: IAgence }) => {
                     <span className='text-xs font-semibold'>{agence_dg.CT_No}</span>
                 </div>
                 <div>
-                    {entrepriseStore.billCart.length > 0 && !entrepriseStore.selectedOption && <DialogCancelFactures>
+                    {entrepriseStore.billCart.length > 0 && !entrepriseStore.selectedOption && <DialogDeleteFactures>
                         <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
                             <span><MdCloudDownload /></span><span>Annuler Factures</span>
                         </Button>
-                    </DialogCancelFactures>}
+                    </DialogDeleteFactures>}
                 </div>
             </div>
         </div>

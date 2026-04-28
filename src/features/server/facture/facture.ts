@@ -544,6 +544,118 @@ const app = new Hono()
 
 			return c.json({ result: "done" });
 		},
+	)
+	.post(
+		"/cancelFacture",
+		zValidator(
+			"json",
+			z.object({
+				do_no: z.string(),
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { do_no, year, month } = c.req.valid("json");
+			const user = c.get("user");
+
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("facture-jobs");
+
+			const jobId = ID.unique();
+			await createJob(jobId, "facture", "cancelFacture", user.$id);
+
+			channel.sendToQueue(
+				"facture-jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						do_no: do_no,
+						type: "cancelFacture",
+					}),
+				),
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		},
+	)
+	.post(
+		"/cancelFactures",
+		zValidator(
+			"json",
+			z.object({
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { year, month } = c.req.valid("json");
+			const user = c.get("user");
+
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("facture-jobs");
+
+			const jobId = ID.unique();
+			await createJob(jobId, "facture", "cancelFactures", user.$id);
+
+			channel.sendToQueue(
+				"facture-jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						type: "cancelFactures",
+					}),
+				),
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		},
+	)
+	.post(
+		"/cancelSelectedFactures",
+		zValidator(
+			"json",
+			z.object({
+				do_no_list: z.array(z.string()),
+				year: z.string(),
+				month: z.string(),
+			}),
+		),
+		async (c) => {
+			const { do_no_list, year, month } = c.req.valid("json");
+			const user = c.get("user");
+
+			const conn = await amqp.connect(process.env.RABBIT_MQ_HOST!);
+			const channel = await conn.createChannel();
+
+			await channel.assertQueue("facture-jobs");
+
+			const jobId = ID.unique();
+			await createJob(jobId, "facture", "cancelSelectedFactures", user.$id);
+
+			channel.sendToQueue(
+				"facture-jobs",
+				Buffer.from(
+					JSON.stringify({
+						jobId: jobId,
+						year: year,
+						month: month,
+						do_no_list: do_no_list,
+						type: "cancelSelectedFactures",
+					}),
+				),
+			);
+
+			return c.json({ results: [], jobId: jobId });
+		},
 	);
 
 export default app;

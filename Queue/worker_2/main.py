@@ -236,14 +236,13 @@ and possibly creating reversal entries.
 """
 
 
-def cancel_facture(jobID, year, month, do_no):
+def cancel_facture(jobID, year, month, do_no, commit=True):
     # Implement the logic for canceling a facture
 
     if check_facture_cancellation(jobID, year, month, do_no):
         print(f"Facture {do_no} is already canceled.")
         return
 
-    conn_mssql, cursor_mssql = dbo_mssql()
     entete_facture = get_entete_facture(do_no, year, month)
     lignes_facture = get_lignes_facture(do_no, year, month)
 
@@ -253,17 +252,28 @@ def cancel_facture(jobID, year, month, do_no):
 
     update_facture_as_canceled(do_no, year, month)
 
-    conn_mssql.commit()
+    if commit:
+        conn_mssql, cursor_mssql = dbo_mssql()
+        conn_mssql.commit()
 
 
 def cancel_factures(jobID, year, month):
     # Implement the logic for canceling factures
-    pass
+    factures = get_facture_ids(year, month, onlyGenerale=False)
+
+    for facture in factures:
+        cancel_facture(jobID, year, month, facture, commit=False)
+
+    conn_mssql, cursor_mssql = dbo_mssql()
+    conn_mssql.commit()
 
 
 def cancel_selected_factures(jobID, year, month, do_no_list):
     # Implement the logic for canceling selected factures
-    pass
+    for do_no in do_no_list:
+        cancel_facture(jobID, year, month, do_no, commit=False)
+    conn_mssql, cursor_mssql = dbo_mssql()
+    conn_mssql.commit()
 
 
 if __name__ == "__main__":

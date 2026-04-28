@@ -14,6 +14,9 @@ export const jobTypeEnum = z.enum([
 	"ecrituresFromFacture",
 	"ecrituresFromAllFactures",
 	"ecrituresFromSelectedFactures",
+	"cancelFacture",
+	"cancelFactures",
+	"cancelSelectedFactures",
 ]);
 
 export const jobStatusEnum = z.enum(["pending", "done", "failed"]);
