@@ -114,7 +114,7 @@ export const columns: ColumnDef<IDocumentFacture>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           <span>
-            Numéro Facture
+            Numéro
           </span>
           <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
         </Button>
@@ -124,6 +124,30 @@ export const columns: ColumnDef<IDocumentFacture>[] = [
     cell: ({ row }) => (
       <div className="capitalize">{row.original.entete.DO_No}</div>
     ),
+  },
+  {
+    accessorKey: "entete.CT_Intitule",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="p-0 flex items-center justify-between w-full hover:bg-transparent"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          <span>
+            Intitulé
+          </span>
+          <span><Image src={TrierIcon} alt="" width={16} height={16} /></span>
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+
+      return (
+        <div className="capitalize">{row.original.entete.CT_Intitule}</div>
+      )
+
+    },
   },
   {
     accessorKey: "lignes",
