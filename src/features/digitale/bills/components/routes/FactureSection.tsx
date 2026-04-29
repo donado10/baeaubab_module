@@ -20,6 +20,9 @@ import { DialogEcrituresFromAllFactures } from '../DialogEcrituresFromAllFacture
 import { DialogEcrituresFromFacture, DialogEcrituresFromSelectedFactures } from '../dialogs'
 import { DialogEcrituresFromSelectedFacturesContainerEntreprise } from '../DialogEcrituresFromSelectedFactures'
 import { EStatusComptabilisation } from '@/features/digitale/_shared/types'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ChevronDown } from 'lucide-react'
+import { DialogCancelFactures, DialogCancelSelectedFacturesContainerEntreprise } from '../dialogs'
 
 
 
@@ -134,44 +137,82 @@ const FactureStatsContainer = () => {
 
 const FactureButtonContainer = () => {
     const store = useEntrepriseFactureStore()
-    return <div className='flex items-center gap-4'>
+    const [deleteAllOpen, setDeleteAllOpen] = useState(false)
+    const [generateAllOpen, setGenerateAllOpen] = useState(false)
+    const [generateSelectedOpen, setGenerateSelectedOpen] = useState(false)
+    const [cancelAllOpen, setCancelAllOpen] = useState(false)
+    const [cancelSelectedOpen, setCancelSelectedOpen] = useState(false)
 
-        {store.items.length > 0 && <DialogDeleteAllFactures >
+    const hasItems = store.items.length > 0
+    const hasSelection = store.billCart.length > 0
+    const showActions = hasItems || hasSelection
 
-            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
-                <span><MdCloudDownload />
-                </span><span>Annuler Factures</span>
-            </Button>
-        </DialogDeleteAllFactures>}
+    return (
+        <div className='flex items-center gap-4'>
+            {/* Controlled dialogs rendered outside the dropdown */}
+            <DialogDeleteAllFactures open={deleteAllOpen} onOpenChange={setDeleteAllOpen} />
+            <DialogEcrituresFromAllFactures open={generateAllOpen} onOpenChange={setGenerateAllOpen} />
+            <DialogEcrituresFromSelectedFacturesContainerEntreprise
+                open={generateSelectedOpen}
+                onOpenChange={setGenerateSelectedOpen}
+                year={store.periode[0]}
+                month={store.periode[1]}
+                en_list={store.billCart.map(item => String(item))}
+            />
+            <DialogCancelFactures open={cancelAllOpen} onOpenChange={setCancelAllOpen} />
+            <DialogCancelSelectedFacturesContainerEntreprise
+                open={cancelSelectedOpen}
+                onOpenChange={setCancelSelectedOpen}
+                year={store.periode[0]}
+                month={store.periode[1]}
+                en_list={store.billCart.map(item => String(item))}
+            />
 
-        {
-            store.billCart.length > 0 && <DialogEcrituresFromSelectedFacturesContainerEntreprise year={store.periode[0]} month={store.periode[1]} en_list={store.billCart.map(item => String(item))} >
+            {showActions && (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="default" className='bg-primary hover:bg-primary/70'>
+                            Actions <ChevronDown className='ml-2 h-4 w-4' />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        {hasItems && (
+                            <DropdownMenuItem onSelect={() => setDeleteAllOpen(true)}>
+                                Supprimer toutes les factures
+                            </DropdownMenuItem>
+                        )}
+                        {hasItems && (
+                            <DropdownMenuItem onSelect={() => setCancelAllOpen(true)}>
+                                Annuler toutes les factures
+                            </DropdownMenuItem>
+                        )}
+                        {hasSelection && (
+                            <DropdownMenuItem onSelect={() => setCancelSelectedOpen(true)}>
+                                Annuler factures sélectionnées ({store.billCart.length})
+                            </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        {hasItems && !hasSelection && (
+                            <DropdownMenuItem onSelect={() => setGenerateAllOpen(true)}>
+                                Générer écritures
+                            </DropdownMenuItem>
+                        )}
+                        {hasSelection && (
+                            <DropdownMenuItem onSelect={() => setGenerateSelectedOpen(true)}>
+                                Générer écritures — sélection ({store.billCart.length})
+                            </DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            )}
 
-                <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
-                    <span><MdCloudDownload />
-                    </span><span>Générer Ecritures Comptables</span>
+            <DialogLoadFacture>
+                <Button variant="default" className='bg-primary hover:bg-primary/70'>
+                    <span><MdCloudDownload /></span><span>Charger</span>
                 </Button>
-            </DialogEcrituresFromSelectedFacturesContainerEntreprise>
-        }
-
-        {store.items.length > 0 && store.billCart.length === 0 && <DialogEcrituresFromAllFactures >
-
-            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
-                <span><MdCloudDownload />
-                </span><span>Générer Ecritures Comptables</span>
-            </Button>
-        </DialogEcrituresFromAllFactures>}
-
-
-
-        <DialogLoadFacture >
-
-            <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
-                <span><MdCloudDownload />
-                </span><span>Charger</span>
-            </Button>
-        </DialogLoadFacture>
-    </div>
+            </DialogLoadFacture>
+        </div>
+    )
 }
 
 

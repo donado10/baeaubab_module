@@ -30,7 +30,7 @@ const useLogin = () => {
         },
       });
       queryClient.invalidateQueries({ queryKey: ["current"] });
-      router.push("/m1/dashboard/ecritures-digitales");
+      router.push("/m1/reporting");
       router.refresh();
     },
     onError: () => {

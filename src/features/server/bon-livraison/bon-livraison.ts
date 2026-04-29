@@ -253,6 +253,15 @@ const app = new Hono()
 			const { year, month } = c.req.valid("query");
 			const { entreprise_id } = c.req.param();
 
+			console.log(
+				"Fetching data for entreprise_id:",
+				entreprise_id,
+				"year:",
+				year,
+				"month:",
+				month,
+			);
+
 			const entreprisesAdjacent = await getAdjacentEntreprises(
 				entreprise_id,
 				year,

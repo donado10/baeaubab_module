@@ -19,6 +19,8 @@ const app = new Hono()
 		async (c) => {
 			const { month, year } = c.req.valid("query");
 
+			console.log("Fetching stats for year:", year, "month:", month);
+
 			const pool = await getConnection();
 
 			const result = await pool

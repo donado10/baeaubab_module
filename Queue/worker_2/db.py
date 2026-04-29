@@ -147,25 +147,25 @@ def set_bl_valide(entetes: list, facture_id):
         cursor_mssql.execute(script)
 
 
-def get_entete_facture(do_no, year, month):
+def get_entete_facture(do_no, year, month, do_type=[6]):
     query = f"""
-    select  * from TRANSIT.dbo.F_DOCENTETE_DIGITAL where do_no={do_no} and year(do_date) = {year} and month(do_date) = {month} and do_type=6
+    select  * from TRANSIT.dbo.F_DOCENTETE_DIGITAL where do_no={do_no} and year(do_date) = {year} and month(do_date) = {month} and do_type in ({','.join(str(x) for x in do_type)})
 """
     result = execute_select_one(query)
     return result
 
 
-def get_lignes_facture(do_no, year, month):
+def get_lignes_facture(do_no, year, month, do_type=[6]):
     query = f"""
-    select  * from TRANSIT.dbo.F_DOCLIGNE_DIGITAL where do_no={do_no} and year(do_date) = {year} and month(do_date) = {month} and do_type=6
+    select  * from TRANSIT.dbo.F_DOCLIGNE_DIGITAL where do_no={do_no} and year(do_date) = {year} and month(do_date) = {month} and do_type in ({','.join(str(x) for x in do_type)})
 """
     results = execute_select_all(query)
     return results
 
 
-def get_bls(do_no, year, month):
+def get_bls(do_no):
     query = f"""
-    select  * from TRANSIT.dbo.F_DOCLIGNE_DIGITAL where do_facturereference={do_no} and year(created_at) = {year} and month(created_at) = {month} and do_type=3
+    select  * from TRANSIT.dbo.F_DOCLIGNE_DIGITAL where do_facturereference={do_no} and  do_type=3
 """
     results = execute_select_all(query)
     return results

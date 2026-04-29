@@ -186,7 +186,7 @@ def generate_ecritures_from_facture(jobID, year, month, do_no):
         return
     entete_facture = get_entete_facture(do_no, year, month)
     lignes_facture = get_lignes_facture(do_no, year, month)
-    bls = get_bls(lignes_facture[0][0], year, month)
+    bls = get_bls(lignes_facture[0][0])
 
     grouped_bls = group_bls_by_article(bls)
     piece_no = get_latest_piece_no(year, month) + 1
@@ -243,8 +243,8 @@ def cancel_facture(jobID, year, month, do_no, commit=True):
         print(f"Facture {do_no} is already canceled.")
         return
 
-    entete_facture = get_entete_facture(do_no, year, month)
-    lignes_facture = get_lignes_facture(do_no, year, month)
+    entete_facture = get_entete_facture(do_no, year, month, do_type=[6, 7])
+    lignes_facture = get_lignes_facture(do_no, year, month, do_type=[6, 7])
 
     facture_id = get_latest_facture_id() + 1
 
@@ -274,7 +274,3 @@ def cancel_selected_factures(jobID, year, month, do_no_list):
         cancel_facture(jobID, year, month, do_no, commit=False)
     conn_mssql, cursor_mssql = dbo_mssql()
     conn_mssql.commit()
-
-
-if __name__ == "__main__":
-    cancel_facture("test_job_id", 2026, 3, 131594)

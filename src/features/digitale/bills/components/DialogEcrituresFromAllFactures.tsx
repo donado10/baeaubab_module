@@ -6,7 +6,7 @@ import { toast } from "sonner"
 import useGenerateEcrituresFromAllFactures from "../api/use-generate-ecritures-from-all-factures"
 import { DialogShell } from "@/components/dialogs/dialog-shell"
 
-export function DialogEcrituresFromAllFactures({ children }: { children: ReactNode }) {
+export function DialogEcrituresFromAllFactures({ children, open, onOpenChange }: { children?: ReactNode; open?: boolean; onOpenChange?: (open: boolean) => void }) {
     const store = useEntrepriseFactureStore()
     const { mutate, isPending } = useGenerateEcrituresFromAllFactures()
 
@@ -26,6 +26,8 @@ export function DialogEcrituresFromAllFactures({ children }: { children: ReactNo
             description="Les écritures comptables seront générées pour toutes les factures de la période sélectionnée."
             onConfirm={onConfirm}
             isPending={isPending}
+            open={open}
+            onOpenChange={onOpenChange}
         >
             {children}
         </DialogShell>

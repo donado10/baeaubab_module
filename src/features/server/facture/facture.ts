@@ -85,7 +85,7 @@ const getEntreprise = async (entreprise_id: string) => {
 
 // Function to get factures from selected entreprises
 
-const getFacturesByEntreprises = async (
+const getFacturesGeneralByEntreprises = async (
 	entreprise_ids: string[],
 	year: string,
 	month: string,
@@ -103,6 +103,54 @@ const getFacturesByEntreprises = async (
 				.map((_, i) => `@en${i}`)
 				.join(",")})
 				and DO_No in (select DO_No from [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type=6 and do_generale=1 and do_entreprise_sage in (${entreprise_ids
+					.map((_, i) => `@en${i}`)
+					.join(",")}) ))
+			select lev1.*, NULL as Art_Code from lev1
+	`;
+
+	let request = pool.request();
+	request.input("year", sql.Int, parseInt(year));
+	request.input("month", sql.Int, parseInt(month));
+	entreprise_ids.forEach((id, i) => {
+		request.input(`en${i}`, sql.NVarChar, id);
+	});
+
+	let result_entete = await request.query(query_entete);
+	let result_ligne = await request.query(query_ligne);
+
+	const entetes = [...result_entete.recordset];
+	const lignes = [...result_ligne.recordset];
+
+	const documents = entetes.map((entete) => {
+		const ligne = lignes.filter((li) => {
+			return entete.DO_No === li.DO_No;
+		});
+		return {
+			entete: entete,
+			lignes: ligne,
+		};
+	});
+
+	return documents;
+};
+const getFacturesByEntreprises = async (
+	entreprise_ids: string[],
+	year: string,
+	month: string,
+) => {
+	const pool = await getConnection();
+
+	const query_entete = `
+		with lev1 as (select DO_No,Client_ID,CT_Num,DO_TotalHT,DO_TotalTVA,DO_TotalTTC,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No FROM [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type in (6,7)  and do_entreprise_sage in (${entreprise_ids
+			.map((_, i) => `@en${i}`)
+			.join(",")}) )
+			select lev1.*,ct.CT_No,ct.CT_Intitule,ct.CT_Phone,ct.CT_Addresse,ct.CT_Email from lev1 inner join TRANSIT.DBO.F_COMPTET_DIGITAL ct on lev1.Client_ID= ct.CT_No
+	`;
+	const query_ligne = `
+			with lev1 as (select DO_No,Client_ID,CT_Num,ART_No,Art_Design,ART_Qte,DO_TotalHT,DO_Status,DO_Date,DO_Entreprise_Sage as EN_No,DO_PrixUnitaire FROM [TRANSIT].[dbo].[F_DOCligne_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type in (6,7) and do_entreprise_sage in (${entreprise_ids
+				.map((_, i) => `@en${i}`)
+				.join(",")})
+				and DO_No in (select DO_No from [TRANSIT].[dbo].[F_DOCENTETE_DIGITAL] where YEAR(do_date) = @year and MONTH(do_date)=@month and do_type in (6,7)  and do_entreprise_sage in (${entreprise_ids
 					.map((_, i) => `@en${i}`)
 					.join(",")}) ))
 			select lev1.*, NULL as Art_Code from lev1
@@ -188,16 +236,30 @@ const app = new Hono()
 				en_list: z.string(),
 				year: z.string(),
 				month: z.string(),
+				type: z.enum(["general", "all"]).default("general").optional(),
 			}),
 		),
 		async (c) => {
-			const { year, month, en_list } = c.req.valid("query");
-			const documents = await getFacturesByEntreprises(
-				en_list.split(","),
-				year,
-				month,
-			);
-			return c.json({ results: documents });
+			const { year, month, en_list, type } = c.req.valid("query");
+
+			let documents = [];
+
+			if (type === "general") {
+				documents = await getFacturesGeneralByEntreprises(
+					en_list.split(","),
+					year,
+					month,
+				);
+			}
+
+			if (type === "all") {
+				documents = await getFacturesByEntreprises(
+					en_list.split(","),
+					year,
+					month,
+				);
+				return c.json({ results: documents });
+			}
 		},
 	)
 

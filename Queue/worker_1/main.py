@@ -37,14 +37,18 @@ def handle_bl(bl: int):
     conn_mssql, _ = dbo_mssql()
     bl = get_bl(bl)
 
-    handle_bl_entete(bl)
-    handle_bl_ligne(bl)
-    conn_mssql.commit()
+    try:
+        handle_bl_entete(bl)
+        handle_bl_ligne(bl)
+        conn_mssql.commit()
 
-    update_entete(bl)
-    update_ligne(bl)
+        update_entete(bl)
+        update_ligne(bl)
 
-    conn_mssql.commit()
+        conn_mssql.commit()
+    except Exception as e:
+        conn_mssql.rollback()
+        raise RuntimeError(f"handle_bl failed for bl={bl}: {e}") from e
 
 
 def handle_bl_documents(jobID, year, month):

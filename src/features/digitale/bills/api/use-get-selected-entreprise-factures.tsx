@@ -1,8 +1,7 @@
 import { client } from "@/lib/rpc";
 import { useQuery } from "@tanstack/react-query";
-import { en } from "zod/v4/locales";
 
-const useGetSelectedEntrepriseFactures = (en_list: string[], year: string, month: string) => {
+const useGetSelectedEntrepriseFactures = (en_list: string[], year: string, month: string, type: "general" | "all" = "general") => {
     const query = useQuery({
         queryKey: ["entreprises_factures", en_list, year, month],
         queryFn: async ({ }) => {
@@ -13,6 +12,7 @@ const useGetSelectedEntrepriseFactures = (en_list: string[], year: string, month
                             en_list: en_list.join(','),
                             year: year,
                             month: month,
+                            type: type,
                         },
                     });
 

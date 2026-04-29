@@ -179,6 +179,7 @@ const BonLivraisonButtonContainer = () => {
 const BonLivraisonSectionContainer = () => {
     const store = useEntrepriseBonLivraisonStore()
     const searchParams = useSearchParams()
+    console.log(store.periode[0], store.periode[1])
     const { data, isPending } = useGetBonLivraisonStatsByCompany(store.periode[0], store.periode[1])
     const router = useRouter()
 

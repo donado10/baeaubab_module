@@ -1,7 +1,11 @@
 export { DialogBonLivraisonAction } from "./dialog-shell";
 export { DialogActualiserAllBonLivraison } from "@/features/digitale/bonLivraison/components/dialogs/actualiser-all";
 export { DialogActualiserOneEntrepriseBonLivraison } from "@/features/digitale/bonLivraison/components/dialogs/actualiser-one";
-export { DialogCancelFactures } from "../DialogDeleteFactures";
+export { DialogDeleteFactures } from "../DialogDeleteFactures";
 export { DialogEcrituresFromAllFactures } from "../DialogEcrituresFromAllFactures";
 export { DialogEcrituresFromSelectedFactures } from "../DialogEcrituresFromSelectedFactures";
 export { DialogEcrituresFromFacture } from "../DialogEcrituresFromFacture";
+export { DialogCancelFacture } from "./cancel-facture";
+export { DialogCancelFactures } from "./cancel-factures";
+export { DialogCancelSelectedFactures } from "./cancel-selected-factures";
+export { DialogCancelSelectedFacturesContainerEntreprise } from "./cancel-selected-factures";

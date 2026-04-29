@@ -68,7 +68,7 @@ export function DialogDeleteFacturesSingleEntreprise({ children }: { children: R
     )
 }
 
-export function DialogDeleteAllFactures({ children }: { children: ReactNode }) {
+export function DialogDeleteAllFactures({ children, open, onOpenChange }: { children?: ReactNode; open?: boolean; onOpenChange?: (open: boolean) => void }) {
 
     const store = useEntrepriseFactureStore()
 
@@ -95,7 +95,7 @@ export function DialogDeleteAllFactures({ children }: { children: ReactNode }) {
     }
 
     return (
-        <DialogBonLivraisonAction title="Supprimer Factures" onConfirm={submitHandler} isPending={false}>
+        <DialogBonLivraisonAction title="Supprimer Factures" onConfirm={submitHandler} isPending={false} open={open} onOpenChange={onOpenChange}>
             {children}
         </DialogBonLivraisonAction>
     )

@@ -20,8 +20,8 @@ from utils import (
 )
 
 
-def generate_facture(agence, entetes: list, year: int, month: int, facture_id, isGeneral=False) -> tuple:
-    do_transport = get_transport_value(agence[5])
+def generate_facture(agence, entetes: list, year: int, month: int, facture_id, isGeneral=False, withTransport=True) -> tuple:
+    do_transport = get_transport_value(agence[5]) if withTransport else 0
     is_tva = agence[3] == 1
 
     do_total_ht, do_total_tva, do_total_ttc = calculate_totals(
@@ -119,7 +119,7 @@ class BaseFactureBuilder(ABC):
             return False, None
 
         success, facture_id = generate_facture(
-            agence, entetes, self.year, self.month, facture_id, isGeneral)
+            agence, entetes, self.year, self.month, facture_id, isGeneral, withTransport=True)
 
         return success, facture_id
 
@@ -149,8 +149,10 @@ class FactureGeneraleBuilder(BaseFactureBuilder):
                 agence, self.year, self.month)
             if not entetes:
                 continue
+
+            print(entetes, flush=True)
             success, facture_id = generate_facture(
-                agence, entetes, self.year, self.month, lastest_facture + 1)
+                agence, entetes, self.year, self.month, lastest_facture + 1, isGeneral=False, withTransport=False)
             lastest_facture = facture_id if success else lastest_facture
         return lastest_facture
 
