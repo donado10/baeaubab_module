@@ -163,9 +163,9 @@ def get_lignes_facture(do_no, year, month, do_type=[6]):
     return results
 
 
-def get_bls(do_no):
+def get_bls(bl_no_list):
     query = f"""
-    select  * from TRANSIT.dbo.F_DOCLIGNE_DIGITAL where do_facturereference={do_no} and  do_type=3
+    select  * from TRANSIT.dbo.F_DOCLIGNE_DIGITAL where do_no in ({','.join(str(x) for x in bl_no_list)}) and  do_type=3
 """
     results = execute_select_all(query)
     return results
@@ -316,7 +316,7 @@ def insert_ecritures(do_no, ecritures):
             "CT_Num": None,
             "EC_Intitule": ligne["EC_Intitule"],
             "EC_Sens": ligne["EC_Sens"],
-            "EC_Montant": ligne["EC_Montant"],
+            "EC_Montant": ligne["EC_Montant"] if ttc['EC_Montant'] >= 0 else -ligne["EC_Montant"],
             "EC_Valide": ht["EC_Valide"],
         }
         print("Inserting HT Ecriture:", ligne)

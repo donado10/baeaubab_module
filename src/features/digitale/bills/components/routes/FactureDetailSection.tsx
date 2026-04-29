@@ -182,6 +182,8 @@ const FactureSelected = ({ document }: { document: IDocumentFacture }) => {
 const FactureOverview = ({ agence_dg }: { agence_dg: IAgence }) => {
     const entrepriseStore = useEntrepriseDetailStore()
 
+    console.log(entrepriseStore.documents)
+
     return <>
         <div className='  border-b border-gray-500 h-[15vh] p-8 '>
             <div className='flex items-center justify-between'>
@@ -190,7 +192,7 @@ const FactureOverview = ({ agence_dg }: { agence_dg: IAgence }) => {
                     <span className='text-xs font-semibold'>{agence_dg.CT_No}</span>
                 </div>
                 <div>
-                    {entrepriseStore.billCart.length > 0 && !entrepriseStore.selectedOption && <DialogDeleteFactures>
+                    {entrepriseStore.billCart.length > 0 && entrepriseStore.documents.every((item) => item.entete.DO_Status === 0) && entrepriseStore.documents.filter((item) => entrepriseStore.billCart.includes(item.entete.DO_No)).every((item) => item.entete.DO_FactureReference === null) && !entrepriseStore.selectedOption && <DialogDeleteFactures>
                         <Button variant={"default"} className='bg-primary hover:bg-primary/70'>
                             <span><MdCloudDownload /></span><span>Annuler Factures</span>
                         </Button>
@@ -254,7 +256,7 @@ const FactureDetailSection = () => {
     return (
         <main className='flex  w-full min-h-screen border border-gray-500  overflow-scroll'>
             <div className='w-2/7 h-screen overflow-scroll border-r border-gray-500  '>
-                <div className='border-b border-gray-500 p-8 h-[30vh]'>
+                <div className='border-b border-gray-500 p-8 h-[25vh]'>
                     <div className='mb-4'>
                         <h1 className='text-2xl font-bold mb-2'>Factures (<span className='text-xl font-light'>{store.documents.length}</span>)</h1>
                         <div className='flex items-center gap-2'>
@@ -270,15 +272,7 @@ const FactureDetailSection = () => {
                     <div className='mb-4'>
                         <Search onSetFilter={(value) => store.setFilter({ ...store.filter, searchByFacture: value })} />
                     </div>
-                    <div>
-                        <Button onClick={() => {
-                            store.setSelectedOption(!store.selectedOption)
-                        }}>
-                            {store.selectedOption && <span><GrRadialSelected /></span>}
-                            {!store.selectedOption && <span><GrRadial /></span>}
-                            <span>Select</span>
-                        </Button>
-                    </div>
+
                 </div>
                 <div className='h-[80vh] overflow-y-scroll'>
                     <FactureListContainer />

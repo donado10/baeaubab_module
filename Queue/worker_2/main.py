@@ -186,7 +186,15 @@ def generate_ecritures_from_facture(jobID, year, month, do_no):
         return
     entete_facture = get_entete_facture(do_no, year, month)
     lignes_facture = get_lignes_facture(do_no, year, month)
-    bls = get_bls(lignes_facture[0][0])
+
+    print(f"Entete Facture: {entete_facture}", flush=True)
+    print(f"Lignes Facture: {lignes_facture}", flush=True)
+
+    bl_no_list = [ligne[6] for ligne in lignes_facture]
+
+    bls = get_bls(bl_no_list)
+
+    print(bls, flush=True)
 
     grouped_bls = group_bls_by_article(bls)
     piece_no = get_latest_piece_no(year, month) + 1
